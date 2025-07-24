@@ -47,6 +47,7 @@ dependencies {
 
     // Hilt
     implementation(libs.hilt)
+    implementation(libs.hilt.navigation.compose)
     kapt(libs.hilt.compiler)
 
     // Supabase
@@ -71,6 +72,7 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
+    implementation(libs.material.icons.extended)
 
     // CameraX
     implementation(libs.camera.core)
@@ -84,6 +86,7 @@ dependencies {
     implementation(libs.coil.core)
     implementation(libs.coil.gif)
     implementation(libs.glide)
+    implementation(libs.coil.svg)
     ksp(libs.ksp)
 
     // Network

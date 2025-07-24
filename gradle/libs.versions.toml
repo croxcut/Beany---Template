@@ -8,6 +8,7 @@ espressoCore = "3.6.1"
 lifecycleRuntimeKtx = "2.9.2"
 activityCompose = "1.10.1"
 composeBom = "2025.07.00"
+icons = "1.6.6"
 
 # Hilt
 hilt = "2.57"
@@ -27,6 +28,9 @@ coil-gif = "2.7.0"
 glide = "4.16.0"
 glide-ksp = "4.16.0"
 kspPlugin = "2.2.20-Beta1-2.0.2"
+
+# Datastore
+datastore = "1.1.7"
 
 # Network
 logging-interceptor = "5.1.0"
@@ -51,6 +55,9 @@ androidx-ui-test-manifest = { group = "androidx.compose.ui", name = "ui-test-man
 androidx-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit4" }
 androidx-material3 = { group = "androidx.compose.material3", name = "material3" }
 
+# Compose Icons
+material-icons-extended = { module = "androidx.compose.material:material-icons-extended" , version.ref = "icons" }
+
 # CameraX
 camera-core = { module = "androidx.camera:camera-core", version.ref = "camera" }
 camera-camera2 = { module = "androidx.camera:camera-camera2", version.ref = "camera" }
@@ -64,6 +71,7 @@ coil-core = { group = "io.coil-kt", name = "coil", version.ref = "coil" }
 coil-gif = { group = "io.coil-kt", name = "coil-gif", version.ref = "coil-gif" }
 glide = { group = "com.github.bumptech.glide", name = "glide", version.ref = "glide" }
 ksp = { module = "com.github.bumptech.glide:ksp", version.ref = "glide-ksp" }
+coil-svg = {module = "io.coil-kt:coil-svg", version.ref = "coil"}
 
 # Network
 converter-gson = { module = "com.squareup.retrofit2:converter-gson", version.ref = "retrofit" }
@@ -76,7 +84,9 @@ supabase-postgrest = { module = "io.github.jan-tennert.supabase:postgrest-kt"}
 supabase-auth = { module = "io.github.jan-tennert.supabase:auth-kt"}
 supabase-realtime = { module = "io.github.jan-tennert.supabase:realtime-kt"}
 
-# Serialization
+# DataStore
+datastore = {module = "androidx.datastore:datastore-preferences", version.ref = "datastore"}
+
 
 # Ktor modules (required by Supabase)
 ktor-client-core = { group = "io.ktor", name = "ktor-client-core", version.ref = "ktor" }

@@ -45,8 +45,17 @@ android {
 
 dependencies {
 
+    // Domain + Data
+    implementation(project(":domain"))
+    implementation(project(":data"))
+    implementation(project(":core"))
+
+    // DataStore
+    implementation(libs.datastore)
+
     // Hilt
     implementation(libs.hilt)
+    implementation(libs.hilt.navigation.compose)
     kapt(libs.hilt.compiler)
 
     // Supabase

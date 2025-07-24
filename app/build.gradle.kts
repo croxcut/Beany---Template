@@ -45,10 +45,13 @@ android {
 
 dependencies {
 
-    implementation(project(":data"))
+    implementation(project(":feature"))
+    implementation(project(":domain"))
+    implementation(project(":core"))
 
     // Hilt
     implementation(libs.hilt)
+    implementation(libs.hilt.navigation.compose)
     kapt(libs.hilt.compiler)
 
     // Supabase
