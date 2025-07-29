@@ -147,7 +147,7 @@ fun OnboardingPage(
                     Button(
                         onClick = {
                             viewModel.completeOnboarding()
-                            navController.navigate(Route.AboutUsPage.route)
+                            navController.navigate(Route.LoginPage.route)
                         },
                         modifier = Modifier
                             .fillMaxWidth()

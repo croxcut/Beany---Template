@@ -53,7 +53,7 @@ fun LaunchPage(
         ) {
             navController.popBackStack()
             navController.navigate(
-                route = if (completed) Route.AboutUsPage.route
+                route = if (completed) Route.LoginPage.route
                 else Route.OnboardingPage.route
             )
         }

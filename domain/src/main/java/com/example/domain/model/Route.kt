@@ -8,4 +8,5 @@ sealed class Route(
     object OnboardingPage: Route(route = "Onboarding")
     object LoginPage: Route(route = "Login")
     object HomePage: Route(route = "Home")
+    object SignUp: Route(route = "SignUp")
 }

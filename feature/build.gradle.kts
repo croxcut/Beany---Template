@@ -50,6 +50,11 @@ dependencies {
     implementation(project(":data"))
     implementation(project(":core"))
 
+    // Google Auth
+    implementation(libs.google.auth)
+    implementation(libs.google.services)
+    implementation(libs.google.googleid)
+
     // DataStore
     implementation(libs.datastore)
 

@@ -48,7 +48,10 @@ dependencies {
     // Domain
     implementation(project(":domain"))
 
-
+    // Google Auth
+    implementation(libs.google.auth)
+    implementation(libs.google.services)
+    implementation(libs.google.googleid)
 
     // DataStore
     implementation(libs.datastore)

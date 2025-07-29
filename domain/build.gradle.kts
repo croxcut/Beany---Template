@@ -45,26 +45,10 @@ android {
 
 dependencies {
 
-    // DataStore
-    implementation(libs.datastore)
-
     // Hilt
     implementation(libs.hilt)
     implementation(libs.hilt.navigation.compose)
     kapt(libs.hilt.compiler)
-
-    // Supabase
-    implementation(platform(libs.supabase.bom))
-    implementation(libs.supabase.postgrest)
-    implementation(libs.supabase.realtime)
-    implementation(libs.supabase.auth)
-
-    // Ktor (required by Supabase)
-    implementation(libs.ktor.client.core)
-    implementation(libs.ktor.client.cio)
-    implementation(libs.ktor.client.auth)
-    implementation(libs.ktor.client.content.negotiation)
-    implementation(libs.ktor.serialization.kotlinx.json)
 
     // AndroidX + Compose
     implementation(libs.androidx.core.ktx)
@@ -75,25 +59,6 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
-
-    // CameraX
-    implementation(libs.camera.core)
-    implementation(libs.camera.camera2)
-    implementation(libs.camera.lifecycle)
-    implementation(libs.camera.view)
-    implementation(libs.camera.video)
-
-    // Coil + Glide
-    implementation(libs.coil.compose)
-    implementation(libs.coil.core)
-    implementation(libs.coil.gif)
-    implementation(libs.glide)
-    ksp(libs.ksp)
-
-    // Network
-    implementation(libs.retrofit)
-    implementation(libs.converter.gson)
-    implementation(libs.logging.interceptor)
 
     // Testing
     testImplementation(libs.junit)

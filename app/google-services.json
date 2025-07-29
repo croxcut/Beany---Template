@@ -1,0 +1,32 @@
+{
+  "project_info": {
+    "project_number": "266795972925",
+    "project_id": "beany-9596a",
+    "storage_bucket": "beany-9596a.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:266795972925:android:e64fe71b1b99b4672fed54",
+        "android_client_info": {
+          "package_name": "com.example.beany"
+        }
+      },
+      "oauth_client": [{
+        "client_id": "887642173743-0e50vijphqcfs62721r69nrm5gag8ks4.apps.googleusercontent.com",
+        "client_type": 3
+      }],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAgMEI_TKsMwXKs4aYR4b1MQjmmB56ZU-w"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

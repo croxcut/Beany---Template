@@ -106,5 +106,7 @@ fun MemberCard(
                 .align(Alignment.Center),
             contentScale = ContentScale.Crop
         )
+
+
     }
 }

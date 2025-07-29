@@ -1,5 +1,6 @@
 package com.example.nav
 
+import android.app.Activity
 import androidx.compose.runtime.Composable
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
@@ -14,15 +15,18 @@ import com.example.feature.login.LoginPage
 import com.example.feature.login.LoginPageViewModel
 import com.example.feature.onboarding.OnboardingPage
 import com.example.feature.onboarding.OnboardingPageViewModel
+import com.example.feature.signup.SignUpPage
+import com.example.feature.signup.SignUpViewModel
 
 @Composable
 fun NavGraph(
-    navController: NavHostController
+    navController: NavHostController,
+    activity: Activity
 ) {
 
     NavHost(
         navController = navController,
-        startDestination = Route.LoginPage.route
+        startDestination = Route.HomePage.route
     ) {
         composable(
             route = Route.LaunchPage.route
@@ -56,7 +60,9 @@ fun NavGraph(
             val viewModel: LoginPageViewModel = hiltViewModel()
             LoginPage(
                 navController = navController,
-                viewModel = viewModel
+                viewModel = viewModel,
+                clientId = "",
+                activity = activity
             )
         }
 
@@ -64,6 +70,15 @@ fun NavGraph(
             route = Route.HomePage.route
         ) {
             HomePage()
+        }
+
+        composable(
+            route = Route.SignUp.route
+        ) {
+            val viewModel: SignUpViewModel = hiltViewModel()
+            SignUpPage(
+                viewModel = viewModel
+            )
         }
 
     }

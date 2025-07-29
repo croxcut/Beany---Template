@@ -1,5 +1,10 @@
 package com.example.feature.login
 
+import android.app.Activity
+import android.content.Intent
+import android.util.Log
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -18,6 +23,8 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -39,6 +46,10 @@ import com.example.core.ui.theme.White
 import com.example.core.utils.rspDp
 import com.example.core.utils.rspSp
 import com.example.domain.model.Route
+import com.google.android.gms.auth.api.signin.GoogleSignIn
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions
+import com.google.android.gms.common.api.ApiException
+import io.ktor.util.collections.getValue
 
 object InputFieldUiParam{
 
@@ -71,7 +82,9 @@ object InputFieldUiParam{
 @Composable
 fun LoginPage(
     navController: NavController,
-    viewModel: LoginPageViewModel
+    viewModel: LoginPageViewModel,
+    activity: Activity,
+    clientId: String
 )  {
 
     Column(
@@ -112,6 +125,8 @@ fun LoginPage(
             )
 
         }
+
+        val loginResult by viewModel.loginResult.collectAsState()
 
         Column(
             modifier = Modifier
@@ -190,8 +205,10 @@ fun LoginPage(
 
             Button(
                 onClick = {
-                    val validated = viewModel.validateUser()
-                    if (validated) navController.navigate(Route.HomePage.route)
+                    viewModel.validateUser()
+                    loginResult?.let {
+                        if(it.isSuccess) navController.navigate(Route.HomePage.route)
+                    }
                 },
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Color.Transparent,
@@ -214,6 +231,57 @@ fun LoginPage(
                 )
             }
 
+            val result = viewModel.signInResult.collectAsState()
+            val googleSignInClient = remember {
+                GoogleSignIn.getClient(
+                    activity,
+                    GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                        .requestIdToken("887642173743-0e50vijphqcfs62721r69nrm5gag8ks4.apps.googleusercontent.com")
+                        .requestEmail()
+                        .build()
+                )
+            }
+            val launcher = rememberLauncherForActivityResult(
+                contract = ActivityResultContracts.StartActivityForResult()
+            ) { result ->
+                val task = GoogleSignIn.getSignedInAccountFromIntent(result.data)
+                try {
+                    val account = task.getResult(ApiException::class.java)
+                    val idToken = account.idToken
+                    if (idToken != null) {
+                        viewModel.signInWithGoogle(idToken)
+                    } else {
+                        Log.e("GoogleLogin", "No ID token returned.")
+                    }
+                } catch (e: ApiException) {
+                    Log.e("GoogleLogin", "Google sign-in failed", e)
+                }
+            }
+
+            Button(
+                onClick = {
+                    val signInIntent: Intent = googleSignInClient.signInIntent
+                    launcher.launch(signInIntent)
+                },
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color.Transparent,
+                    disabledContainerColor = Color.Transparent,
+                    disabledContentColor = Color.Gray
+                ),
+                modifier = Modifier
+                    .background(
+                        color = Brown1,
+                        shape = RoundedCornerShape(rspDp(20.dp))
+                    )
+                    .fillMaxWidth(fraction = 0.4f)
+            ) {
+                Text("Sign in with Google")
+            }
+
+            result.value?.let {
+                Text(if (it) "Signed in!" else "Sign-in failed.")
+            }
+
             Spacer(modifier = Modifier.weight(1f))
 
             Footer(
@@ -225,9 +293,9 @@ fun LoginPage(
             )
 
         }
-
-
     }
 
 }
 
+
+//  keytool -list -v -keystore ~/.android/debug.keystore -alias androiddebugkey -storepass android -keypass android

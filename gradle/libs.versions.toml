@@ -18,6 +18,7 @@ androidxHiltNavigationCompose = "1.2.0"
 # Supabase
 supabase = "3.2.2"
 ktor = "3.2.2"
+go-true = "2.6.1"
 
 # CameraX
 camera = "1.4.2"
@@ -31,6 +32,14 @@ kspPlugin = "2.2.20-Beta1-2.0.2"
 
 # Datastore
 datastore = "1.1.7"
+
+# GoogleAuth
+google-auth = "21.4.0"
+google-services = "4.4.3"
+google-id = "1.1.1"
+
+# Credential
+credential = "1.5.0"
 
 # Network
 logging-interceptor = "5.1.0"
@@ -54,6 +63,7 @@ androidx-ui-tooling-preview = { group = "androidx.compose.ui", name = "ui-toolin
 androidx-ui-test-manifest = { group = "androidx.compose.ui", name = "ui-test-manifest" }
 androidx-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit4" }
 androidx-material3 = { group = "androidx.compose.material3", name = "material3" }
+androidx-credential = { module = "androidx.credentials:credentials", version.ref = "credential"}
 
 # Compose Icons
 material-icons-extended = { module = "androidx.compose.material:material-icons-extended" , version.ref = "icons" }
@@ -83,10 +93,15 @@ supabase-bom = { module = "io.github.jan-tennert.supabase:bom", version.ref = "s
 supabase-postgrest = { module = "io.github.jan-tennert.supabase:postgrest-kt"}
 supabase-auth = { module = "io.github.jan-tennert.supabase:auth-kt"}
 supabase-realtime = { module = "io.github.jan-tennert.supabase:realtime-kt"}
+supabase-supabase = { module = "io.github.jan-tennert.supabase:supabase-kt" }
 
 # DataStore
 datastore = {module = "androidx.datastore:datastore-preferences", version.ref = "datastore"}
 
+# Google Auth
+google-auth = { module = "com.google.android.gms:play-services-auth", version.ref = "google-auth"}
+google-services = { module = "com.google.gms:google-services", version.ref = "google-services"}
+google-googleid = { module = "com.google.android.libraries.identity.googleid:googleid", version.ref = "google-id"}
 
 # Ktor modules (required by Supabase)
 ktor-client-core = { group = "io.ktor", name = "ktor-client-core", version.ref = "ktor" }
@@ -99,8 +114,8 @@ ktor-serialization-kotlinx-json = { group = "io.ktor", name = "ktor-serializatio
 hilt = { module = "com.google.dagger:hilt-android", version.ref = "hilt" }
 hilt-compiler = { module = "com.google.dagger:hilt-compiler", version.ref = "hiltCompiler" }
 hilt-navigation-compose = { module = "androidx.hilt:hilt-navigation-compose", version.ref = "androidxHiltNavigationCompose" }
-androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
-material = { group = "com.google.android.material", name = "material", version.ref = "material" }
+#androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
+#material = { group = "com.google.android.material", name = "material", version.ref = "material" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

@@ -49,6 +49,9 @@ dependencies {
     implementation(project(":domain"))
     implementation(project(":core"))
 
+    // Credential
+    implementation(libs.androidx.credential)
+
     // Hilt
     implementation(libs.hilt)
     implementation(libs.hilt.navigation.compose)
@@ -59,6 +62,11 @@ dependencies {
     implementation(libs.supabase.postgrest)
     implementation(libs.supabase.realtime)
     implementation(libs.supabase.auth)
+
+    // Google Auth
+    implementation(libs.google.auth)
+    implementation(libs.google.services)
+    implementation(libs.google.googleid)
 
     // Ktor (required by Supabase)
     implementation(libs.ktor.client.core)
