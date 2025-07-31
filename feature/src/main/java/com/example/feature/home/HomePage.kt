@@ -1,7 +1,10 @@
 package com.example.feature.home
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -9,20 +12,28 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
+import com.example.core.composables.Footer
 import com.example.core.ui.theme.Brown1
 import com.example.core.ui.theme.Etna
 import com.example.core.ui.theme.GlacialIndifference
@@ -31,25 +42,34 @@ import com.example.core.ui.theme.Kare
 import com.example.core.ui.theme.White
 import com.example.core.utils.rspDp
 import com.example.core.utils.rspSp
+import com.example.domain.model.Route
+import com.example.feature.R
 import io.github.jan.supabase.realtime.Column
 
 @Composable
 fun HomePage(
-
+    navController: NavController
 ) {
 
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .verticalScroll(
+                state = rememberScrollState()
+            )
             .background(
                 color = Brown1
-            )
+            ),
     ) {
 
         Column(
             modifier = Modifier
                 .statusBarsPadding()
-                .fillMaxWidth()
+                .height(
+                    height = rspDp(
+                        baseDp = 120.dp
+                    )
+                )
                 .fillMaxHeight(
                     fraction = 0.15f
                 ),
@@ -118,7 +138,7 @@ fun HomePage(
                     .fillMaxWidth(),
             ) {
                 Text(
-                    text = "Rise and shine, Faith!",
+                    text = "Rise and shine, [{User}]",
                     style = TextStyle(
                         fontFamily = Etna,
                         color = Brown1,
@@ -195,6 +215,339 @@ fun HomePage(
                     )
                 )
         )
+
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(
+                    bottom = rspDp(
+                        baseDp = 10.dp
+                    )
+                ),
+//                .background(
+//                    color = White
+//                )
+            verticalArrangement = Arrangement.spacedBy(rspDp(baseDp = 10.dp))
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+            ) {
+                Box(
+                    modifier = Modifier
+                        .weight(
+                            weight = 1f
+                        )
+                        .optionsContainerConfig()
+                        .clickable(
+                            onClick = {
+                                navController.navigate("Realtime")
+                            }
+                        )
+                ) {
+                    Image(
+                        painter = painterResource(R.drawable.camera),
+                        contentDescription = "Template",
+                        modifier = Modifier
+                            .size(
+                                size = rspDp(
+                                    baseDp = 80.dp
+                                )
+                            )
+                            .offset(
+                                x = rspDp(
+                                    baseDp = 80.dp
+                                ),
+                                y = rspDp(
+                                    baseDp = 18.dp
+                                )
+                            ),
+                    )
+
+                    Column(
+                        modifier = Modifier
+                            .padding(
+                                all = rspDp(
+                                    baseDp = 10.dp
+                                )
+                            )
+                    ) {
+                        Text(
+                            text = "Video",
+                            style = TextStyle(
+                                fontFamily = Etna,
+                                color = Brown1,
+                                fontSize = rspSp(
+                                    baseSp = 20.sp
+                                )
+                            ),
+
+                        )
+
+                        Text(
+                            text = "Realtime Detection",
+                            style = TextStyle(
+                                fontFamily = GlacialIndifference,
+                                color = Brown1
+                            ),
+                            modifier = Modifier
+                                .fillMaxWidth(
+                                    fraction = 0.5f
+                                )
+                        )
+                    }
+                }
+
+                Box(
+                    modifier = Modifier
+                        .weight(
+                            weight = 1f
+                        )
+                        .optionsContainerConfig()
+                        .clickable(
+                            onClick = {
+                                navController.navigate("UploadImage")
+                            }
+                        )
+                ) {
+                    Image(
+                        painter = painterResource(R.drawable.upload),
+                        contentDescription = "Template",
+                        modifier = Modifier
+                            .size(
+                                size = rspDp(
+                                    baseDp = 80.dp
+                                )
+                            )
+                            .offset(
+                                x = rspDp(
+                                    baseDp = 80.dp
+                                ),
+                                y = rspDp(
+                                    baseDp = 18.dp
+                                )
+                            ),
+                    )
+
+                    Column(
+                        modifier = Modifier
+                            .padding(
+                                all = rspDp(
+                                    baseDp = 10.dp
+                                )
+                            )
+                    ) {
+                        Text(
+                            text = "Upload",
+                            style = TextStyle(
+                                fontFamily = Etna,
+                                color = Brown1,
+                                fontSize = rspSp(
+                                    baseSp = 20.sp
+                                )
+                            ),
+
+                            )
+
+                        Text(
+                            text = "Upload Image for diagnosis",
+                            style = TextStyle(
+                                fontFamily = GlacialIndifference,
+                                color = Brown1
+                            ),
+                            modifier = Modifier
+                                .fillMaxWidth(
+                                    fraction = 0.5f
+                                )
+                        )
+                    }
+                }
+            }
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+            ) {
+                Box(
+                    modifier = Modifier
+                        .weight(
+                            weight = 1f
+                        )
+                        .optionsContainerConfig()
+                        .clickable(
+                            onClick = {
+                                navController.navigate("SingleImage")
+                            }
+                        )
+                ) {
+                    Image(
+                        painter = painterResource(R.drawable.camera),
+                        contentDescription = "Template",
+                        modifier = Modifier
+                            .size(
+                                size = rspDp(
+                                    baseDp = 80.dp
+                                )
+                            )
+                            .offset(
+                                x = rspDp(
+                                    baseDp = 80.dp
+                                ),
+                                y = rspDp(
+                                    baseDp = 18.dp
+                                )
+                            ),
+                    )
+
+                    Column(
+                        modifier = Modifier
+                            .padding(
+                                all = rspDp(
+                                    baseDp = 10.dp
+                                )
+                            )
+                    ) {
+                        Text(
+                            text = "Camera",
+                            style = TextStyle(
+                                fontFamily = Etna,
+                                color = Brown1,
+                                fontSize = rspSp(
+                                    baseSp = 20.sp
+                                )
+                            ),
+
+                            )
+
+                        Text(
+                            text = "Single Image Detection",
+                            style = TextStyle(
+                                fontFamily = GlacialIndifference,
+                                color = Brown1
+                            ),
+                            modifier = Modifier
+                                .fillMaxWidth(
+                                    fraction = 0.5f
+                                )
+                        )
+                    }
+                }
+
+                Box(
+                    modifier = Modifier
+                        .weight(
+                            weight = 1f
+                        )
+                        .optionsContainerConfig()
+                ) {
+                    Image(
+                        painter = painterResource(R.drawable.upload),
+                        contentDescription = "Template",
+                        modifier = Modifier
+                            .size(
+                                size = rspDp(
+                                    baseDp = 80.dp
+                                )
+                            )
+                            .offset(
+                                x = rspDp(
+                                    baseDp = 80.dp
+                                ),
+                                y = rspDp(
+                                    baseDp = 18.dp
+                                )
+                            ),
+                    )
+
+                    Column(
+                        modifier = Modifier
+                            .padding(
+                                all = rspDp(
+                                    baseDp = 10.dp
+                                )
+                            )
+                    ) {
+                        Text(
+                            text = "Chat",
+                            style = TextStyle(
+                                fontFamily = Etna,
+                                color = Brown1,
+                                fontSize = rspSp(
+                                    baseSp = 20.sp
+                                )
+                            )
+                        )
+
+                        Text(
+                            text = "Realtime Detection",
+                            style = TextStyle(
+                                fontFamily = GlacialIndifference,
+                                color = Brown1
+                            ),
+                            modifier = Modifier
+                                .fillMaxWidth(
+                                    fraction = 0.5f
+                                )
+                        )
+                    }
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(height = rspDp(baseDp = 10.dp)))
+
+        // Activity Status
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(
+                    color = White
+                ),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(
+                        all = rspDp(
+                            baseDp = 10.dp
+                        )
+                    )
+            ) {
+                Text(
+                    text = "Activity Status",
+                    style = TextStyle(
+                        fontFamily = Etna,
+                        color = Brown1,
+                        fontSize = rspSp(
+                            baseSp = 20.sp
+                        )
+                    )
+                )
+            }
+
+            Spacer(modifier = Modifier.height(height = rspDp(baseDp = 100.dp)))
+
+            // Footer Section
+            Text(
+                text = "Beany",
+                style = TextStyle(
+                    fontFamily = Kare,
+                    fontSize = rspSp(
+                        baseSp = 20.sp
+                    ),
+                    color = Brown1
+                )
+            )
+
+            Footer(
+                modifier = Modifier
+                    .navigationBarsPadding(),
+                onClick = {
+                    navController.navigate(Route.AboutUsPage.route)
+                }
+            )
+        }
 
     }
 

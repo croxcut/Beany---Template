@@ -8,6 +8,9 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.example.domain.model.Route
 import com.example.feature.aboutUs.AboutUsPage
+import com.example.feature.detection.realtime.RealtimeDetectionPage
+import com.example.feature.detection.singleImage.SingleImageDetectionPage
+import com.example.feature.detection.upload.UploadDetectionPage
 import com.example.feature.home.HomePage
 import com.example.feature.launch.LaunchPage
 import com.example.feature.launch.LaunchPageViewModel
@@ -69,7 +72,9 @@ fun NavGraph(
         composable(
             route = Route.HomePage.route
         ) {
-            HomePage()
+            HomePage(
+                navController = navController
+            )
         }
 
         composable(
@@ -79,6 +84,24 @@ fun NavGraph(
             SignUpPage(
                 viewModel = viewModel
             )
+        }
+
+        composable(
+            route = Route.RealtimeDetectionPage.route
+        ) {
+            RealtimeDetectionPage()
+        }
+
+        composable(
+            route = Route.SingleImageDetectionPage.route
+        ) {
+            SingleImageDetectionPage()
+        }
+
+        composable(
+            route = Route.UploadDetectionPage.route
+        ) {
+            UploadDetectionPage()
         }
 
     }

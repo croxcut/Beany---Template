@@ -9,4 +9,9 @@ sealed class Route(
     object LoginPage: Route(route = "Login")
     object HomePage: Route(route = "Home")
     object SignUp: Route(route = "SignUp")
+
+
+    object RealtimeDetectionPage: Route(route = "Realtime")
+    object SingleImageDetectionPage: Route(route = "SingleImage")
+    object UploadDetectionPage: Route(route = "UploadImage")
 }
