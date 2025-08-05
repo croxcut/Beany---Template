@@ -9,9 +9,20 @@ sealed class Route(
     object LoginPage: Route(route = "Login")
     object HomePage: Route(route = "Home")
     object SignUp: Route(route = "SignUp")
+    object UserProfilePage: Route(route = "Profile")
 
+    object NotificationPage: Route(route = "Notification")
 
+    // AI Feature
     object RealtimeDetectionPage: Route(route = "Realtime")
     object SingleImageDetectionPage: Route(route = "SingleImage")
     object UploadDetectionPage: Route(route = "UploadImage")
+    object DetectionHistoryPage: Route(route = "History")
+    object FeatureSelectionPage: Route(route = "FeatureSelection")
+
+    companion object {
+        val navRoutes: List<String> by lazy {
+            Route::class.sealedSubclasses.mapNotNull { it.objectInstance?.route }
+        }
+    }
 }

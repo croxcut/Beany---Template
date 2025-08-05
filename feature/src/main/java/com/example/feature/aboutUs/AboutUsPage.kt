@@ -142,6 +142,10 @@ fun AboutUsPage(
                             MemberCard(member = member)
                             Spacer(modifier = Modifier.height(paddingStandard / 2))
                         }
+
+                        item {
+                            Spacer(modifier = Modifier.height(75.dp))
+                        }
                     }
 
                     Box(

@@ -2,6 +2,7 @@ package com.example.feature.home
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -69,6 +70,9 @@ fun HomePage(
                     height = rspDp(
                         baseDp = 120.dp
                     )
+                )
+                .padding(
+                    horizontal = rspDp(20.dp)
                 )
                 .fillMaxHeight(
                     fraction = 0.15f
@@ -526,7 +530,21 @@ fun HomePage(
                 )
             }
 
-            Spacer(modifier = Modifier.height(height = rspDp(baseDp = 100.dp)))
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = rspDp(10.dp))
+                    .border(
+                        width = rspDp(2.dp),
+                        color = Brown1,
+                        shape = RoundedCornerShape(rspDp(10.dp))
+                    )
+                    .padding(rspDp(10.dp))
+            ) {
+                Text("HELLO")
+            }
+
+            Spacer(modifier = Modifier.height(height = rspDp(baseDp = 50.dp)))
 
             // Footer Section
             Text(
@@ -542,7 +560,8 @@ fun HomePage(
 
             Footer(
                 modifier = Modifier
-                    .navigationBarsPadding(),
+                    .navigationBarsPadding()
+                    .padding(bottom = rspDp(100.dp)),
                 onClick = {
                     navController.navigate(Route.AboutUsPage.route)
                 }

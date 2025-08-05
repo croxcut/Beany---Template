@@ -1,0 +1,129 @@
+package com.example.feature.navigation
+
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.dp
+import com.example.core.ui.theme.Brown1
+import com.example.core.ui.theme.White
+import com.example.core.utils.rspDp
+import com.example.domain.model.NavBarItem
+import com.example.domain.model.Route
+import com.example.feature.R
+
+@Composable
+fun NavigationBar(
+    currentRoute: String?,
+    onTabSelected: (String) -> Unit,
+) {
+    val items = listOf(
+        NavBarItem(
+            route = Route.HomePage.route,
+            label = "Home",
+            icon = R.drawable.home_icon
+        ),
+        NavBarItem(
+            route = Route.DetectionHistoryPage.route,
+            label = "History",
+            icon = R.drawable.history_icon
+        ),
+        NavBarItem(
+            route = Route.FeatureSelectionPage.route,
+            label = "Feature",
+            icon = R.drawable.camera_icon
+        ),
+        NavBarItem(
+            route = Route.NotificationPage.route,
+            label = "Notification",
+            icon = R.drawable.notification_icon
+        ),
+        NavBarItem(
+            route = Route.UserProfilePage.route,
+            label = "Profile",
+            icon = R.drawable.profile_icon
+        ),
+    )
+
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(rspDp(100.dp))
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(rspDp(50.dp))
+                .background(White)
+                .align(Alignment.BottomCenter)
+                .pointerInput(Unit) {}
+        )
+
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(100.dp)
+                .background(
+                    color = Color.Transparent
+                ),
+            horizontalArrangement = Arrangement.SpaceEvenly,
+            verticalAlignment = Alignment.Bottom,
+        ) {
+            items.forEach { item ->
+                val isSelected = item.route == currentRoute
+                val isFeature = item.route == Route.FeatureSelectionPage.route
+
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier
+                        .clickable { onTabSelected(item.route) }
+                        .then(
+                            when {
+                                isSelected -> Modifier
+                                    .border(
+                                        width = 3.dp,
+                                        color = Brown1,
+                                        shape = CircleShape
+                                    )
+                                else -> Modifier
+                            }
+                        )
+                        .padding(6.dp)
+                ) {
+                    Image(
+                        painter = painterResource(item.icon),
+                        contentDescription = "Icon",
+                        modifier = Modifier
+                            .then(
+                                if(isFeature) Modifier
+                                    .background(
+                                        color = Brown1,
+                                        shape = CircleShape
+                                    )
+                                    .size(rspDp(45.dp))
+                                else Modifier
+                            )
+                    )
+                }
+            }
+        }
+    }
+}
