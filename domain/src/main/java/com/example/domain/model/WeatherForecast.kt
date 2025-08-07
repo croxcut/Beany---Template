@@ -9,6 +9,7 @@ data class WeatherForecast(
 
 data class DailyForecast(
     val date: String,
+    val dayOfWeek: Int,
     val maxTemperature: Double,
     val minTemperature: Double,
     val weatherCode: Int,

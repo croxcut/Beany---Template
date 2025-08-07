@@ -106,14 +106,14 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-//            BeanyTheme {
-//                val navHostController = rememberNavController()
-//                NavGraph(navHostController, activity = this)
-//            }
-            MaterialTheme {
-//                CountryScreen()
-                WeatherPage()
+            BeanyTheme {
+                val navHostController = rememberNavController()
+                NavGraph(navHostController, activity = this)
             }
+//            MaterialTheme {
+////                CountryScreen()
+//                WeatherPage()
+//            }
         }
     }
 }

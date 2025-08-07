@@ -37,6 +37,10 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.domain.model.DailyForecast
 import com.example.domain.model.WeatherForecast
+import java.text.SimpleDateFormat
+import java.util.Calendar
+import java.util.Locale
+import java.util.TimeZone
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -49,7 +53,7 @@ fun WeatherPage(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Philippines Weather Forecast") },
+                title = { Text("Beany Weather Forecast") },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.primaryContainer,
                     titleContentColor = MaterialTheme.colorScheme.primary
@@ -62,7 +66,6 @@ fun WeatherPage(
                 .padding(padding)
                 .fillMaxSize()
         ) {
-            // City Selection Dropdown
             var expanded by remember { mutableStateOf(false) }
             Box(
                 modifier = Modifier
@@ -104,7 +107,6 @@ fun WeatherPage(
                 }
             }
 
-            // Loading and Error States
             when {
                 state.isLoading -> {
                     Box(
@@ -136,7 +138,7 @@ fun WeatherPage(
                         modifier = Modifier.fillMaxSize(),
                         contentAlignment = Alignment.Center
                     ) {
-                        Text("Select a city to see the weather forecast")
+                        Text("Select a city to see the weather forecast :D*")
                     }
                 }
             }
@@ -158,35 +160,46 @@ fun WeatherForecastList(forecast: WeatherForecast) {
 
 @Composable
 fun DailyForecastItem(daily: DailyForecast) {
+    val weekday = when (daily.dayOfWeek) {
+        Calendar.SUNDAY -> "Sunday"
+        Calendar.MONDAY -> "Monday"
+        Calendar.TUESDAY -> "Tuesday"
+        Calendar.WEDNESDAY -> "Wednesday"
+        Calendar.THURSDAY -> "Thursday"
+        Calendar.FRIDAY -> "Friday"
+        Calendar.SATURDAY -> "Saturday"
+        else -> daily.date
+    }
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 8.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 5.dp)
     ) {
         Column(
             modifier = Modifier.padding(16.dp)
         ) {
             Text(
-                text = daily.date,
+                text = "$weekday, ${daily.date}",
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold
             )
 
+            // ... rest of the code remains the same ...
             Spacer(modifier = Modifier.height(8.dp))
 
             Row(
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // Weather icon based on weather code (simplified)
                 val weatherIcon = when(daily.weatherCode) {
-                    0 -> "☀️" // Clear sky
-                    in 1..3 -> "⛅" // Mainly clear, partly cloudy
-                    in 45..48 -> "🌫️" // Fog
-                    in 51..67 -> "🌧️" // Rain
-                    in 71..77 -> "❄️" // Snow
-                    in 80..82 -> "🌦️" // Rain showers
-                    in 95..99 -> "⛈️" // Thunderstorm
+                    0 -> "☀️"
+                    in 1..3 -> "⛅"
+                    in 45..48 -> "🌫️"
+                    in 51..67 -> "🌧️"
+                    in 71..77 -> "❄️"
+                    in 80..82 -> "🌦️"
+                    in 95..99 -> "⛈️"
                     else -> "🌤️"
                 }
 

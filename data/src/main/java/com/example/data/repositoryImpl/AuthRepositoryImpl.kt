@@ -26,24 +26,4 @@ class AuthRepositoryImpl @Inject constructor(
         }
     }
 
-    // TODO: Quantize??... Reduce Profile Data to 400kb :D*
-    override suspend fun signUp(credential: SignUpCredential): Result<Unit> {
-        return try {
-            val userMetadata = buildJsonObject {
-                put("full_name", credential.fullName)
-                put("province", credential.province)
-                put("farm", credential.farm)
-            }
-
-            supabaseClient.auth.signUpWith(Email) {
-                email = credential.username
-                password = credential.password
-                data = userMetadata
-            }
-
-            Result.success(Unit)
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
-    }
 }

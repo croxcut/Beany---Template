@@ -7,8 +7,12 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.domain.model.SignUpCredential
+import com.example.domain.model.UserCredential
 import com.example.domain.usecase.SignUpUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -19,37 +23,65 @@ class SignUpViewModel @Inject constructor(
 
     var username by mutableStateOf("")
         private set
-    var password by mutableStateOf("")
-        private set
+
     var fullName by mutableStateOf("")
         private set
+
+    var email by mutableStateOf("")
+        private set
+
+    var password by mutableStateOf("")
+        private set
+
+    var confirmPassword by mutableStateOf("")
+        private set
+
     var province by mutableStateOf("")
         private set
+
     var farm by mutableStateOf("")
         private set
 
-    var signUpResult by mutableStateOf<Result<Unit>?>(null)
-        private set
+    var registeredAs by mutableStateOf("")
 
-    fun onUsernameChange(value: String) { username = value }
-    fun onPasswordChange(value: String) { password = value }
-    fun onFullNameChange(value: String) { fullName = value }
-    fun onProvinceChange(value: String) { province = value }
-    fun onFarmChange(value: String) { farm = value }
+    fun onUsernameChanged(newUsername: String) {
+        username = newUsername
+    }
 
-    fun signUp() {
+    fun onFullNameChanged(newFullName: String) {
+        fullName = newFullName
+    }
+
+    fun onEmailChanged(newEmail: String) {
+        email = newEmail
+    }
+
+    fun onPasswordChanged(newPassword: String) {
+        password = newPassword
+    }
+
+    fun onConfirmPasswordChanged(newConfirmPassword: String) {
+        confirmPassword = newConfirmPassword
+    }
+
+    fun onProvinceChanged(newProvince: String) {
+        province = newProvince
+    }
+
+    private val _signUpState = MutableStateFlow<SignUpState>(SignUpState.Idle)
+    val signUpState: StateFlow<SignUpState> = _signUpState.asStateFlow()
+
+    fun signUp(userCredential: UserCredential) {
         viewModelScope.launch {
-            val credential = SignUpCredential(username, password, fullName, province, farm)
-
-            Log.d("SignUp", "Attempting signup with: $credential")
-
-            signUpResult = signUpUseCase(credential)
-
-            signUpResult!!.onSuccess {
-                Log.d("SignUp", "Signup successful!")
-            }.onFailure { error ->
-                Log.e("SignUp", "Signup failed: ${error.message}", error)
-            }
+            _signUpState.value = SignUpState.Loading
+            signUpUseCase(userCredential)
+                .onSuccess {
+                    _signUpState.value = SignUpState.Success
+                }
+                .onFailure { e ->
+                    _signUpState.value = SignUpState.Error(e.message ?: "Unknown error")
+                }
         }
     }
+
 }

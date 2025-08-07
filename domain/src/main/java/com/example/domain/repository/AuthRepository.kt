@@ -6,5 +6,4 @@ import com.example.domain.model.SignUpCredential
 
 interface AuthRepository{
     suspend fun login(credential: LoginCredential): Result<Unit>
-    suspend fun signUp(credential: SignUpCredential): Result<Unit>
 }
