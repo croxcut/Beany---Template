@@ -2,7 +2,6 @@ package com.example.data.di
 
 import com.example.data.repositoryImpl.SignUpRepositoryImpl
 import com.example.domain.repository.SignUpRepository
-import com.example.domain.usecase.LoginUseCase
 import com.example.domain.usecase.SignUpUseCase
 import dagger.Module
 import dagger.Provides

@@ -6,7 +6,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.domain.model.LoginCredential
 import com.example.domain.repository.GoogleAuthRepository
-import com.example.domain.usecase.LoginUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -15,7 +14,6 @@ import javax.inject.Inject
 
 @HiltViewModel
 class LoginPageViewModel @Inject constructor(
-    private val loginUseCase: LoginUseCase,
     private val repository: GoogleAuthRepository
 ): ViewModel() {
 
@@ -37,20 +35,7 @@ class LoginPageViewModel @Inject constructor(
     val loginResult: StateFlow<Result<Unit>?> = _loginResult
 
     fun validateUser() {
-        viewModelScope.launch {
-            val credentials = LoginCredential(userName, password)
-            _loginResult.value = loginUseCase(credentials)
-        }
-    }
 
-    private val _signInResult = MutableStateFlow<Boolean?>(null)
-    val signInResult: StateFlow<Boolean?> = _signInResult
-
-    fun signInWithGoogle(idToken: String) {
-        viewModelScope.launch {
-            val success = repository.signInWithGoogle(idToken)
-            _signInResult.value = success
-        }
     }
 
 }

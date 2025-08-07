@@ -1,8 +1,5 @@
 package com.example.data.di
 
-import com.example.data.repositoryImpl.AuthRepositoryImpl
-import com.example.domain.repository.AuthRepository
-import com.example.domain.usecase.LoginUseCase
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -15,7 +12,7 @@ import javax.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)
-object AppModule {
+object SupabaseModule {
 
     @Provides
     @Singleton
@@ -27,17 +24,6 @@ object AppModule {
             install(Auth)
             install(Postgrest)
         }
-    }
-
-    @Provides
-    @Singleton
-    fun provideAuthRepository(supabaseClient: SupabaseClient): AuthRepository {
-        return AuthRepositoryImpl(supabaseClient)
-    }
-
-    @Provides
-    fun provideLoginUseCase(repository: AuthRepository): LoginUseCase {
-        return LoginUseCase(repository)
     }
 
 }
