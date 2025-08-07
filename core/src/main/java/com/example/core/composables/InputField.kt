@@ -76,7 +76,7 @@ fun InputField(
                     }
                 }
             },
-            colors = TextFieldDefaults.colors(  // <-- Changed from `textFieldColors` to `colors`
+            colors = TextFieldDefaults.colors(
                 focusedContainerColor = Color.Transparent,
                 unfocusedContainerColor = Color.Transparent,
                 cursorColor = MaterialTheme.colorScheme.primary,

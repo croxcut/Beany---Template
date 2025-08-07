@@ -231,57 +231,6 @@ fun LoginPage(
                 )
             }
 
-            val result = viewModel.signInResult.collectAsState()
-            val googleSignInClient = remember {
-                GoogleSignIn.getClient(
-                    activity,
-                    GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-                        .requestIdToken("887642173743-0e50vijphqcfs62721r69nrm5gag8ks4.apps.googleusercontent.com")
-                        .requestEmail()
-                        .build()
-                )
-            }
-            val launcher = rememberLauncherForActivityResult(
-                contract = ActivityResultContracts.StartActivityForResult()
-            ) { result ->
-                val task = GoogleSignIn.getSignedInAccountFromIntent(result.data)
-                try {
-                    val account = task.getResult(ApiException::class.java)
-                    val idToken = account.idToken
-                    if (idToken != null) {
-                        viewModel.signInWithGoogle(idToken)
-                    } else {
-                        Log.e("GoogleLogin", "No ID token returned.")
-                    }
-                } catch (e: ApiException) {
-                    Log.e("GoogleLogin", "Google sign-in failed", e)
-                }
-            }
-
-            Button(
-                onClick = {
-                    val signInIntent: Intent = googleSignInClient.signInIntent
-                    launcher.launch(signInIntent)
-                },
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color.Transparent,
-                    disabledContainerColor = Color.Transparent,
-                    disabledContentColor = Color.Gray
-                ),
-                modifier = Modifier
-                    .background(
-                        color = Brown1,
-                        shape = RoundedCornerShape(rspDp(20.dp))
-                    )
-                    .fillMaxWidth(fraction = 0.4f)
-            ) {
-                Text("Sign in with Google")
-            }
-
-            result.value?.let {
-                Text(if (it) "Signed in!" else "Sign-in failed.")
-            }
-
             Spacer(modifier = Modifier.weight(1f))
 
             Footer(

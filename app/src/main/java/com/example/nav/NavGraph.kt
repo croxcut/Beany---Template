@@ -81,7 +81,7 @@ fun NavGraph(
             composable(Route.HomePage.route) { HomePage(navController) }
             composable(Route.SignUp.route) {
                 val viewModel: SignUpViewModel = hiltViewModel()
-                SignUpPage(viewModel)
+                SignUpPage(viewModel, navController)
             }
             composable(Route.RealtimeDetectionPage.route) { RealtimeDetectionPage() }
             composable(Route.SingleImageDetectionPage.route) { SingleImageDetectionPage() }
