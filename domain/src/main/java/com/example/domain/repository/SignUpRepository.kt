@@ -1,7 +1,7 @@
 package com.example.domain.repository
 
-import com.example.domain.model.UserCredential
+import com.example.domain.model.SignUpCredential
 
 interface SignUpRepository{
-    suspend fun signUp(userCredential: UserCredential): Result<Unit>
+    suspend fun signUp(signUpCredential: SignUpCredential): Result<Unit>
 }

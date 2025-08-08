@@ -1,5 +1,11 @@
 package com.example.data.di
 
+import com.example.data.repositoryImpl.LoginAuthRepositoryImpl
+import com.example.data.repositoryImpl.SignUpRepositoryImpl
+import com.example.domain.repository.LoginAuthRepository
+import com.example.domain.repository.SignUpRepository
+import com.example.domain.usecase.LoginUseCase
+import com.example.domain.usecase.SignUpUseCase
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -25,5 +31,30 @@ object SupabaseModule {
             install(Postgrest)
         }
     }
+
+    @Provides
+    @Singleton
+    fun provideSignUpRepository(supabaseClient: SupabaseClient): SignUpRepository {
+        return SignUpRepositoryImpl(supabaseClient)
+    }
+
+    @Provides
+    @Singleton
+    fun provideSignUpUseCase(signUpRepository: SignUpRepository): SignUpUseCase {
+        return SignUpUseCase(signUpRepository)
+    }
+
+    @Provides
+    @Singleton
+    fun provideLoginRepository(supabaseClient: SupabaseClient): LoginAuthRepository {
+        return LoginAuthRepositoryImpl(supabaseClient)
+    }
+
+    @Provides
+    @Singleton
+    fun provideLoginUseCase(loginAuthRepository: LoginAuthRepository): LoginUseCase {
+        return LoginUseCase(loginAuthRepository)
+    }
+
 
 }

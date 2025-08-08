@@ -8,13 +8,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.domain.model.City
 import com.example.domain.model.SignUpCredential
-import com.example.domain.model.UserCredential
 import com.example.domain.repository.WeatherRepository
 import com.example.domain.usecase.SignUpUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -98,21 +95,23 @@ class SignUpViewModel @Inject constructor(
     }
 
     private val _signUpState = MutableStateFlow<SignUpState>(SignUpState.Idle)
-    val signUpState: StateFlow<SignUpState> = _signUpState.asStateFlow()
 
+    fun validateInputs(signUpCredential: SignUpCredential) {
 
-    fun signUp(userCredential: UserCredential) {
+    }
+
+    fun signUp(signUpCredential: SignUpCredential) {
         viewModelScope.launch {
-            Log.d("SignUp", "Starting sign up for: ${userCredential.email}")
+            Log.d("SignUp", "Starting sign up for: ${signUpCredential.email}")
             _signUpState.value = SignUpState.Loading
 
-            signUpUseCase(userCredential)
+            signUpUseCase(signUpCredential)
                 .onSuccess {
-                    Log.d("SignUp", "Sign up successful for: ${userCredential.email}")
+                    Log.d("SignUp", "Sign up successful for: ${signUpCredential.email}")
                     _signUpState.value = SignUpState.Success
                 }
                 .onFailure { e ->
-                    Log.e("SignUp", "Sign up failed for ${userCredential.email}: ${e.message}", e)
+                    Log.e("SignUp", "Sign up failed for ${signUpCredential.email}: ${e.message}", e)
                     _signUpState.value = SignUpState.Error(e.message ?: "Unknown error")
                 }
         }

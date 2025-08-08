@@ -3,12 +3,14 @@ agp = "8.11.1"
 kotlin = "2.2.0"
 coreKtx = "1.16.0"
 junit = "4.13.2"
-junitVersion = "1.2.1"
-espressoCore = "3.6.1"
+junitVersion = "1.3.0"
+espressoCore = "3.7.0"
 lifecycleRuntimeKtx = "2.9.2"
 activityCompose = "1.10.1"
 composeBom = "2025.07.00"
-icons = "1.6.6"
+icons = "1.7.8"
+splash = "1.0.1"
+security = "1.1.0-alpha06"
 
 # Hilt
 hilt = "2.57"
@@ -17,7 +19,7 @@ androidxHiltNavigationCompose = "1.2.0"
 
 # Supabase
 supabase = "3.2.2"
-ktor = "3.2.2"
+ktor = "3.2.3"
 go-true = "2.6.1"
 
 # CameraX
@@ -64,6 +66,8 @@ androidx-ui-test-manifest = { group = "androidx.compose.ui", name = "ui-test-man
 androidx-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit4" }
 androidx-material3 = { group = "androidx.compose.material3", name = "material3" }
 androidx-credential = { module = "androidx.credentials:credentials", version.ref = "credential"}
+androidx-splash = {module =  "androidx.core:core-splashscreen", version.ref = "splash"}
+androidx-security = {module = "androidx.security:security-crypto", version.ref = "security"}
 
 # Compose Icons
 material-icons-extended = { module = "androidx.compose.material:material-icons-extended" , version.ref = "icons" }

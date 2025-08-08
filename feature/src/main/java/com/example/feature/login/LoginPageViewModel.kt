@@ -1,11 +1,15 @@
 package com.example.feature.login
 
+import android.util.Log
 import androidx.compose.runtime.*
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.navigation.NavController
 import com.example.domain.model.LoginCredential
+import com.example.domain.model.Route
 import com.example.domain.repository.GoogleAuthRepository
+import com.example.domain.usecase.LoginUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -14,28 +18,43 @@ import javax.inject.Inject
 
 @HiltViewModel
 class LoginPageViewModel @Inject constructor(
-    private val repository: GoogleAuthRepository
+    private val loginUseCase: LoginUseCase,
 ): ViewModel() {
 
-    var userName: String by mutableStateOf(value = "")
+    var warning: String by mutableStateOf("")
+
+    private val _success = MutableStateFlow(false)
+    val success: StateFlow<Boolean> = _success
+    var email: String by mutableStateOf(value = "")
         private set
 
     var password: String by mutableStateOf(value = "")
         private set
 
     fun setUsernameOnChange(newValue: String) {
-        userName = newValue
+        email = newValue
     }
 
     fun setPasswordOnChange(newValue: String) {
         password = newValue
     }
 
-    private val _loginResult = MutableStateFlow<Result<Unit>?>(null)
-    val loginResult: StateFlow<Result<Unit>?> = _loginResult
+    fun setWarningOnChange(newValue: String) {
+        warning = newValue
+    }
 
-    fun validateUser() {
-
+    fun login(loginCredential: LoginCredential) {
+        viewModelScope.launch {
+            loginUseCase(loginCredential)
+                .onSuccess {
+                    _success.value = true
+                    Log.e("Sign In", "Success")
+                }
+                .onFailure {
+                    _success.value = false
+                    Log.e("Sign In", "Failed")
+                }
+        }
     }
 
 }

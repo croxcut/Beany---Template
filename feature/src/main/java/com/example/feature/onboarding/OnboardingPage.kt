@@ -130,11 +130,15 @@ fun OnboardingPage(
                     Spacer(modifier = Modifier.height(rspDp(20.dp)))
 
                     Text(
-                        text = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. " +
-                                "Sed do eiusmod tempor incididunt ut labore et dolore " +
-                                "magna aliqua. Ut enim ad minim veniam, quis nostrud " +
-                                "exercitation ullamco laboris nisi ut aliquip ex ea commodo" +
-                                " consequat. \n",
+                        text = " Beany empowers cacao farmers with modern tools to detect " +
+                                "plant diseases quickly and accurately. Capture an image " +
+                                "of your plant to detect possible diseases. With Beany, " +
+                                "you gain practical insights to protect your crops and " +
+                                "improve your harvest.\n" +
+                                "\n" +
+                                "    Whether you're managing a small farm or a large " +
+                                "plantation, Beany is your reliable partner in smarter " +
+                                "farming.\n",
                         style = TextStyle(
                             fontFamily = FontFamily.Serif,
                             lineHeight = rspSp(17.sp),

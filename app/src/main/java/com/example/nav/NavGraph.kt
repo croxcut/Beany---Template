@@ -61,7 +61,7 @@ fun NavGraph(
     ) {
         NavHost(
             navController = navController,
-            startDestination = Route.SignUp.route,
+            startDestination = Route.LaunchPage.route,
             modifier = Modifier
                 .matchParentSize()
         ) {

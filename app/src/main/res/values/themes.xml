@@ -1,5 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
+    <!-- Your main app theme -->
     <style name="Theme.Beany" parent="android:Theme.Material.Light.NoActionBar" />
+
+    <!-- Splash screen theme -->
+    <style name="Theme.Beany.Splash" parent="Theme.SplashScreen">
+        <!-- Splash screen background color -->
+        <item name="windowSplashScreenBackground">@color/beige</item>
+
+        <!-- App icon shown on splash -->
+        <item name="windowSplashScreenAnimatedIcon">@drawable/logo_splash_wrapper</item>
+
+        <!-- Optional: Show the splash for only a short moment -->
+        <item name="postSplashScreenTheme">@style/Theme.Beany</item>
+    </style>
+
 </resources>

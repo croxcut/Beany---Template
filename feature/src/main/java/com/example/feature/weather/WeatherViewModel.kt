@@ -29,6 +29,7 @@ class WeatherViewModel @Inject constructor(
     }
 
     fun selectCity(city: City) {
+
         _selectedCity.value = city
         loadWeather(city.latitude, city.longitude)
     }

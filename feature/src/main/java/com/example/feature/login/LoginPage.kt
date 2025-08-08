@@ -7,8 +7,10 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
@@ -45,6 +47,7 @@ import com.example.core.ui.theme.Kare
 import com.example.core.ui.theme.White
 import com.example.core.utils.rspDp
 import com.example.core.utils.rspSp
+import com.example.domain.model.LoginCredential
 import com.example.domain.model.Route
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
@@ -87,6 +90,19 @@ fun LoginPage(
     clientId: String
 )  {
 
+    val success by viewModel.success.collectAsState()
+
+    LaunchedEffect(success) {
+        if(success) {
+            navController.navigate(Route.HomePage.route) {
+                popUpTo(Route.LoginPage.route) {
+                    inclusive = true
+                }
+                launchSingleTop = true
+            }
+        }
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -126,8 +142,6 @@ fun LoginPage(
 
         }
 
-        val loginResult by viewModel.loginResult.collectAsState()
-
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -143,11 +157,11 @@ fun LoginPage(
             InputField(
                 label = {
                     Text(
-                        text = "Username",
+                        text = "Email",
                         style = InputFieldUiParam.labelTextStyle()
                     )
                 },
-                value = viewModel.userName,
+                value = viewModel.email,
                 onValueChange = {
                     viewModel.setUsernameOnChange(it)
                 },
@@ -205,10 +219,12 @@ fun LoginPage(
 
             Button(
                 onClick = {
-                    viewModel.validateUser()
-                    loginResult?.let {
-                        if(it.isSuccess) navController.navigate(Route.HomePage.route)
-                    }
+                    viewModel.login(
+                        LoginCredential(
+                            email = viewModel.email,
+                            password = viewModel.password
+                        ),
+                    )
                 },
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Color.Transparent,
@@ -231,7 +247,50 @@ fun LoginPage(
                 )
             }
 
+            Spacer(modifier = Modifier.height(10.dp))
+
+            Text(
+                text = viewModel.warning,
+                style = TextStyle(
+                    color = Color.Red,
+                )
+            )
+
+            Spacer(modifier = Modifier.height(10.dp))
+
+            Row {
+                Text(
+                    text = "Don't have an account?",
+                    style = TextStyle(
+                        color = Brown1,
+                        fontFamily = GlacialIndifferenceBold,
+                        fontSize = rspSp(15.sp)
+                ),
+                )
+                Text(
+                    text = " Sign Up",
+                    style = TextStyle(
+                        color = White,
+                        fontFamily = GlacialIndifferenceBold,
+                        fontSize = rspSp(15.sp)
+                    ),
+                    modifier = Modifier
+                        .clickable{
+                            navController.navigate(Route.SignUp.route)
+                        }
+                    )
+            }
+
             Spacer(modifier = Modifier.weight(1f))
+
+            Text(
+                text = "Beany",
+                style = TextStyle(
+                    color = Brown1,
+                    fontFamily = Kare,
+                    fontSize = rspSp(20.sp)
+                )
+            )
 
             Footer(
                 onClick = {
