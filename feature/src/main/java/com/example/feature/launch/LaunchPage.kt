@@ -44,19 +44,15 @@ fun LaunchPage(
 ) {
     val completed by viewModel.isOnboardingCompleted().collectAsState()
 
-    LaunchedEffect(
-        key1 = Unit
-    ) {
+    LaunchedEffect(Unit) {
         delay(4000L)
-        withContext(
-            Dispatchers.Main
-        ) {
-            navController.popBackStack()
-            navController.navigate(
-                route = if (completed) Route.LoginPage.route
-                else Route.OnboardingPage.route
-            )
-        }
+        navController.popBackStack()
+        navController.navigate(
+            route = when {
+                completed -> Route.LoginPage.route
+                else -> Route.OnboardingPage.route
+            }
+        )
     }
 
     Column(

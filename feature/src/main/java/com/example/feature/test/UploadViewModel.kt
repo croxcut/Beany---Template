@@ -33,7 +33,6 @@ class UploadViewModel @Inject constructor(
                 val bytes = appContext.contentResolver.openInputStream(uri)?.use { it.readBytes() }
                     ?: throw IllegalArgumentException("Unable to read file")
 
-                // You might want to generate a unique remote path, e.g., using timestamp
                 val remotePath = "uploads/${System.currentTimeMillis()}.jpg"
 
                 bucketRepository.upload(remotePath, bytes)

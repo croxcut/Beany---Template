@@ -15,16 +15,16 @@ class BucketRepositoryImpl @Inject constructor(
     override suspend fun upload(remotePath: String, data: ByteArray) {
         val bucket = supabaseClient.storage.from("profilepictures")
         try {
-            Log.d(TAG, "🟢 Attempting upload to path: $remotePath")
-            Log.d(TAG, "🟢 File size: ${data.size} bytes")
+            Log.d(TAG, "Attempting upload to path: $remotePath")
+            Log.d(TAG, "File size: ${data.size} bytes")
 
             bucket.upload(path = remotePath, data) {
                 upsert = false
             }
 
-            Log.d(TAG, "🟢 Upload successful!")
+            Log.d(TAG, "Upload successful!")
         } catch (e: Exception) {
-            Log.e(TAG, "🔴 Upload failed!", e)
+            Log.e(TAG, "Upload failed!", e)
             throw e
         }
     }

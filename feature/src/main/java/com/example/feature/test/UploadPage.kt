@@ -22,7 +22,6 @@ fun UploadPage(viewModel: UploadViewModel = hiltViewModel()) {
     val uploadState by viewModel.uploadState.collectAsState()
     val selectedImageUri by viewModel.selectedImageUri.collectAsState()
 
-    // Step 1: Image cropper launcher
     val cropImageLauncher = rememberLauncherForActivityResult(CropImageContract()) { result ->
         if (result.isSuccessful) {
             result.uriContent?.let { uri ->
@@ -33,7 +32,6 @@ fun UploadPage(viewModel: UploadViewModel = hiltViewModel()) {
         }
     }
 
-    // Step 2: File picker launcher
     val imagePickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent(),
         onResult = { uri: Uri? ->
@@ -46,8 +44,8 @@ fun UploadPage(viewModel: UploadViewModel = hiltViewModel()) {
                             cropShape = CropImageView.CropShape.RECTANGLE,
                             fixAspectRatio = true,
                             activityTitle = "Crop Image",
-                            activityMenuIconColor = android.graphics.Color.WHITE, // Makes icons visible
-                            toolbarColor = android.graphics.Color.BLACK,          // Toolbar background
+                            activityMenuIconColor = android.graphics.Color.WHITE,
+                            toolbarColor = android.graphics.Color.BLACK,
                             allowRotation = true,
                             allowFlipping = true
                         )
@@ -73,12 +71,6 @@ fun UploadPage(viewModel: UploadViewModel = hiltViewModel()) {
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        when (uploadState) {
-            is UploadState.Idle -> Text("Waiting for file...")
-            is UploadState.Loading -> CircularProgressIndicator()
-            is UploadState.Success -> Text("✅ Upload successful!")
-            is UploadState.Error -> Text("❌ Error: ${(uploadState as UploadState.Error).message}")
-        }
 
         Button(onClick = { viewModel.downloadImage("uploads/1754793143803.jpg") }) {
             Text("Download & Show Image")

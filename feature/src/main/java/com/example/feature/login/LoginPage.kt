@@ -93,9 +93,10 @@ fun LoginPage(
 )  {
 
     val success by viewModel.success.collectAsState()
+    val isLoggedIn by viewModel.isLoggedIn.collectAsState()
 
     LaunchedEffect(success) {
-        if(success) {
+        if(success || isLoggedIn) {
             navController.navigate(Route.HomePage.route) {
                 popUpTo(Route.LoginPage.route) {
                     inclusive = true

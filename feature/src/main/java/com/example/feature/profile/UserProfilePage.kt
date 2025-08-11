@@ -1,31 +1,36 @@
 package com.example.feature.profile
 
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.gestures.scrollable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.navigationBarsPadding
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.runtime.*
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.dp
+import coil.compose.rememberAsyncImagePainter
+import com.canhub.cropper.CropImageContract
+import com.canhub.cropper.CropImageContractOptions
+import com.canhub.cropper.CropImageOptions
+import com.canhub.cropper.CropImageView
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonColors
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Text
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -43,17 +48,164 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.example.core.composables.Footer
-import com.example.core.ui.theme.Beige1
-import com.example.core.ui.theme.Brown1
-import com.example.core.ui.theme.Brown2
-import com.example.core.ui.theme.GlacialIndifference
-import com.example.core.ui.theme.GlacialIndifferenceBold
-import com.example.core.ui.theme.Kare
-import com.example.core.ui.theme.White
+import com.example.core.ui.theme.*
 import com.example.core.utils.rspDp
 import com.example.core.utils.rspSp
 import com.example.domain.model.Route
 import com.example.feature.R
+
+data class ProfileItem(
+    val icon: Int,
+    val title: String,
+    val description: String,
+    val contentDescription: String
+)
+
+@Composable
+fun ProfileListItem(
+    item: ProfileItem,
+    rowPadding: Dp,
+    descFontSize: TextUnit,
+    titleColor: Color,
+    descColor: Color
+) {
+    Row(
+        modifier = Modifier.padding(vertical = rowPadding),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Image(
+            painter = painterResource(id = item.icon),
+            contentDescription = item.contentDescription,
+            modifier = Modifier
+                .size(size = rspDp(30.dp))
+                .padding(all = rspDp(4.dp))
+        )
+        Spacer(modifier = Modifier.width(width = rspDp(2.dp)))
+        Column {
+            Text(
+                text = item.title,
+                style = TextStyle(
+                    fontFamily = GlacialIndifferenceBold,
+                    fontSize = rspSp(15.sp),
+                    color = titleColor
+                )
+            )
+            Text(
+                text = item.description,
+                style = TextStyle(
+                    fontFamily = GlacialIndifference,
+                    fontSize = descFontSize,
+                    color = descColor
+                )
+            )
+        }
+    }
+}
+
+@Composable
+fun SectionCard(
+    title: String,
+    backgroundColor: Color,
+    titleColor: Color,
+    items: List<ProfileItem>,
+    rowPadding: Dp,
+    descFontSize: TextUnit,
+    containerPadding: Dp
+) {
+    Column(
+        modifier = Modifier
+            .padding(horizontal = containerPadding)
+            .fillMaxWidth()
+            .background(color = backgroundColor, shape = RoundedCornerShape(size = rspDp(20.dp)))
+            .padding(all = rspDp(15.dp))
+    ) {
+        Text(
+            text = title,
+            style = TextStyle(
+                fontFamily = GlacialIndifferenceBold,
+                fontSize = rspSp(18.sp),
+                color = titleColor
+            )
+        )
+        items.forEachIndexed { index, item ->
+            ProfileListItem(
+                item = item,
+                rowPadding = rowPadding,
+                descFontSize = descFontSize,
+                titleColor = titleColor,
+                descColor = titleColor
+            )
+            if (index != items.lastIndex) {
+                HorizontalDivider(
+                    thickness = rspDp(1.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = rspDp(35.dp))
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun ProfilePicture(
+    viewModel: UserProfileViewModel,
+    onEditClick: () -> Unit
+) {
+    val isSignedUp by viewModel.isSignedUp.collectAsState()
+    val selectedImageUri by viewModel.selectedImageUri.collectAsState()
+
+    LaunchedEffect(isSignedUp) {
+        if (isSignedUp) {
+            viewModel.downloadProfileImage()
+        }
+    }
+
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.Center
+    ) {
+        Box(
+            contentAlignment = Alignment.BottomEnd
+        ) {
+            // Common image modifier with both borders
+            val imageModifier = Modifier
+                .padding(all = 4.dp)
+                .border(width = 4.dp, color = White, shape = CircleShape) // Outer white border
+                .padding(4.dp) // Space between borders
+                .border(width = 4.dp, color = Brown1, shape = CircleShape) // Inner brown border
+                .size(size = 110.dp)
+                .clip(CircleShape)
+
+            if (isSignedUp && selectedImageUri != null) {
+                Image(
+                    painter = rememberAsyncImagePainter(selectedImageUri),
+                    contentDescription = "Profile Picture",
+                    modifier = imageModifier,
+                    contentScale = ContentScale.Crop
+                )
+            } else {
+                Image(
+                    painter = painterResource(id = R.drawable.plchldr),
+                    contentDescription = "Default Profile Picture",
+                    modifier = imageModifier,
+                    contentScale = ContentScale.Crop
+                )
+            }
+
+            IconButton(
+                onClick = onEditClick,
+                modifier = Modifier.size(30.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Edit,
+                    contentDescription = "Edit Profile Picture",
+                    tint = White
+                )
+            }
+        }
+    }
+}
 
 @Composable
 fun UserProfilePage(
@@ -63,51 +215,139 @@ fun UserProfilePage(
     val profile by viewModel.profile.collectAsState()
     val isSignedUp by viewModel.isSignedUp.collectAsState()
 
+
     val TOP_SIZE_CLIP: Dp = rspDp(120.dp)
     val DESC_FONT_SIZE: TextUnit = rspSp(12.sp)
     val ROW_PADDING: Dp = rspDp(10.dp)
     val CONTAINER_PADDING: Dp = rspDp(30.dp)
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(
-                color = Brown1
-            )
-            .statusBarsPadding()
-            .verticalScroll(
-                state = rememberScrollState()
-            ),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
+    val accountItems = listOf(
+        ProfileItem(
+            icon = R.drawable.profile_tile,
+            title = "My Profile",
+            description = "Edit Name, Password, Farm, Location",
+            contentDescription = "Profile Icon"
+        ),
+        ProfileItem(
+            icon = R.drawable.notif_tile,
+            title = "Notification",
+            description = "Updates From Beany",
+            contentDescription = "Notification Icon"
+        ),
+        ProfileItem(
+            icon = R.drawable.png_tile,
+            title = "Uploaded Photos",
+            description = "Your Uploaded Photos",
+            contentDescription = "Uploaded Photos Icon"
+        ),
+        ProfileItem(
+            icon = R.drawable.table_logo,
+            title = "My Diagnosis",
+            description = "Check Your Past Diagnosis",
+            contentDescription = "Diagnosis Icon"
+        )
+    )
 
-        Row(
-            modifier = Modifier
-                .padding(vertical = rspDp(10.dp))
-        ) {
-            Text(
-                text = "Beany",
-                style = TextStyle(
-                    fontFamily = Kare,
-                    fontSize = rspSp(50.sp),
-                    color = White
+    val featureItems = listOf(
+        ProfileItem(
+            icon = R.drawable.camera_tile,
+            title = "Camera",
+            description = "Scan Cacao Plants with AI!",
+            contentDescription = "Camera Icon"
+        ),
+        ProfileItem(
+            icon = R.drawable.scan_history_tile,
+            title = "Scan History",
+            description = "List of Past Scans",
+            contentDescription = "Scan History Icon"
+        ),
+        ProfileItem(
+            icon = R.drawable.community_tile,
+            title = "Community",
+            description = "Ask questions and learn from other farmers",
+            contentDescription = "Community Icon"
+        ),
+        ProfileItem(
+            icon = R.drawable.chat_support_tile,
+            title = "Chat Support",
+            description = "Chat With Our Registered Experts!",
+            contentDescription = "Chat Support Icon"
+        )
+    )
+
+    val aboutItems = listOf(
+        ProfileItem(
+            icon = R.drawable.profile_tile,
+            title = "About Us",
+            description = "Learn about the team behind Beany",
+            contentDescription = "About Us Icon"
+        ),
+        ProfileItem(
+            icon = R.drawable.terms_and_condition_tile,
+            title = "Terms and Conditions",
+            description = "Our guidelines and user agreement",
+            contentDescription = "Terms Icon"
+        ),
+        ProfileItem(
+            icon = R.drawable.privacy_tile,
+            title = "Privacy Policy",
+            description = "How we handle and protect your data",
+            contentDescription = "Privacy Icon"
+        ),
+        ProfileItem(
+            icon = R.drawable.contact_tile,
+            title = "Contact Us",
+            description = "How to reach our support team",
+            contentDescription = "Contact Icon"
+        )
+    )
+
+    val cropImageLauncher = rememberLauncherForActivityResult(CropImageContract()) { result ->
+        if (result.isSuccessful) {
+            result.uriContent?.let { uri -> viewModel.uploadProfileImage(uri) }
+        } else {
+            result.error?.printStackTrace()
+        }
+    }
+
+    val imagePickerLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        uri?.let {
+            cropImageLauncher.launch(
+                CropImageContractOptions(
+                    uri,
+                    CropImageOptions(
+                        guidelines = CropImageView.Guidelines.ON,
+                        cropShape = CropImageView.CropShape.RECTANGLE,
+                        fixAspectRatio = true
+                    )
                 )
             )
         }
+    }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(color = Brown1)
+            .statusBarsPadding()
+            .verticalScroll(state = rememberScrollState()),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Spacer(modifier = Modifier.height(height = rspDp(10.dp)))
+        Text(
+            text = "Beany",
+            style = TextStyle(fontFamily = Kare, fontSize = rspSp(50.sp), color = White)
+        )
 
         Box(
-            modifier = Modifier
-                .fillMaxSize(),
+            modifier = Modifier.fillMaxSize()
         ) {
-
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(
-                        top = rspDp(
-                            60.dp
-                        )
-                    )
+                    .padding(top = rspDp(60.dp))
                     .background(
                         color = Brown2,
                         shape = RoundedCornerShape(
@@ -117,10 +357,8 @@ fun UserProfilePage(
                     ),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-
                 Spacer(modifier = Modifier.padding(vertical = rspDp(40.dp)))
 
-                // Farm
                 Text(
                     text = profile?.fullName ?: "Guest",
                     style = TextStyle(
@@ -129,12 +367,8 @@ fun UserProfilePage(
                         fontSize = rspSp(28.sp)
                     )
                 )
-
-                Spacer(modifier = Modifier.padding(vertical = rspDp(10.dp)))
-
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
+                Spacer(modifier = Modifier.height(height = rspDp(10.dp)))
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(
                         text = profile?.farm ?: "N/A",
                         style = TextStyle(
@@ -143,8 +377,6 @@ fun UserProfilePage(
                             fontSize = rspSp(14.sp)
                         )
                     )
-
-                    // Address:
                     Text(
                         text = profile?.province ?: "N/A",
                         style = TextStyle(
@@ -154,621 +386,63 @@ fun UserProfilePage(
                         )
                     )
                 }
+                Spacer(modifier = Modifier.height(height = rspDp(10.dp)))
 
-                Spacer(modifier = Modifier.padding(vertical = rspDp(10.dp)))
+                SectionCard(
+                    title = "Account",
+                    backgroundColor = White,
+                    titleColor = Brown1,
+                    items = accountItems,
+                    rowPadding = ROW_PADDING,
+                    descFontSize = DESC_FONT_SIZE,
+                    containerPadding = CONTAINER_PADDING
+                )
+                Spacer(modifier = Modifier.height(height = rspDp(10.dp)))
+                SectionCard(
+                    title = "Feature",
+                    backgroundColor = Beige1,
+                    titleColor = Brown1,
+                    items = featureItems,
+                    rowPadding = ROW_PADDING,
+                    descFontSize = DESC_FONT_SIZE,
+                    containerPadding = CONTAINER_PADDING
+                )
+                Spacer(modifier = Modifier.height(height = rspDp(10.dp)))
+                SectionCard(
+                    title = "About Beany",
+                    backgroundColor = White,
+                    titleColor = Brown1,
+                    items = aboutItems,
+                    rowPadding = ROW_PADDING,
+                    descFontSize = DESC_FONT_SIZE,
+                    containerPadding = CONTAINER_PADDING
+                )
+                Spacer(modifier = Modifier.height(height = rspDp(15.dp)))
 
-                // Account Container
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = CONTAINER_PADDING)
-                        .background(
-                            color = White,
-                            shape = RoundedCornerShape(rspDp(20.dp))
-                        )
-                        .padding(rspDp(15.dp))
-                ) {
-
-                    Text(
-                        text = "Account",
-                        style = TextStyle(
-                            fontFamily = GlacialIndifferenceBold,
-                            fontSize = rspSp(18.sp),
-                            color = Brown1
-                        )
-                    )
-
-                    Row(
-                        modifier = Modifier
-                            .padding(vertical = ROW_PADDING),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Image(
-                            painter = painterResource(R.drawable.profile_tile),
-                            contentDescription = "Profile-Icon",
-                            modifier = Modifier
-                                .size(rspDp(30.dp))
-                                .padding(rspDp(4.dp))
-                        )
-
-                        Spacer(modifier = Modifier.padding(horizontal = rspDp(2.dp)))
-
-                        Column {
-
-                            Text(
-                                text = "My Profile",
-                                style = TextStyle(
-                                    fontFamily = GlacialIndifferenceBold,
-                                    fontSize = rspSp(15.sp),
-                                    color = Brown1
-                                )
-                            )
-
-                            Text(
-                                text = "Edit Name, Password, Farm, Location",
-                                style = TextStyle(
-                                    fontFamily = GlacialIndifference,
-                                    fontSize = DESC_FONT_SIZE,
-                                    color = Brown1
-                                )
-                            )
-                        }
+                val buttonText: String = if (isSignedUp) "Log Out" else "Sign In"
+                val onButtonClick: () -> Unit = {
+                    if (isSignedUp) {
+                        viewModel.logout()
                     }
-
-                    HorizontalDivider(
-                        thickness = rspDp(1.dp),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = rspDp(35.dp))
-                    )
-
-                    Row(
-                        modifier = Modifier
-                            .padding(vertical = ROW_PADDING),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Image(
-                            painter = painterResource(R.drawable.notif_tile),
-                            contentDescription = "Profile-Icon",
-                            modifier = Modifier
-                                .size(rspDp(30.dp))
-                                .padding(rspDp(4.dp))
-                        )
-
-                        Spacer(modifier = Modifier.padding(horizontal = rspDp(2.dp)))
-
-                        Column {
-
-                            Text(
-                                text = "Notification",
-                                style = TextStyle(
-                                    fontFamily = GlacialIndifferenceBold,
-                                    fontSize = rspSp(15.sp),
-                                    color = Brown1
-                                )
-                            )
-
-                            Text(
-                                text = "Updates From Beany",
-                                style = TextStyle(
-                                    fontFamily = GlacialIndifference,
-                                    fontSize = DESC_FONT_SIZE,
-                                    color = Brown1
-                                )
-                            )
-                        }
-                    }
-
-                    HorizontalDivider(
-                        thickness = rspDp(1.dp),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = rspDp(35.dp))
-                    )
-
-                    Row(
-                        modifier = Modifier
-                            .padding(vertical = ROW_PADDING),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Image(
-                            painter = painterResource(R.drawable.png_tile),
-                            contentDescription = "Profile-Icon",
-                            modifier = Modifier
-                                .size(rspDp(30.dp))
-                                .padding(rspDp(4.dp))
-                        )
-
-                        Spacer(modifier = Modifier.padding(horizontal = rspDp(2.dp)))
-
-                        Column {
-
-                            Text(
-                                text = "Uploaded Photos",
-                                style = TextStyle(
-                                    fontFamily = GlacialIndifferenceBold,
-                                    fontSize = rspSp(15.sp),
-                                    color = Brown1
-                                )
-                            )
-
-                            Text(
-                                text = "Your Uploaded Photos",
-                                style = TextStyle(
-                                    fontFamily = GlacialIndifference,
-                                    fontSize = DESC_FONT_SIZE,
-                                    color = Brown1
-                                )
-                            )
-                        }
-                    }
-
-                    HorizontalDivider(
-                        thickness = rspDp(1.dp),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = rspDp(35.dp))
-                    )
-
-                    Row(
-                        modifier = Modifier
-                            .padding(vertical = ROW_PADDING),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Image(
-                            painter = painterResource(R.drawable.table_logo),
-                            contentDescription = "Profile-Icon",
-                            modifier = Modifier
-                                .size(rspDp(30.dp))
-                                .padding(rspDp(4.dp))
-                        )
-
-                        Spacer(modifier = Modifier.padding(horizontal = rspDp(2.dp)))
-
-                        Column {
-
-                            Text(
-                                text = "My Diagnosis",
-                                style = TextStyle(
-                                    fontFamily = GlacialIndifferenceBold,
-                                    fontSize = rspSp(15.sp),
-                                    color = Brown1
-                                )
-                            )
-
-                            Text(
-                                text = "Check Your Past Diagnosis",
-                                style = TextStyle(
-                                    fontFamily = GlacialIndifference,
-                                    fontSize = DESC_FONT_SIZE,
-                                    color = Brown1
-                                )
-                            )
-                        }
-                    }
-
-                }
-
-                Spacer(modifier = Modifier.padding(vertical = rspDp(10.dp)))
-
-                // Feature Container
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = CONTAINER_PADDING)
-                        .background(
-                            color = Beige1,
-                            shape = RoundedCornerShape(rspDp(20.dp))
-                        )
-                        .padding(rspDp(15.dp))
-                ) {
-
-
-                    Text(
-                        text = "Feature",
-                        style = TextStyle(
-                            fontFamily = GlacialIndifferenceBold,
-                            fontSize = rspSp(18.sp),
-                            color = Brown1
-                        )
-                    )
-
-                    Row(
-                        modifier = Modifier
-                            .padding(vertical = ROW_PADDING),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Image(
-                            painter = painterResource(R.drawable.camera_tile),
-                            contentDescription = "Camera-tile",
-                            modifier = Modifier
-                                .size(rspDp(30.dp))
-                                .padding(rspDp(4.dp))
-                        )
-
-                        Spacer(modifier = Modifier.padding(horizontal = rspDp(2.dp)))
-
-                        Column {
-
-                            Text(
-                                text = "Camera",
-                                style = TextStyle(
-                                    fontFamily = GlacialIndifferenceBold,
-                                    fontSize = rspSp(15.sp),
-                                    color = Brown1
-                                )
-                            )
-
-                            Text(
-                                text = "Scan Cacao Plants with AI!",
-                                style = TextStyle(
-                                    fontFamily = GlacialIndifference,
-                                    fontSize = DESC_FONT_SIZE,
-                                    color = Brown1
-                                )
-                            )
-                        }
-                    }
-
-                    HorizontalDivider(
-                        thickness = rspDp(1.dp),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = rspDp(35.dp))
-                    )
-
-                    Row(
-                        modifier = Modifier
-                            .padding(vertical = ROW_PADDING),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Image(
-                            painter = painterResource(R.drawable.scan_history_tile),
-                            contentDescription = "Scan-tile",
-                            modifier = Modifier
-                                .size(rspDp(30.dp))
-                                .padding(rspDp(4.dp))
-                        )
-
-                        Spacer(modifier = Modifier.padding(horizontal = rspDp(2.dp)))
-
-                        Column {
-
-                            Text(
-                                text = "Scan History",
-                                style = TextStyle(
-                                    fontFamily = GlacialIndifferenceBold,
-                                    fontSize = rspSp(15.sp),
-                                    color = Brown1
-                                )
-                            )
-
-                            Text(
-                                text = "List of Past Scans",
-                                style = TextStyle(
-                                    fontFamily = GlacialIndifference,
-                                    fontSize = DESC_FONT_SIZE,
-                                    color = Brown1
-                                )
-                            )
-                        }
-                    }
-
-                    HorizontalDivider(
-                        thickness = rspDp(1.dp),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = rspDp(35.dp))
-                    )
-
-                    Row(
-                        modifier = Modifier
-                            .padding(vertical = ROW_PADDING),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Image(
-                            painter = painterResource(R.drawable.community_tile),
-                            contentDescription = "Community-tile",
-                            modifier = Modifier
-                                .size(rspDp(30.dp))
-                                .padding(rspDp(4.dp))
-                        )
-
-                        Spacer(modifier = Modifier.padding(horizontal = rspDp(2.dp)))
-
-                        Column {
-
-                            Text(
-                                text = "Community",
-                                style = TextStyle(
-                                    fontFamily = GlacialIndifferenceBold,
-                                    fontSize = rspSp(15.sp),
-                                    color = Brown1
-                                )
-                            )
-
-                            Text(
-                                text = "Your Uploaded Photos",
-                                style = TextStyle(
-                                    fontFamily = GlacialIndifference,
-                                    fontSize = DESC_FONT_SIZE,
-                                    color = Brown1
-                                )
-                            )
-                        }
-                    }
-
-                    HorizontalDivider(
-                        thickness = rspDp(1.dp),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = rspDp(35.dp))
-                    )
-
-                    Row(
-                        modifier = Modifier
-                            .padding(vertical = ROW_PADDING),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Image(
-                            painter = painterResource(R.drawable.chat_support_tile),
-                            contentDescription = "Chat-Support-tile",
-                            modifier = Modifier
-                                .size(rspDp(30.dp))
-                                .padding(rspDp(4.dp))
-                        )
-
-                        Spacer(modifier = Modifier.padding(horizontal = rspDp(2.dp)))
-
-                        Column {
-
-                            Text(
-                                text = "Chat Support",
-                                style = TextStyle(
-                                    fontFamily = GlacialIndifferenceBold,
-                                    fontSize = rspSp(15.sp),
-                                    color = Brown1
-                                )
-                            )
-
-                            Text(
-                                text = "Chat With Our Registered Expers!",
-                                style = TextStyle(
-                                    fontFamily = GlacialIndifference,
-                                    fontSize = DESC_FONT_SIZE,
-                                    color = Brown1
-                                )
-                            )
-                        }
-                    }
-
-                }
-
-                Spacer(modifier = Modifier.padding(vertical = rspDp(10.dp)))
-
-                // About Us Container
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = CONTAINER_PADDING)
-                        .background(
-                            color = White,
-                            shape = RoundedCornerShape(rspDp(20.dp))
-                        )
-                        .padding(rspDp(15.dp))
-                ) {
-
-                    Text(
-                        text = "About Beany",
-                        style = TextStyle(
-                            fontFamily = GlacialIndifferenceBold,
-                            fontSize = rspSp(18.sp),
-                            color = Brown1
-                        )
-                    )
-
-                    Row(
-                        modifier = Modifier
-                            .padding(vertical = ROW_PADDING),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Image(
-                            painter = painterResource(R.drawable.profile_tile),
-                            contentDescription = "Camera-tile",
-                            modifier = Modifier
-                                .size(rspDp(30.dp))
-                                .padding(rspDp(4.dp))
-                        )
-
-                        Spacer(modifier = Modifier.padding(horizontal = rspDp(2.dp)))
-
-                        Column {
-
-                            Text(
-                                text = "About Us",
-                                style = TextStyle(
-                                    fontFamily = GlacialIndifferenceBold,
-                                    fontSize = rspSp(15.sp),
-                                    color = Brown1
-                                )
-                            )
-
-                            Text(
-                                text = "Learn about the team behind beany",
-                                style = TextStyle(
-                                    fontFamily = GlacialIndifference,
-                                    fontSize = DESC_FONT_SIZE,
-                                    color = Brown1
-                                )
-                            )
-                        }
-                    }
-
-                    HorizontalDivider(
-                        thickness = rspDp(1.dp),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = rspDp(35.dp))
-                    )
-
-                    Row(
-                        modifier = Modifier
-                            .padding(vertical = ROW_PADDING),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Image(
-                            painter = painterResource(R.drawable.terms_and_condition_tile),
-                            contentDescription = "Scan-tile",
-                            modifier = Modifier
-                                .size(rspDp(30.dp))
-                                .padding(rspDp(4.dp))
-                        )
-
-                        Spacer(modifier = Modifier.padding(horizontal = rspDp(2.dp)))
-
-                        Column {
-
-                            Text(
-                                text = "Terms and Conditions",
-                                style = TextStyle(
-                                    fontFamily = GlacialIndifferenceBold,
-                                    fontSize = rspSp(15.sp),
-                                    color = Brown1
-                                )
-                            )
-
-                            Text(
-                                text = "Our guidelines and user agreement",
-                                style = TextStyle(
-                                    fontFamily = GlacialIndifference,
-                                    fontSize = DESC_FONT_SIZE,
-                                    color = Brown1
-                                )
-                            )
-                        }
-                    }
-
-                    HorizontalDivider(
-                        thickness = rspDp(1.dp),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = rspDp(35.dp))
-                    )
-
-                    Row(
-                        modifier = Modifier
-                            .padding(vertical = ROW_PADDING),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Image(
-                            painter = painterResource(R.drawable.privacy_tile),
-                            contentDescription = "Community-tile",
-                            modifier = Modifier
-                                .size(rspDp(30.dp))
-                                .padding(rspDp(4.dp))
-                        )
-
-                        Spacer(modifier = Modifier.padding(horizontal = rspDp(2.dp)))
-
-                        Column {
-
-                            Text(
-                                text = "Privacy Policy",
-                                style = TextStyle(
-                                    fontFamily = GlacialIndifferenceBold,
-                                    fontSize = rspSp(15.sp),
-                                    color = Brown1
-                                )
-                            )
-
-                            Text(
-                                text = "How we handle and protect your data",
-                                style = TextStyle(
-                                    fontFamily = GlacialIndifference,
-                                    fontSize = DESC_FONT_SIZE,
-                                    color = Brown1
-                                )
-                            )
-                        }
-                    }
-
-                    HorizontalDivider(
-                        thickness = rspDp(1.dp),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = rspDp(35.dp))
-                    )
-
-                    Row(
-                        modifier = Modifier
-                            .padding(vertical = ROW_PADDING),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Image(
-                            painter = painterResource(R.drawable.contact_tile),
-                            contentDescription = "Chat-Support-tile",
-                            modifier = Modifier
-                                .size(rspDp(30.dp))
-                                .padding(rspDp(4.dp))
-                        )
-
-                        Spacer(modifier = Modifier.padding(horizontal = rspDp(2.dp)))
-
-                        Column {
-
-                            Text(
-                                text = "Contact Us",
-                                style = TextStyle(
-                                    fontFamily = GlacialIndifferenceBold,
-                                    fontSize = rspSp(15.sp),
-                                    color = Brown1
-                                )
-                            )
-
-                            Text(
-                                text = "How to reach our support team",
-                                style = TextStyle(
-                                    fontFamily = GlacialIndifference,
-                                    fontSize = DESC_FONT_SIZE,
-                                    color = Brown1
-                                )
-                            )
+                    navController.navigate(route = Route.LaunchPage.route) {
+                        popUpTo(route = Route.LaunchPage.route) {
+                            inclusive = true
                         }
                     }
                 }
-
-                Spacer(modifier = Modifier.padding(vertical = rspDp(15.dp)))
-
                 Button(
-                    onClick = {
-                        if(isSignedUp) {
-                            viewModel.logout()
-                            navController.navigate(Route.LaunchPage.route) {
-                                popUpTo(Route.LaunchPage.route) {
-                                    inclusive = true
-                                }
-                            }
-                        } else {
-                            navController.navigate(Route.LaunchPage.route) {
-                                popUpTo(Route.LaunchPage.route) {
-                                    inclusive = true
-                                }
-                            }
-                        }
-                    },
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Color.Transparent
-                    ),
+                    onClick = onButtonClick,
+                    colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
                     modifier = Modifier
                         .background(
                             color = Color(0xffe8d0a7),
-                            shape = RoundedCornerShape(rspDp(20.dp))
+                            shape = RoundedCornerShape(size = rspDp(20.dp))
                         )
-                        .height(rspDp(30.dp))
-                        .width(rspDp(200.dp))
+                        .height(height = rspDp(30.dp))
+                        .width(width = rspDp(200.dp))
                 ) {
                     Text(
-                        text = if (isSignedUp) "LogOut" else "Sign In",
+                        text = buttonText,
                         style = TextStyle(
                             fontFamily = GlacialIndifferenceBold,
                             color = Brown1
@@ -776,15 +450,12 @@ fun UserProfilePage(
                     )
                 }
 
-                Spacer(modifier = Modifier.padding(vertical = rspDp(15.dp)))
-
+                Spacer(modifier = Modifier.height(height = rspDp(15.dp)))
                 Text(
                     text = "Beany",
                     style = TextStyle(
                         fontFamily = Kare,
-                        fontSize = rspSp(
-                            baseSp = 20.sp
-                        ),
+                        fontSize = rspSp(20.sp),
                         color = Brown1
                     )
                 )
@@ -794,43 +465,16 @@ fun UserProfilePage(
                         .navigationBarsPadding()
                         .padding(bottom = rspDp(100.dp)),
                     onClick = {
-                        navController.navigate(Route.AboutUsPage.route)
+                        navController.navigate(route = Route.AboutUsPage.route)
                     }
                 )
-
             }
 
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth(),
-                horizontalArrangement = Arrangement.Center
-            ) {
-                Box(
-                    modifier = Modifier
-                        .border(
-                            width = 4.dp,
-                            color = Beige1,
-                            shape = CircleShape
-                        )
-                ) {
-                    Image(
-                        painter = painterResource(R.drawable.paran),
-                        contentDescription = "Profile-Picture",
-                        modifier = Modifier
-                            .padding(rspDp(4.dp))
-                            .border(
-                                width = 4.dp,
-                                shape = CircleShape,
-                                color = Brown1
-                            )
-                            .size(rspDp(110.dp))
-                            .clip(
-                                shape = CircleShape
-                            ),
-                        contentScale = ContentScale.Crop,
-                    )
-                }
-            }
+            // Profile Picture
+            ProfilePicture(
+                viewModel = viewModel,
+                onEditClick = { imagePickerLauncher.launch("image/*") },
+            )
         }
     }
 }

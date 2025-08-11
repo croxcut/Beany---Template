@@ -57,6 +57,7 @@ class SessionRepositoryImpl @Inject constructor(
     override suspend fun clearCurrentSession(): Result<Unit> {
         return try {
             supabaseClient.auth.signOut()
+            supabaseClient.auth.refreshCurrentSession()
             _currentSession.value = null
             Log.i("SessionManager", "Logged out")
             Result.success(Unit)

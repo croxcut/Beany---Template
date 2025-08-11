@@ -2,7 +2,6 @@ package com.example.feature.home
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.data.local.CurrentUser
 import com.example.domain.model.Profile
 import com.example.domain.repository.SessionRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
