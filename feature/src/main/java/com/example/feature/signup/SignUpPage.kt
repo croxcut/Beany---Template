@@ -420,7 +420,7 @@ fun SignUpPage(
             Footer(
                 onClick = {
                     navController.popBackStack()
-                    navController.navigate(Route.LoginPage.route)
+                    navController.navigate(Route.AboutUsPage.route)
                 }
             )
 

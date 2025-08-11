@@ -24,6 +24,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -33,6 +35,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.example.core.composables.Footer
 import com.example.core.ui.theme.Brown1
@@ -43,14 +46,17 @@ import com.example.core.ui.theme.Kare
 import com.example.core.ui.theme.White
 import com.example.core.utils.rspDp
 import com.example.core.utils.rspSp
+import com.example.domain.model.Profile
 import com.example.domain.model.Route
 import com.example.feature.R
 import io.github.jan.supabase.realtime.Column
 
 @Composable
 fun HomePage(
-    navController: NavController
+    navController: NavController,
+    viewModel: HomePageViewModel = hiltViewModel()
 ) {
+    val profile by viewModel.profile.collectAsState()
 
     Column(
         modifier = Modifier
@@ -142,13 +148,11 @@ fun HomePage(
                     .fillMaxWidth(),
             ) {
                 Text(
-                    text = "Rise and shine, [{User}]",
+                    text = "Rise and shine, ${profile?.fullName ?: "Guest"}",
                     style = TextStyle(
                         fontFamily = Etna,
                         color = Brown1,
-                        fontSize = rspSp(
-                            baseSp = 25.sp
-                        )
+                        fontSize = rspSp(baseSp = 25.sp)
                     )
                 )
 

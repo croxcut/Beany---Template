@@ -7,7 +7,7 @@ import javax.inject.Inject
 class GetCurrentSessionUseCase @Inject constructor(
     private val sessionRepository: SessionRepository
 ) {
-    suspend operator fun invoke() : Result<UserSession> {
+    suspend operator fun invoke() : UserSession? {
         return sessionRepository.getCurrentSession()
     }
 }

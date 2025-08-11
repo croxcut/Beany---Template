@@ -49,8 +49,13 @@ dependencies {
     implementation(project(":domain"))
     implementation(project(":core"))
 
+    implementation(libs.osm.android)
+
     // Credential
     implementation(libs.androidx.credential)
+
+    // Img Cropper
+    implementation(libs.img.android)
 
     // Hilt
     implementation(libs.hilt)
@@ -62,6 +67,7 @@ dependencies {
     implementation(libs.supabase.postgrest)
     implementation(libs.supabase.realtime)
     implementation(libs.supabase.auth)
+    implementation(libs.supabase.storage)
 
     // Google Auth
     implementation(libs.google.auth)

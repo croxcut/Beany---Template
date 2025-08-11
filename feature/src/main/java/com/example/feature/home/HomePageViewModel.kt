@@ -1,23 +1,28 @@
-package com.example.feature.launch
+package com.example.feature.home
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.data.local.CurrentUser
 import com.example.domain.model.Profile
 import com.example.domain.repository.SessionRepository
-import com.example.domain.usecase.IsOnboardedUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class LaunchPageViewModel @Inject constructor(
-    private val isCompletedUseCase: IsOnboardedUseCase,
+class HomePageViewModel @Inject constructor(
     private val sessionRepository: SessionRepository
 ): ViewModel() {
-    fun isOnboardingCompleted() = isCompletedUseCase()
-        .stateIn(viewModelScope, SharingStarted.Lazily, false)
+
+    private val _profile = MutableStateFlow<Profile?>(null)
+    val profile: StateFlow<Profile?> = _profile
+
+    init {
+        viewModelScope.launch {
+            _profile.value = sessionRepository.getUserProfile()
+        }
+    }
 
 }

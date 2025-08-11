@@ -1,10 +1,12 @@
 package com.example.data.repositoryImpl
 
 import android.util.Log
+import com.example.domain.model.Profile
 import com.example.domain.repository.SessionRepository
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.auth.user.UserSession
+import io.github.jan.supabase.postgrest.from
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import javax.inject.Inject
@@ -21,13 +23,22 @@ class SessionRepositoryImpl @Inject constructor(
         Log.i("SessionManager", "Initial session: ${_currentSession.value}")
     }
 
-    override suspend fun getCurrentSession(): Result<UserSession> {
-        return try {
-            val session = _currentSession.value?: throw Exception("Failed to load session")
-            Result.success(session)
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
+    override suspend fun getCurrentSession(): UserSession? {
+        return _currentSession.value
+    }
+
+    override suspend fun getUserProfile(): Profile? {
+        val session = supabaseClient.auth.currentSessionOrNull() ?: return null
+        val userId = session.user?.id ?: return null
+
+        val profile = supabaseClient.from("profiles")
+            .select {
+                filter {
+                    eq("id", userId)
+                }
+            }
+            .decodeSingle<Profile>()
+        return profile
     }
 
     override suspend fun updateCurrentSession(): Result<UserSession?> {
@@ -55,8 +66,10 @@ class SessionRepositoryImpl @Inject constructor(
         }
     }
 
-    fun isSignedUp(): Boolean {
-        return _currentSession.value != null
+    override suspend fun isSignedUp(): Boolean {
+        val session = supabaseClient.auth.currentSessionOrNull()
+        _currentSession.value = session
+        return currentSession.value != null
     }
 
 }

@@ -25,6 +25,12 @@ go-true = "2.6.1"
 # CameraX
 camera = "1.4.2"
 
+# Osm
+osm = "6.1.17"
+
+# Img Crop
+ucrop = "2.2.8"
+
 # Coil + Glide
 coil = "2.7.0"
 coil-gif = "2.7.0"
@@ -42,6 +48,9 @@ google-id = "1.1.1"
 
 # Credential
 credential = "1.5.0"
+
+# Img Cropper
+cropper = "4.4.0"
 
 # Network
 logging-interceptor = "5.1.0"
@@ -97,10 +106,16 @@ supabase-bom = { module = "io.github.jan-tennert.supabase:bom", version.ref = "s
 supabase-postgrest = { module = "io.github.jan-tennert.supabase:postgrest-kt"}
 supabase-auth = { module = "io.github.jan-tennert.supabase:auth-kt"}
 supabase-realtime = { module = "io.github.jan-tennert.supabase:realtime-kt"}
-supabase-supabase = { module = "io.github.jan-tennert.supabase:supabase-kt" }
+supabase-storage = { module = "io.github.jan-tennert.supabase:storage-kt", version.ref = "supabase"}
 
 # DataStore
 datastore = {module = "androidx.datastore:datastore-preferences", version.ref = "datastore"}
+
+# Material
+android-material = { module = "com.google.android.material:material", version.ref = "material"}
+
+# Img Crop
+yalantis-ucrop = { module = "com.github.yalantis:ucrop", version.ref = "ucrop"}
 
 # Google Auth
 google-auth = { module = "com.google.android.gms:play-services-auth", version.ref = "google-auth"}
@@ -120,6 +135,12 @@ hilt-compiler = { module = "com.google.dagger:hilt-compiler", version.ref = "hil
 hilt-navigation-compose = { module = "androidx.hilt:hilt-navigation-compose", version.ref = "androidxHiltNavigationCompose" }
 #androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
 #material = { group = "com.google.android.material", name = "material", version.ref = "material" }
+
+# Osm Android
+osm-android = { module = "org.osmdroid:osmdroid-android", version.ref = "osm"}
+
+# Image Cropper
+img-android = { module = "com.github.CanHub:Android-Image-Cropper", version.ref = "cropper" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

@@ -4,7 +4,7 @@ import com.example.domain.repository.SessionRepository
 import io.github.jan.supabase.auth.user.UserSession
 import javax.inject.Inject
 
-class UpdateCurrentUseCase @Inject constructor(
+class UpdateCurrentSessionUseCase @Inject constructor(
     private val sessionRepository: SessionRepository
 ) {
     suspend operator fun invoke(): Result<UserSession?> {

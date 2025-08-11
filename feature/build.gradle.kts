@@ -50,6 +50,12 @@ dependencies {
     implementation(project(":data"))
     implementation(project(":core"))
 
+    // OSM
+    implementation(libs.osm.android)
+
+    // Img Cropper
+    implementation(libs.img.android)
+
     // Google Auth
     implementation(libs.google.auth)
     implementation(libs.google.services)
@@ -68,6 +74,7 @@ dependencies {
     implementation(libs.supabase.postgrest)
     implementation(libs.supabase.realtime)
     implementation(libs.supabase.auth)
+    implementation(libs.supabase.storage)
 
     // Ktor (required by Supabase)
     implementation(libs.ktor.client.core)

@@ -55,6 +55,10 @@ dependencies {
     implementation(libs.supabase.postgrest)
     implementation(libs.supabase.realtime)
     implementation(libs.supabase.auth)
+    implementation(libs.supabase.storage)
+
+    // Img Cropper
+    implementation(libs.img.android)
 
     // AndroidX + Compose
     implementation(libs.androidx.core.ktx)

@@ -53,11 +53,15 @@ dependencies {
     implementation(libs.hilt.navigation.compose)
     kapt(libs.hilt.compiler)
 
+    // Android-Material
+    implementation(libs.android.material)
+
     // Supabase
     implementation(platform(libs.supabase.bom))
     implementation(libs.supabase.postgrest)
     implementation(libs.supabase.realtime)
     implementation(libs.supabase.auth)
+    implementation(libs.supabase.storage)
 
     // Ktor (required by Supabase)
     implementation(libs.ktor.client.core)

@@ -23,6 +23,7 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -32,6 +33,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -215,6 +217,15 @@ fun LoginPage(
                 isPasswordField = true
             )
 
+            Spacer(modifier = Modifier.height(10.dp))
+
+            Text(
+                text = viewModel.warning,
+                style = TextStyle(
+                    color = Color.Red,
+                )
+            )
+
             Spacer(modifier = Modifier.height(rspDp(15.dp)))
 
             Button(
@@ -247,16 +258,7 @@ fun LoginPage(
                 )
             }
 
-            Spacer(modifier = Modifier.height(10.dp))
-
-            Text(
-                text = viewModel.warning,
-                style = TextStyle(
-                    color = Color.Red,
-                )
-            )
-
-            Spacer(modifier = Modifier.height(10.dp))
+            Spacer(modifier = Modifier.height(5.dp))
 
             Row {
                 Text(
@@ -281,6 +283,65 @@ fun LoginPage(
                     )
             }
 
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth(0.65f)
+                    .padding(vertical = rspDp(10.dp)),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                HorizontalDivider(
+                    color = Brown1,
+                    thickness = rspDp(1.dp),
+                    modifier = Modifier.weight(1f)
+                )
+                Text(
+                    text = "or",
+                    style = TextStyle(
+                        fontFamily = GlacialIndifference,
+                        fontSize = rspSp(20.sp),
+                        fontStyle = FontStyle.Italic,
+                        color = Brown1
+                    ),
+                    modifier = Modifier
+                        .padding(horizontal = rspDp(15.dp))
+                )
+                HorizontalDivider(
+                    color = Brown1,
+                    thickness = rspDp(1.dp),
+                    modifier = Modifier.weight(1f)
+                )
+            }
+
+            Row {
+                Text(
+                    text = "Continue With Google",
+                    style = TextStyle(
+                        fontFamily = GlacialIndifference,
+                        fontSize = rspSp(15.sp),
+                        color = Brown1
+                    ),
+                )
+            }
+
+            Spacer(modifier = Modifier.padding(vertical = rspDp(10.dp)))
+
+            Row {
+                Text(
+                    text = "Continue without and account",
+                    style = TextStyle(
+                        fontFamily = GlacialIndifference,
+                        fontSize = rspSp(15.sp),
+                        color = Brown1,
+                        fontStyle = FontStyle.Italic
+                    ),
+                    modifier = Modifier
+                        .clickable{
+                            navController.navigate(Route.HomePage.route)
+                        }
+                )
+            }
+
+
             Spacer(modifier = Modifier.weight(1f))
 
             Text(
@@ -298,6 +359,7 @@ fun LoginPage(
                 },
                 modifier = Modifier
                     .navigationBarsPadding()
+                    .padding(vertical = rspDp(10.dp))
             )
 
         }

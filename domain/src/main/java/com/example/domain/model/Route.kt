@@ -20,6 +20,8 @@ sealed class Route(
     object DetectionHistoryPage: Route(route = "History")
     object FeatureSelectionPage: Route(route = "FeatureSelection")
 
+    object GeoMapPage: Route(route = "GeoMap")
+
     companion object {
         val navRoutes: List<String> by lazy {
             Route::class.sealedSubclasses.mapNotNull { it.objectInstance?.route }

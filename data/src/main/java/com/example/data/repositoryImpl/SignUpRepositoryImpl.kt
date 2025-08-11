@@ -11,9 +11,10 @@ import javax.inject.Inject
 
 class SignUpRepositoryImpl @Inject constructor(
     private val supabaseClient: SupabaseClient
-): SignUpRepository {
-    override suspend fun signUp(signUpCredential: SignUpCredential): Result<Unit> {
+) : SignUpRepository {
+    override suspend fun signUp(signUpCredential: SignUpCredential): Result<String> {
         return try {
+            // First, sign up the user
             supabaseClient.auth.signUpWith(Email) {
                 email = signUpCredential.email
                 password = signUpCredential.password
@@ -25,10 +26,14 @@ class SignUpRepositoryImpl @Inject constructor(
                     put("registeredAs", signUpCredential.registeredAs)
                 }
             }
-            Result.success(Unit)
+
+            // Then immediately get the current user
+            val currentUser = supabaseClient.auth.currentUserOrNull()
+                ?: throw IllegalStateException("User not found after signup")
+
+            Result.success(currentUser.id)
         } catch (e: Exception) {
             Result.failure(e)
         }
     }
-
 }

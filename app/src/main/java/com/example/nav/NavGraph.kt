@@ -23,6 +23,8 @@ import com.example.feature.detection.history.DetectionHistoryPage
 import com.example.feature.detection.realtime.RealtimeDetectionPage
 import com.example.feature.detection.singleImage.SingleImageDetectionPage
 import com.example.feature.detection.upload.UploadDetectionPage
+import com.example.feature.geomap.GeoMapPage
+import com.example.feature.geomap.GeoMapViewModel
 import com.example.feature.home.HomePage
 import com.example.feature.launch.LaunchPage
 import com.example.feature.launch.LaunchPageViewModel
@@ -35,6 +37,7 @@ import com.example.feature.onboarding.OnboardingPageViewModel
 import com.example.feature.profile.UserProfilePage
 import com.example.feature.signup.SignUpPage
 import com.example.feature.signup.SignUpViewModel
+import com.example.feature.test.UploadPage
 
 @Composable
 fun NavGraph(
@@ -84,12 +87,21 @@ fun NavGraph(
                 SignUpPage(viewModel, navController)
             }
             composable(Route.RealtimeDetectionPage.route) { RealtimeDetectionPage() }
-            composable(Route.SingleImageDetectionPage.route) { SingleImageDetectionPage() }
+            composable(Route.SingleImageDetectionPage.route) {
+//                SingleImageDetectionPage()
+                UploadPage()
+            }
             composable(Route.UploadDetectionPage.route) { UploadDetectionPage() }
-            composable(Route.UserProfilePage.route) { UserProfilePage() }
+            composable(Route.UserProfilePage.route) {
+                UserProfilePage(navController = navController)
+            }
             composable(Route.DetectionHistoryPage.route) { DetectionHistoryPage() }
             composable(Route.FeatureSelectionPage.route) { FeatureSelectionPage() }
             composable(Route.NotificationPage.route) { NotificationPage() }
+            composable(Route.GeoMapPage.route) {
+                val viewModel: GeoMapViewModel = hiltViewModel()
+                GeoMapPage(viewModel)
+            }
         }
 
         if (currentRoute in navRoutes) {
