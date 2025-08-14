@@ -1,27 +1,28 @@
 package com.example.nav
 
 import android.app.Activity
-import androidx.compose.foundation.background
+import android.content.Intent
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.navigationBarsPadding
-import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.navDeepLink
+import com.example.core.ui.theme.White
 import com.example.domain.model.Route
 import com.example.feature.aboutUs.AboutUsPage
 import com.example.feature.detection.FeatureSelectionPage
 import com.example.feature.detection.history.DetectionHistoryPage
 import com.example.feature.detection.realtime.RealtimeDetectionPage
-import com.example.feature.detection.singleImage.SingleImageDetectionPage
 import com.example.feature.detection.upload.UploadDetectionPage
 import com.example.feature.geomap.GeoMapPage
 import com.example.feature.geomap.GeoMapViewModel
@@ -30,6 +31,9 @@ import com.example.feature.launch.LaunchPage
 import com.example.feature.launch.LaunchPageViewModel
 import com.example.feature.login.LoginPage
 import com.example.feature.login.LoginPageViewModel
+import com.example.feature.login.forgotPass.ForgotPasswordPage
+import com.example.feature.login.forgotPass.PassWordResetViewModel
+import com.example.feature.login.forgotPass.ResetPasswordPage
 import com.example.feature.navigation.NavigationBar
 import com.example.feature.notification.NotificationPage
 import com.example.feature.onboarding.OnboardingPage
@@ -59,14 +63,14 @@ fun NavGraph(
         modifier = Modifier
             .fillMaxWidth()
             .fillMaxHeight()
-            .navigationBarsPadding()
-            .background(Color.Transparent)
+            .windowInsetsPadding(WindowInsets.navigationBars)
     ) {
         NavHost(
             navController = navController,
             startDestination = Route.LaunchPage.route,
             modifier = Modifier
                 .matchParentSize()
+                .windowInsetsPadding(WindowInsets.navigationBars)
         ) {
             composable(Route.LaunchPage.route) {
                 val viewModel: LaunchPageViewModel = hiltViewModel()
@@ -88,19 +92,46 @@ fun NavGraph(
             }
             composable(Route.RealtimeDetectionPage.route) { RealtimeDetectionPage() }
             composable(Route.SingleImageDetectionPage.route) {
-//                SingleImageDetectionPage()
+                //SingleImageDetectionPage()
                 UploadPage()
             }
             composable(Route.UploadDetectionPage.route) { UploadDetectionPage() }
             composable(Route.UserProfilePage.route) {
                 UserProfilePage(navController = navController)
             }
-            composable(Route.DetectionHistoryPage.route) { DetectionHistoryPage() }
+            composable(Route.DetectionHistoryPage.route) {
+                DetectionHistoryPage()
+//                val viewModel: GeoMapViewModel = hiltViewModel()
+//                GeoMapPage(
+//                    viewModel = viewModel
+//                )
+            }
             composable(Route.FeatureSelectionPage.route) { FeatureSelectionPage() }
             composable(Route.NotificationPage.route) { NotificationPage() }
             composable(Route.GeoMapPage.route) {
                 val viewModel: GeoMapViewModel = hiltViewModel()
                 GeoMapPage(viewModel)
+            }
+            composable(Route.ForgotPasswordPage.route) {
+                val viewModel: PassWordResetViewModel = hiltViewModel()
+                ForgotPasswordPage(
+                    navController = navController,
+                    viewModel = viewModel
+                )
+            }
+            composable(
+                route = Route.ResetPasswordPage.route,
+                deepLinks = listOf(
+                    navDeepLink {
+                        uriPattern = "beanyapp://password-reset"
+                    }
+                )
+            ) { backStackEntry ->
+                val deepLinkUri = backStackEntry
+                    .arguments
+                    ?.getParcelable<Intent>("android-support-nav:controller:deepLinkIntent")
+                    ?.data
+                ResetPasswordPage()
             }
         }
 
@@ -109,6 +140,7 @@ fun NavGraph(
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
                     .fillMaxWidth()
+                    .windowInsetsPadding(WindowInsets.navigationBars) // Changed here
             ) {
                 NavigationBar(
                     currentRoute = currentRoute,
@@ -126,4 +158,3 @@ fun NavGraph(
         }
     }
 }
-

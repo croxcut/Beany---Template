@@ -8,17 +8,22 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.painterResource
@@ -66,7 +71,8 @@ fun NavigationBar(
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .height(rspDp(100.dp))
+            .height(rspDp(80.dp))
+            .windowInsetsPadding(WindowInsets.navigationBars)  // Changed here
     ) {
         Box(
             modifier = Modifier
@@ -81,11 +87,10 @@ fun NavigationBar(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(100.dp)
-                .background(
-                    color = Color.Transparent
-                ),
+                .background(Color.Transparent)
+                .padding(bottom = rspDp(10.dp)),
             horizontalArrangement = Arrangement.SpaceEvenly,
-            verticalAlignment = Alignment.Bottom,
+            verticalAlignment = Alignment.Bottom
         ) {
             items.forEach { item ->
                 val isSelected = item.route == currentRoute
@@ -94,34 +99,60 @@ fun NavigationBar(
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     modifier = Modifier
-                        .clickable { onTabSelected(item.route) }
-                        .then(
-                            when {
-                                isSelected -> Modifier
-                                    .border(
-                                        width = 3.dp,
-                                        color = Brown1,
-                                        shape = CircleShape
-                                    )
-                                else -> Modifier
-                            }
-                        )
+                        .clickable {
+                            onTabSelected(item.route)
+                        }
+//                        .then(
+//                            if (isSelected)
+//                                Modifier
+//                                    .border(
+//                                        width = 3.dp,
+//                                        color = Brown1,
+//                                        shape = CircleShape
+//                                    ).then(
+//                                        if(isFeature)
+//                                            Modifier
+//                                                .border(
+//                                                    color = White,
+//                                                    width = 6.dp,
+//                                                    shape = CircleShape
+//                                                )
+//                                        else Modifier
+//                                    )
+//                            else Modifier
+//                        )
                         .padding(6.dp)
                 ) {
                     Image(
                         painter = painterResource(item.icon),
                         contentDescription = "Icon",
-                        modifier = Modifier
-                            .then(
-                                if(isFeature) Modifier
-                                    .background(
-                                        color = Brown1,
-                                        shape = CircleShape
-                                    )
-                                    .size(rspDp(45.dp))
-                                else Modifier
+                        modifier = if (isFeature) Modifier
+                            .background(
+                                color = Brown1,
+                                shape = CircleShape
                             )
+                            .border(
+                                color = Brown1,
+                                width = 3.dp,
+                                shape = CircleShape
+                            )
+                            .size(rspDp(50.dp))
+                        else Modifier
                     )
+
+                    Spacer(modifier = Modifier.height(rspDp(4.dp)))
+
+                    HorizontalDivider(
+                        thickness = rspDp(2.dp),
+                        modifier = if(isFeature) Modifier
+                            .width(
+                                rspDp(50.dp)
+                            )
+                        else Modifier
+                            .width(rspDp(25.dp)),
+                        color = if(isSelected) Brown1 else Color.Transparent
+                    )
+
                 }
             }
         }

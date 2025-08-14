@@ -1,9 +1,12 @@
 package com.example.feature.signup
 
 import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -11,22 +14,36 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
 import androidx.navigation.NavController
 import com.example.core.composables.DropdownField
 import com.example.core.composables.Footer
@@ -40,6 +57,7 @@ import com.example.core.utils.rspDp
 import com.example.core.utils.rspSp
 import com.example.domain.model.Route
 import com.example.domain.model.SignUpCredential
+import com.example.domain.model.Terms
 
 @Composable
 fun SignUpPage(
@@ -47,12 +65,17 @@ fun SignUpPage(
     navController: NavController
 ) {
 
+    LaunchedEffect(Unit) {
+        viewModel.loadTerms()
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(
                 color = Brown1
             )
+            .statusBarsPadding()
     ) {
 
         Row(
@@ -120,7 +143,7 @@ fun SignUpPage(
                     .border(
                         width = InputFieldUiParam.borderWidth,
                         shape = InputFieldUiParam.clipShape(),
-                        color = InputFieldUiParam.borderColor
+                        color = if (viewModel.usernameError) Color.Red else InputFieldUiParam.borderColor
                     )
             )
 
@@ -151,7 +174,7 @@ fun SignUpPage(
                     .border(
                         width = InputFieldUiParam.borderWidth,
                         shape = InputFieldUiParam.clipShape(),
-                        color = InputFieldUiParam.borderColor
+                        color = if (viewModel.fullNameError) Color.Red else InputFieldUiParam.borderColor
                     )
             )
 
@@ -182,7 +205,7 @@ fun SignUpPage(
                     .border(
                         width = InputFieldUiParam.borderWidth,
                         shape = InputFieldUiParam.clipShape(),
-                        color = InputFieldUiParam.borderColor
+                        color = if (viewModel.emailError) Color.Red else InputFieldUiParam.borderColor
                     )
             )
 
@@ -213,7 +236,7 @@ fun SignUpPage(
                     .border(
                         width = InputFieldUiParam.borderWidth,
                         shape = InputFieldUiParam.clipShape(),
-                        color = InputFieldUiParam.borderColor
+                        color = if (viewModel.passwordError) Color.Red else InputFieldUiParam.borderColor
                     ),
                 isPasswordField = true
             )
@@ -245,7 +268,7 @@ fun SignUpPage(
                     .border(
                         width = InputFieldUiParam.borderWidth,
                         shape = InputFieldUiParam.clipShape(),
-                        color = InputFieldUiParam.borderColor
+                        color = if (viewModel.confirmPasswordError) Color.Red else InputFieldUiParam.borderColor
                     ),
                 isPasswordField = true
             )
@@ -317,7 +340,7 @@ fun SignUpPage(
             DropdownField(
                 label = {
                     Text(
-                        text = "Location",
+                        text = "SignUpAs",
                         style = InputFieldUiParam.labelTextStyle()
                     )
                 },
@@ -341,23 +364,144 @@ fun SignUpPage(
                         color = InputFieldUiParam.borderColor
                     ),
             )
+            Spacer(modifier = Modifier.height(rspDp(10.dp)))
 
-            Spacer(modifier = Modifier.height(rspDp(20.dp)))
+            val state = viewModel.uiState
+            var showDialog by remember { mutableStateOf(false) }
+
+            Column {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Checkbox(
+                        checked = viewModel.isTermsAccepted,
+                        onCheckedChange = { checked ->
+                            viewModel.isTermsAccepted = checked
+                        }
+                    )
+                    Text(
+                        text = "Show Terms and Conditions",
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = Modifier
+                            .clickable{
+                                showDialog = true
+                            }
+                    )
+                }
+
+                if (showDialog) {
+                    Dialog(
+                        onDismissRequest = {
+                            showDialog = false
+                        },
+                    ) {
+                        Surface(
+                            tonalElevation = 6.dp,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(
+                                    vertical = rspDp(20.dp)
+                                )
+                                .clip(
+                                    shape = RoundedCornerShape(rspDp(20.dp))
+                                ),
+                            color = Color.Transparent
+                        ) {
+                            if (state.isLoading) {
+                                Box(Modifier.padding(24.dp)) {
+                                    CircularProgressIndicator(Modifier.align(Alignment.Center))
+                                }
+                            } else if (state.error != null) {
+                                Text(
+                                    text = state.error,
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    modifier = Modifier.padding(24.dp)
+                                )
+                            } else {
+                                TermsContent(
+                                    terms = state.terms!!,
+                                    onClose = { showDialog = false }
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(rspDp(10.dp)))
 
             Button(
                 onClick = {
-                    viewModel.signUp(
-                        SignUpCredential(
-                            username = viewModel.username,
-                            fullName = viewModel.fullName,
-                            email = viewModel.email,
-                            password = viewModel.password,
-                            province = viewModel.province,
-                            farm = viewModel.farm,
-                            registeredAs = viewModel.registeredAs
-                        )
-                    )
-                    Log.e("Signup", "Signed Up")
+                    if(viewModel.isTermsAccepted) {
+                        val usernamePattern = "^[A-Za-z]+$".toRegex()
+                        val fullNamePattern = "^[A-Za-z ]+$".toRegex()
+                        val emailPattern = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,6}$".toRegex()
+
+                        viewModel.usernameError = false
+                        viewModel.fullNameError = false
+                        viewModel.emailError = false
+                        viewModel.passwordError = false
+                        viewModel.confirmPasswordError = false
+
+                        var firstErrorMessage: String? = null
+
+                        if (viewModel.username.isBlank()) {
+                            viewModel.usernameError = true
+                            if (firstErrorMessage == null) firstErrorMessage = "Username cannot be empty"
+                        } else if (!viewModel.username.matches(usernamePattern)) {
+                            viewModel.usernameError = true
+                            if (firstErrorMessage == null) firstErrorMessage = "Username must contain only letters"
+                        }
+
+                        if (viewModel.fullName.isBlank()) {
+                            viewModel.fullNameError = true
+                            if (firstErrorMessage == null) firstErrorMessage = "Full name cannot be empty"
+                        } else if (!viewModel.fullName.matches(fullNamePattern)) {
+                            viewModel.fullNameError = true
+                            if (firstErrorMessage == null) firstErrorMessage = "Full name must contain only letters and spaces"
+                        }
+
+                        if (viewModel.email.isBlank()) {
+                            viewModel.emailError = true
+                            if (firstErrorMessage == null) firstErrorMessage = "Email cannot be empty"
+                        } else if (!viewModel.email.matches(emailPattern)) {
+                            viewModel.emailError = true
+                            if (firstErrorMessage == null) firstErrorMessage = "Invalid email address"
+                        }
+
+                        if (viewModel.password.isBlank()) {
+                            viewModel.passwordError = true
+                            if (firstErrorMessage == null) firstErrorMessage = "Password cannot be empty"
+                        } else if (viewModel.password.length < 8) {
+                            viewModel.passwordError = true
+                            if (firstErrorMessage == null) firstErrorMessage = "Password must be at least 8 characters long"
+                        }
+
+                        if (viewModel.confirmPassword.isBlank()) {
+                            viewModel.confirmPasswordError = true
+                            if (firstErrorMessage == null) firstErrorMessage = "Confirm password cannot be empty"
+                        } else if (viewModel.password != viewModel.confirmPassword) {
+                            viewModel.confirmPasswordError = true
+                            if (firstErrorMessage == null) firstErrorMessage = "Passwords do not match"
+                        }
+
+                        if (firstErrorMessage != null) {
+                            Toast.makeText(navController.context, firstErrorMessage, Toast.LENGTH_SHORT).show()
+                        } else {
+                            viewModel.signUp(
+                                SignUpCredential(
+                                    username = viewModel.username,
+                                    fullName = viewModel.fullName,
+                                    email = viewModel.email,
+                                    password = viewModel.password,
+                                    province = viewModel.province,
+                                    farm = viewModel.farm,
+                                    registeredAs = viewModel.registeredAs
+                                )
+                            )
+                            Log.e("Signup", "Signed Up")
+                        }
+                    } else {
+                        Toast.makeText(navController.context, "Check Our Terms And Conditions First!", Toast.LENGTH_SHORT).show()
+                    }
                 },
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Color.Transparent,
@@ -421,7 +565,7 @@ fun SignUpPage(
                 onClick = {
                     navController.popBackStack()
                     navController.navigate(Route.AboutUsPage.route)
-                }
+                },
             )
 
         }
@@ -429,6 +573,60 @@ fun SignUpPage(
     }
 
 }
+
+@Composable
+fun TermsContent(
+    terms: Terms,
+    onClose: () -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .verticalScroll(rememberScrollState())
+            .background(
+                color = Beige1,
+                shape = RoundedCornerShape(rspDp(20.dp))
+            )
+            .padding(24.dp)
+    ) {
+        Text(
+            text = terms.title,
+            style = MaterialTheme.typography.headlineSmall
+        )
+
+        Spacer(modifier = Modifier.height(rspDp(20.dp)))
+
+        Text(
+            text = terms.intro,
+            style = MaterialTheme.typography.bodyLarge
+        )
+
+        Spacer(modifier = Modifier.height(rspDp(20.dp)))
+
+        terms.sections.forEach { section ->
+            Text(
+                text = "${section.number}. ${section.title}",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold
+            )
+            Text(
+                text = section.content,
+                style = MaterialTheme.typography.bodyMedium
+            )
+            Spacer(modifier = Modifier.height(rspDp(20.dp)))
+        }
+
+        Spacer(modifier = Modifier.height(rspDp(20.dp)))
+
+        // OK button
+        Button(
+            onClick = onClose,
+            modifier = Modifier.align(Alignment.End)
+        ) {
+            Text("OK")
+        }
+    }
+}
+
 
 object InputFieldUiParam{
 
@@ -442,20 +640,22 @@ object InputFieldUiParam{
     val borderWidth: Dp =  2.dp
 
     const val width: Float = 0.8f
-    val height: Dp = 60.dp
+    val height: Dp = 63.dp
 
     val charLength = 64
 
     @Composable
     fun inputTextStyle(): TextStyle = TextStyle(
         fontSize = rspSp(15.sp),
-        fontFamily = FontFamily.Default
+        fontFamily = FontFamily.Default,
+        color = Brown1
     )
 
     @Composable
     fun labelTextStyle(): TextStyle = TextStyle(
         fontSize = rspSp(15.sp),
-        fontFamily = GlacialIndifferenceBold
+        fontFamily = GlacialIndifferenceBold,
+        color = Brown1
     )
 
 }

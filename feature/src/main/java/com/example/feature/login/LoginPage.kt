@@ -3,6 +3,7 @@ package com.example.feature.login
 import android.app.Activity
 import android.content.Intent
 import android.util.Log
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
@@ -73,13 +74,15 @@ object InputFieldUiParam{
     @Composable
     fun inputTextStyle(): TextStyle = TextStyle(
         fontSize = rspSp(15.sp),
-        fontFamily = FontFamily.Default
+        fontFamily = FontFamily.Default,
+        color = Brown1
     )
 
     @Composable
     fun labelTextStyle(): TextStyle = TextStyle(
         fontSize = rspSp(15.sp),
-        fontFamily = GlacialIndifferenceBold
+        fontFamily = GlacialIndifferenceBold,
+        color = Brown1
     )
 
 }
@@ -148,6 +151,7 @@ fun LoginPage(
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .navigationBarsPadding()
                 .background(
                     color = Beige1,
                     shape = RoundedCornerShape(topStart = rspDp(100.dp))
@@ -170,7 +174,7 @@ fun LoginPage(
                 },
                 textStyle = InputFieldUiParam.inputTextStyle(),
                 singleLine = true,
-                maxLength = 32,
+                maxLength = 64,
                 maxLines = 1,
                 modifier = Modifier
                     .height(height = InputFieldUiParam.height)
@@ -182,7 +186,7 @@ fun LoginPage(
                     .border(
                         width = InputFieldUiParam.borderWidth,
                         shape = InputFieldUiParam.clipShape(),
-                        color = InputFieldUiParam.borderColor
+                        color = if (viewModel.emailError) Color.Red else InputFieldUiParam.borderColor
                     )
             )
 
@@ -201,7 +205,7 @@ fun LoginPage(
                 },
                 textStyle = InputFieldUiParam.inputTextStyle(),
                 singleLine = true,
-                maxLength = 32,
+                maxLength = 64,
                 maxLines = 1,
                 modifier = Modifier
                     .height(height = InputFieldUiParam.height)
@@ -213,30 +217,59 @@ fun LoginPage(
                     .border(
                         width = InputFieldUiParam.borderWidth,
                         shape = InputFieldUiParam.clipShape(),
-                        color = InputFieldUiParam.borderColor
+                        color = if (viewModel.passwordError) Color.Red else InputFieldUiParam.borderColor
                     ),
                 isPasswordField = true
             )
 
-            Spacer(modifier = Modifier.height(10.dp))
+            Spacer(modifier = Modifier.height(rspDp(10.dp)))
 
-            Text(
-                text = viewModel.warning,
-                style = TextStyle(
-                    color = Color.Red,
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = rspDp(40.dp))
+            ) {
+                Spacer(modifier = Modifier.weight(1f))
+
+                Text(
+                    text = "Forgot Password?",
+                    style = TextStyle(
+                        fontFamily = GlacialIndifference,
+                        fontStyle = FontStyle.Italic,
+                        color = Brown1
+                    ),
+                    modifier = Modifier
+                        .clickable{
+                            navController.navigate(Route.ForgotPasswordPage.route)
+                        }
                 )
-            )
+            }
 
-            Spacer(modifier = Modifier.height(rspDp(15.dp)))
+            Spacer(modifier = Modifier.height(rspDp(10.dp)))
 
             Button(
                 onClick = {
-                    viewModel.login(
-                        LoginCredential(
-                            email = viewModel.email,
-                            password = viewModel.password
-                        ),
-                    )
+                    var valid = true
+
+                    if (viewModel.email.isBlank()) {
+                        viewModel.emailError = true
+                        Toast.makeText(activity, "Email cannot be empty", Toast.LENGTH_SHORT).show()
+                        valid = false
+                    }
+                    if (viewModel.password.isBlank()) {
+                        viewModel.passwordError = true
+                        Toast.makeText(activity, "Password cannot be empty", Toast.LENGTH_SHORT).show()
+                        valid = false
+                    }
+
+                    if (valid) {
+                        viewModel.login(
+                            LoginCredential(
+                                email = viewModel.email,
+                                password = viewModel.password
+                            )
+                        )
+                    }
                 },
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Color.Transparent,
@@ -254,7 +287,8 @@ fun LoginPage(
                     text = "SIGN IN",
                     style = TextStyle(
                         fontFamily = GlacialIndifferenceBold,
-                        fontSize = rspSp(20.sp)
+                        fontSize = rspSp(20.sp),
+                        color = White
                     )
                 )
             }
@@ -268,7 +302,7 @@ fun LoginPage(
                         color = Brown1,
                         fontFamily = GlacialIndifferenceBold,
                         fontSize = rspSp(15.sp)
-                ),
+                    ),
                 )
                 Text(
                     text = " Sign Up",
@@ -328,7 +362,7 @@ fun LoginPage(
 
             Row {
                 Text(
-                    text = "Continue without and account",
+                    text = "Continue without an account",
                     style = TextStyle(
                         fontFamily = GlacialIndifference,
                         fontSize = rspSp(15.sp),

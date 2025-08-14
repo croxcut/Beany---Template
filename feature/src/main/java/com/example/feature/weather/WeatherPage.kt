@@ -37,10 +37,8 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.domain.model.DailyForecast
 import com.example.domain.model.WeatherForecast
-import java.text.SimpleDateFormat
+import com.example.feature.home.WeatherViewModel
 import java.util.Calendar
-import java.util.Locale
-import java.util.TimeZone
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -129,9 +127,9 @@ fun WeatherPage(
                     }
                 }
 
-                state.forecast != null -> {
-                    WeatherForecastList(forecast = state.forecast!!)
-                }
+//                state.forecast != null -> {
+//                    WeatherForecastList(forecast = state.forecast!!)
+//                }
 
                 else -> {
                     Box(
@@ -146,93 +144,93 @@ fun WeatherPage(
     }
 }
 
-@Composable
-fun WeatherForecastList(forecast: WeatherForecast) {
-    LazyColumn(
-        modifier = Modifier.padding(horizontal = 16.dp)
-    ) {
-        items(forecast.dailyForecasts) { daily ->
-            DailyForecastItem(daily = daily)
-            Divider()
-        }
-    }
-}
-
-@Composable
-fun DailyForecastItem(daily: DailyForecast) {
-    val weekday = when (daily.dayOfWeek) {
-        Calendar.SUNDAY -> "Sunday"
-        Calendar.MONDAY -> "Monday"
-        Calendar.TUESDAY -> "Tuesday"
-        Calendar.WEDNESDAY -> "Wednesday"
-        Calendar.THURSDAY -> "Thursday"
-        Calendar.FRIDAY -> "Friday"
-        Calendar.SATURDAY -> "Saturday"
-        else -> daily.date
-    }
-
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 8.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 5.dp)
-    ) {
-        Column(
-            modifier = Modifier.padding(16.dp)
-        ) {
-            Text(
-                text = "$weekday, ${daily.date}",
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold
-            )
-
-            // ... rest of the code remains the same ...
-            Spacer(modifier = Modifier.height(8.dp))
-
-            Row(
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                val weatherIcon = when(daily.weatherCode) {
-                    0 -> "☀️"
-                    in 1..3 -> "⛅"
-                    in 45..48 -> "🌫️"
-                    in 51..67 -> "🌧️"
-                    in 71..77 -> "❄️"
-                    in 80..82 -> "🌦️"
-                    in 95..99 -> "⛈️"
-                    else -> "🌤️"
-                }
-
-                Text(
-                    text = weatherIcon,
-                    style = MaterialTheme.typography.displaySmall,
-                    modifier = Modifier.padding(end = 8.dp)
-                )
-
-                Column {
-                    Text(
-                        text = "Max: ${daily.maxTemperature}°C",
-                        style = MaterialTheme.typography.bodyLarge
-                    )
-                    Text(
-                        text = "Min: ${daily.minTemperature}°C",
-                        style = MaterialTheme.typography.bodyLarge
-                    )
-                }
-
-                Spacer(modifier = Modifier.weight(1f))
-
-                Column {
-                    Text(
-                        text = "Precip: ${daily.precipitationSum}mm",
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                    Text(
-                        text = "Wind: ${daily.windSpeed}km/h",
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                }
-            }
-        }
-    }
-}
+//@Composable
+//fun WeatherForecastList(forecast: WeatherForecast) {
+//    LazyColumn(
+//        modifier = Modifier.padding(horizontal = 16.dp)
+//    ) {
+//        items(forecast.dailyForecasts) { daily ->
+//            DailyForecastItem(daily = daily)
+//            Divider()
+//        }
+//    }
+//}
+//
+//@Composable
+//fun DailyForecastItem(daily: DailyForecast) {
+//    val weekday = when (daily.dayOfWeek) {
+//        Calendar.SUNDAY -> "Sunday"
+//        Calendar.MONDAY -> "Monday"
+//        Calendar.TUESDAY -> "Tuesday"
+//        Calendar.WEDNESDAY -> "Wednesday"
+//        Calendar.THURSDAY -> "Thursday"
+//        Calendar.FRIDAY -> "Friday"
+//        Calendar.SATURDAY -> "Saturday"
+//        else -> daily.date
+//    }
+//
+//    Card(
+//        modifier = Modifier
+//            .fillMaxWidth()
+//            .padding(vertical = 8.dp),
+//        elevation = CardDefaults.cardElevation(defaultElevation = 5.dp)
+//    ) {
+//        Column(
+//            modifier = Modifier.padding(16.dp)
+//        ) {
+//            Text(
+//                text = "$weekday, ${daily.date}",
+//                style = MaterialTheme.typography.titleMedium,
+//                fontWeight = FontWeight.Bold
+//            )
+//
+//            // ... rest of the code remains the same ...
+//            Spacer(modifier = Modifier.height(8.dp))
+//
+//            Row(
+//                verticalAlignment = Alignment.CenterVertically
+//            ) {
+//                val weatherIcon = when(daily.weatherCode) {
+//                    0 -> "☀️"
+//                    in 1..3 -> "⛅"
+//                    in 45..48 -> "🌫️"
+//                    in 51..67 -> "🌧️"
+//                    in 71..77 -> "❄️"
+//                    in 80..82 -> "🌦️"
+//                    in 95..99 -> "⛈️"
+//                    else -> "🌤️"
+//                }
+//
+//                Text(
+//                    text = weatherIcon,
+//                    style = MaterialTheme.typography.displaySmall,
+//                    modifier = Modifier.padding(end = 8.dp)
+//                )
+//
+//                Column {
+//                    Text(
+//                        text = "Max: ${daily.maxTemperature}°C",
+//                        style = MaterialTheme.typography.bodyLarge
+//                    )
+//                    Text(
+//                        text = "Min: ${daily.minTemperature}°C",
+//                        style = MaterialTheme.typography.bodyLarge
+//                    )
+//                }
+//
+//                Spacer(modifier = Modifier.weight(1f))
+//
+//                Column {
+//                    Text(
+//                        text = "Precip: ${daily.precipitationSum}mm",
+//                        style = MaterialTheme.typography.bodyMedium
+//                    )
+//                    Text(
+//                        text = "Wind: ${daily.windSpeed}km/h",
+//                        style = MaterialTheme.typography.bodyMedium
+//                    )
+//                }
+//            }
+//        }
+//    }
+//}

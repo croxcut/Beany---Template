@@ -33,7 +33,7 @@ fun InputField(
     value: String,
     onValueChange: (String) -> Unit,
     modifier: Modifier = Modifier,
-    label: @Composable (() -> Unit)? = { Text("Text here") },
+    label: (@Composable (() -> Unit))? = null,
     textStyle: TextStyle = LocalTextStyle.current,
     maxLines: Int = 1,
     maxLength: Int? = null,
@@ -53,7 +53,7 @@ fun InputField(
                     onValueChange(it)
                 }
             },
-            label = label,
+            label = label, // This will be null if no label is provided
             textStyle = textStyle,
             maxLines = maxLines,
             singleLine = singleLine,
@@ -84,8 +84,7 @@ fun InputField(
                 unfocusedIndicatorColor = Color.Transparent,
                 disabledIndicatorColor = Color.Transparent
             ),
-            modifier = Modifier
-                .fillMaxWidth()
+            modifier = Modifier.fillMaxWidth()
         )
     }
 }

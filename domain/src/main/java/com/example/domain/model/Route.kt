@@ -20,6 +20,8 @@ sealed class Route(
     object DetectionHistoryPage: Route(route = "History")
     object FeatureSelectionPage: Route(route = "FeatureSelection")
 
+    object ForgotPasswordPage: Route(route = "ForgotPass")
+    object ResetPasswordPage: Route(route = "ResetPass")
     object GeoMapPage: Route(route = "GeoMap")
 
     companion object {

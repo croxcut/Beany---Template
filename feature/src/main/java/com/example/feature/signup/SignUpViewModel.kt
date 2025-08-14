@@ -8,7 +8,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.domain.model.City
 import com.example.domain.model.SignUpCredential
+import com.example.domain.model.Terms
 import com.example.domain.repository.WeatherRepository
+import com.example.domain.usecase.GetTermsUseCase
 import com.example.domain.usecase.SignUpUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -18,7 +20,8 @@ import javax.inject.Inject
 @HiltViewModel
 class SignUpViewModel @Inject constructor(
     private val signUpUseCase: SignUpUseCase,
-    private val weatherRepository: WeatherRepository
+    private val weatherRepository: WeatherRepository,
+    private val getTerms: GetTermsUseCase
 ) : ViewModel() {
 
     var username by mutableStateOf("")
@@ -47,6 +50,13 @@ class SignUpViewModel @Inject constructor(
     var selectedLocation by mutableStateOf<City?>(null)
         private set
 
+    var usernameError by mutableStateOf(false)
+    var fullNameError by mutableStateOf(false)
+    var emailError by mutableStateOf(false)
+    var passwordError by mutableStateOf(false)
+    var confirmPasswordError by mutableStateOf(false)
+
+    var isTermsAccepted by mutableStateOf(false)
 
     fun onUsernameChanged(newUsername: String) {
         username = newUsername
@@ -91,14 +101,11 @@ class SignUpViewModel @Inject constructor(
 
     fun onLocationChanged(location: City) {
         selectedLocation = location
-        province = location.name // Or whatever property you want to display
+        province = location.name
     }
 
     private val _signUpState = MutableStateFlow<SignUpState>(SignUpState.Idle)
 
-    fun validateInputs(signUpCredential: SignUpCredential) {
-
-    }
 
     fun signUp(signUpCredential: SignUpCredential) {
         viewModelScope.launch {
@@ -118,7 +125,38 @@ class SignUpViewModel @Inject constructor(
     }
 
     fun getLocations() : List<City> {
-        return weatherRepository.getCities()
+        return weatherRepository.getCities().sortedBy {
+            it.name
+        }
+    }
+
+    var uiState by mutableStateOf(TermsUiState(isLoading = true))
+        private set
+
+    suspend fun loadTerms() {
+        uiState = uiState.copy(isLoading = true, error = null)
+        try {
+            val data = getTerms()
+            uiState = uiState.copy(isLoading = false, terms = data)
+        } catch (e: Exception) {
+            uiState = uiState.copy(isLoading = false, error = e.message ?: "Unknown error")
+        }
+    }
+
+    fun setAccepted(checked: Boolean) {
+        uiState = uiState.copy(accepted = checked)
+    }
+
+    fun dismissDialog() {
+        uiState = uiState.copy(showDialog = false)
     }
 
 }
+
+data class TermsUiState(
+    val isLoading: Boolean = false,
+    val terms: Terms? = null,
+    val error: String? = null,
+    val showDialog: Boolean = true,
+    val accepted: Boolean = false
+)

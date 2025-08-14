@@ -1,53 +1,33 @@
 package com.example.beany
 
+import android.net.Uri
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.navigationBarsPadding
-import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.foundation.layout.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.unit.sp
-import androidx.compose.ui.viewinterop.AndroidView
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.unit.dp
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavController
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.example.core.ui.theme.BeanyTheme
-import com.example.core.utils.rspSp
-import com.example.feature.geomap.GeoMapPage
-import com.example.feature.geomap.GeoMapViewModel
-import com.example.feature.test.UploadPage
+import androidx.navigation.navDeepLink
 import com.example.nav.NavGraph
 import dagger.hilt.android.AndroidEntryPoint
+import io.github.jan.supabase.SupabaseClient
+import io.github.jan.supabase.annotations.SupabaseExperimental
 import io.github.jan.supabase.auth.Auth
+import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.createSupabaseClient
 import io.github.jan.supabase.postgrest.Postgrest
-import io.github.jan.supabase.annotations.SupabaseExperimental
-import io.github.jan.supabase.postgrest.from
 import io.github.jan.supabase.realtime.Realtime
-import io.github.jan.supabase.realtime.selectAsFlow
-import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
-import org.osmdroid.config.Configuration
-import org.osmdroid.util.BoundingBox
-import org.osmdroid.util.GeoPoint
-import org.osmdroid.views.MapView
-import org.osmdroid.views.overlay.Marker
-import org.osmdroid.views.overlay.Polygon
-import java.io.File
 
 val supabase = createSupabaseClient(
     supabaseUrl = "https://moaafjxlduuwjpbgrheo.supabase.co",
@@ -56,34 +36,10 @@ val supabase = createSupabaseClient(
     install(Auth)
     install(Postgrest)
     install(Realtime)
-    //install other modules
 }
 
-@OptIn(SupabaseExperimental::class)
-@Composable
-fun CountryScreen() {
-    val flow: Flow<List<Country>> = supabase.from("countries").selectAsFlow(Country::id)
-    val countries by flow.collectAsState(initial = emptyList())
-
-    MaterialTheme {
-        Column(
-            modifier = Modifier
-                .statusBarsPadding()
-        ) {
-            countries.forEach { country ->
-                Text(
-                    text = country.name,
-                )
-            }
-        }
-    }
-}
 @Serializable
-data class Country(
-    val id: Int,
-    val name: String
-)
-
+data class Country(val id: Int, val name: String)
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -93,15 +49,115 @@ class MainActivity : ComponentActivity() {
         installSplashScreen()
         enableEdgeToEdge()
         setContent {
-            BeanyTheme {
-                val navHostController = rememberNavController()
-                NavGraph(navHostController, activity = this)
-            }
-//            MaterialTheme {
-//                UploadPage()
+            val navController = rememberNavController()
+            NavGraph(navController = navController, activity = this)
+
+//            NavHost(navController, startDestination = "home") {
+//                composable("home") {
+//                    HomeScreen(supabase)
+//                }
+//                composable(
+//                    route = "reset",
+//                    deepLinks = listOf(
+//                        navDeepLink {
+//                            uriPattern = "beanyapp://password-reset"
+//                        }
+//                    )
+//                ) { backStackEntry ->
+//                    val uri = backStackEntry.arguments?.getString("android-support-nav:controller:deepLinkIntent")
+//                    val deepLinkUri = intent?.data
+//                    ResetPasswordScreen(supabase, navController, deepLinkUri)
+//                }
 //            }
+        }
+    }
+}
 
+@Composable
+fun HomeScreen(supabase: SupabaseClient) {
+    val scope = rememberCoroutineScope()
+    val email = "johnpaulvalenzuelaog@gmail.com"
 
+    Column(modifier = Modifier.padding(16.dp)) {
+        Button(onClick = {
+            scope.launch {
+                try {
+                    supabase.auth.resetPasswordForEmail(
+                        email = email,
+                        redirectUrl = "beanyapp://password-reset"
+                    )
+                    println("Reset link sent to $email")
+                } catch (e: Exception) {
+                    println("Failed to send reset email: ${e.message}")
+                }
+            }
+        }) {
+            Text("Send Password Reset Email")
+        }
+    }
+}
+
+@Composable
+fun ResetPasswordScreen(
+    supabase: SupabaseClient,
+    navController: NavController,
+    deepLinkUri: Uri?
+) {
+    var newPassword by remember { mutableStateOf("") }
+    var confirmPassword by remember { mutableStateOf("") }
+    val scope = rememberCoroutineScope()
+
+    val accessToken = deepLinkUri?.getQueryParameter("access_token")
+    val type = deepLinkUri?.getQueryParameter("type")
+
+    LaunchedEffect(accessToken) {
+        if (!accessToken.isNullOrEmpty() && type == "recovery") {
+            try {
+                supabase.auth.exchangeCodeForSession(accessToken)
+                println("Session restored for password reset")
+            } catch (e: Exception) {
+                println("Failed to restore session: ${e.message}")
+            }
+        }
+    }
+
+    Column(modifier = Modifier.padding(16.dp)) {
+        OutlinedTextField(
+            value = newPassword,
+            onValueChange = { newPassword = it },
+            label = { Text("New Password") },
+            visualTransformation = PasswordVisualTransformation(),
+            modifier = Modifier.fillMaxWidth()
+        )
+        OutlinedTextField(
+            value = confirmPassword,
+            onValueChange = { confirmPassword = it },
+            label = { Text("Confirm Password") },
+            visualTransformation = PasswordVisualTransformation(),
+            modifier = Modifier.fillMaxWidth()
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+        Button(
+            onClick = {
+                if (newPassword == confirmPassword && newPassword.length >= 6) {
+                    scope.launch {
+                        try {
+                            supabase.auth.updateUser {
+                                password = newPassword
+                            }
+                            navController.popBackStack()
+                            println("Password updated successfully")
+                        } catch (e: Exception) {
+                            println("Password update failed: ${e.message}")
+                        }
+                    }
+                } else {
+                    println("Passwords do not match or are too short")
+                }
+            },
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text("Update Password")
         }
     }
 }

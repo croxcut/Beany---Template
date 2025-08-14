@@ -2,8 +2,10 @@ package com.example.data.local
 
 import android.content.Context
 import com.example.domain.model.City
+import com.example.domain.model.Terms
+import com.google.gson.Gson
 import kotlinx.serialization.json.*
-import java.io.File
+import java.io.InputStreamReader
 
 fun loadCity(context: Context, fileName: String): List<City> {
     val jsonString = context.assets.open(fileName).bufferedReader().use { it.readText() }
@@ -19,4 +21,10 @@ fun loadCity(context: Context, fileName: String): List<City> {
             longitude = obj["longitude"]?.jsonPrimitive?.double ?: 0.0
         )
     }
+}
+
+fun loadTermsFromAssets(context: Context, fileName: String = "beany_terms.json"): Terms {
+    val inputStream = context.assets.open(fileName)
+    val reader = InputStreamReader(inputStream)
+    return Gson().fromJson(reader, Terms::class.java)
 }

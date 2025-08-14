@@ -42,6 +42,9 @@ class LoginPageViewModel @Inject constructor(
     var password: String by mutableStateOf(value = "")
         private set
 
+    var emailError by mutableStateOf(false)
+    var passwordError by mutableStateOf(false)
+
     fun setUsernameOnChange(newValue: String) {
         email = newValue
     }

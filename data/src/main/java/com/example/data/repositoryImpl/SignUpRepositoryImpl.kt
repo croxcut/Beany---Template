@@ -27,7 +27,6 @@ class SignUpRepositoryImpl @Inject constructor(
                 }
             }
 
-            // Then immediately get the current user
             val currentUser = supabaseClient.auth.currentUserOrNull()
                 ?: throw IllegalStateException("User not found after signup")
 

@@ -23,6 +23,7 @@ import com.canhub.cropper.CropImageView
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -67,10 +68,15 @@ fun ProfileListItem(
     rowPadding: Dp,
     descFontSize: TextUnit,
     titleColor: Color,
-    descColor: Color
+    descColor: Color,
+    onClick: (() -> Unit)? = null  // Optional click callback
 ) {
     Row(
-        modifier = Modifier.padding(vertical = rowPadding),
+        modifier = Modifier
+            .padding(vertical = rowPadding)
+            .then(
+                if (onClick != null) Modifier.clickable { onClick() } else Modifier
+            ),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Image(
@@ -110,7 +116,8 @@ fun SectionCard(
     items: List<ProfileItem>,
     rowPadding: Dp,
     descFontSize: TextUnit,
-    containerPadding: Dp
+    containerPadding: Dp,
+    onItemClick: (ProfileItem) -> Unit = {}  // Handle item clicks
 ) {
     Column(
         modifier = Modifier
@@ -133,7 +140,8 @@ fun SectionCard(
                 rowPadding = rowPadding,
                 descFontSize = descFontSize,
                 titleColor = titleColor,
-                descColor = titleColor
+                descColor = titleColor,
+                onClick = { onItemClick(item) }  // Pass the click event
             )
             if (index != items.lastIndex) {
                 HorizontalDivider(
@@ -304,7 +312,9 @@ fun UserProfilePage(
 
     val cropImageLauncher = rememberLauncherForActivityResult(CropImageContract()) { result ->
         if (result.isSuccessful) {
-            result.uriContent?.let { uri -> viewModel.uploadProfileImage(uri) }
+            result.uriContent?.let { uri ->
+                viewModel.uploadProfileImage(uri)
+            }
         } else {
             result.error?.printStackTrace()
         }
@@ -396,8 +406,17 @@ fun UserProfilePage(
                     rowPadding = ROW_PADDING,
                     descFontSize = DESC_FONT_SIZE,
                     containerPadding = CONTAINER_PADDING
-                )
+                ) { item ->
+                    when(item.title) {
+//                        "My Profile" -> navController.navigate(Route.ProfilePage.route)
+                        "Notification" -> navController.navigate(Route.NotificationPage.route)
+//                        "Uploaded Photos" -> navController.navigate(Route.UploadedPhotosPage.route)
+//                        "My Diagnosis" -> navController.navigate(Route.MyDiagnosisPage.route)
+                    }
+                }
+
                 Spacer(modifier = Modifier.height(height = rspDp(10.dp)))
+
                 SectionCard(
                     title = "Feature",
                     backgroundColor = Beige1,
@@ -406,8 +425,17 @@ fun UserProfilePage(
                     rowPadding = ROW_PADDING,
                     descFontSize = DESC_FONT_SIZE,
                     containerPadding = CONTAINER_PADDING
-                )
+                ) { item ->
+                    when(item.title) {
+//                        "Camera" -> navController.navigate(Route.CameraPage.route)
+//                        "Scan History" -> navController.navigate(Route.ScanHistoryPage.route)
+//                        "Community" -> navController.navigate(Route.CommunityPage.route)
+//                        "Chat Support" -> navController.navigate(Route.ChatSupportPage.route)
+                    }
+                }
+
                 Spacer(modifier = Modifier.height(height = rspDp(10.dp)))
+
                 SectionCard(
                     title = "About Beany",
                     backgroundColor = White,
@@ -416,7 +444,15 @@ fun UserProfilePage(
                     rowPadding = ROW_PADDING,
                     descFontSize = DESC_FONT_SIZE,
                     containerPadding = CONTAINER_PADDING
-                )
+                ) { item ->
+                    when(item.title) {
+                        "About Us" -> navController.navigate(Route.AboutUsPage.route)
+//                        "Terms and Conditions" -> navController.navigate(Route.TermsPage.route)
+//                        "Privacy Policy" -> navController.navigate(Route.PrivacyPage.route)
+//                        "Contact Us" -> navController.navigate(Route.ContactPage.route)
+                    }
+                }
+
                 Spacer(modifier = Modifier.height(height = rspDp(15.dp)))
 
                 val buttonText: String = if (isSignedUp) "Log Out" else "Sign In"
@@ -438,7 +474,7 @@ fun UserProfilePage(
                             color = Color(0xffe8d0a7),
                             shape = RoundedCornerShape(size = rspDp(20.dp))
                         )
-                        .height(height = rspDp(30.dp))
+                        .height(height = rspDp(33.dp))
                         .width(width = rspDp(200.dp))
                 ) {
                     Text(
@@ -470,7 +506,7 @@ fun UserProfilePage(
                 )
             }
 
-            // Profile Picture
+            // Profile Picture ? if no auth user use default
             ProfilePicture(
                 viewModel = viewModel,
                 onEditClick = { imagePickerLauncher.launch("image/*") },

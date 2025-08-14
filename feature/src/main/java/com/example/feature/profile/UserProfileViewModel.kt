@@ -3,6 +3,7 @@ package com.example.feature.profile
 
 import android.content.Context
 import android.net.Uri
+import android.util.Log
 import androidx.core.net.toUri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -12,6 +13,7 @@ import com.example.domain.repository.BucketRepository
 import com.example.domain.repository.SessionRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.ktor.client.plugins.HttpRequestTimeoutException
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -55,7 +57,7 @@ class UserProfileViewModel @Inject constructor(
     }
 
     fun uploadProfileImage(uri: Uri) {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             try {
                 val currentProfile = _profile.value
                     ?: throw IllegalStateException("No user profile loaded")
@@ -69,8 +71,14 @@ class UserProfileViewModel @Inject constructor(
 
                 bucketRepository.upload(remotePath, bytes)
 
+                // Update UI immediately
+                _selectedImageUri.value = uri
+
+                sessionRepository.updateCurrentSession()
+
                 _uploadState.value = UploadState.Success
             } catch (e: Exception) {
+                Log.e("ProfileUpload", "Upload failed", e)
                 _uploadState.value = UploadState.Error(e.message ?: "Unknown error")
             }
         }
