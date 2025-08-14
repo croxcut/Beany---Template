@@ -13,6 +13,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Send
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Send
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -38,6 +39,8 @@ import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.createSupabaseClient
 import io.github.jan.supabase.postgrest.Postgrest
 import io.github.jan.supabase.postgrest.from
+import io.github.jan.supabase.postgrest.query.filter.FilterOperation
+import io.github.jan.supabase.postgrest.query.filter.FilterOperator
 import io.github.jan.supabase.realtime.Realtime
 import io.github.jan.supabase.realtime.broadcastFlow
 import io.github.jan.supabase.realtime.channel
@@ -47,6 +50,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
@@ -70,104 +74,77 @@ val supabase = createSupabaseClient(
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
-
     @OptIn(SupabaseExperimental::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         installSplashScreen()
         enableEdgeToEdge()
+
         setContent {
-            val posts = remember { mutableStateListOf<PostWithReplies>() }
-            var newReply by remember { mutableStateOf("") }
-            var selectedPost by remember { mutableStateOf<PostWithReplies?>(null) }
-            val coroutineScope = rememberCoroutineScope()
+            val navController = rememberNavController()
+            NavGraph(navController, this)
+//            NavHost(
+//                navController = navController,
+//                startDestination = "posts_list"
+//            ) {
+//                composable("posts_list") {
+//                    PostsListScreen(
+//                        onPostClick = { postId ->
+//                            navController.navigate("post_detail/$postId")
+//                        }
+//                    )
+//                }
+//                composable("post_detail/{postId}") { backStackEntry ->
+//                    val postId = backStackEntry.arguments?.getString("postId")?.toLongOrNull()
+//                    if (postId != null) {
+//                        PostDetailScreen(postId = postId)
+//                    }
+//                }
+//            }
+        }
+    }
+}
 
-            // Load posts + replies
-            LaunchedEffect(Unit) {
-                coroutineScope.launch {
-                    val postFlow: Flow<List<Post>> = supabase
-                        .from("posts")
-                        .selectAsFlow(Post::id)
+@OptIn(SupabaseExperimental::class)
+@Composable
+fun PostsListScreen(onPostClick: (Long) -> Unit) {
+    val posts = remember { mutableStateListOf<Post>() }
+    val coroutineScope = rememberCoroutineScope()
 
-                    val replyFlow: Flow<List<Reply>> = supabase
-                        .from("replies")
-                        .selectAsFlow(Reply::id)
+    LaunchedEffect(Unit) {
+        coroutineScope.launch {
+            val postFlow: Flow<List<Post>> = supabase
+                .from("posts")
+                .selectAsFlow(Post::id)
 
-                    combine(postFlow, replyFlow) { postList, replyList ->
-                        postList.map { post ->
-                            val postReplies = replyList.filter { it.post_id == post.id }
-                            PostWithReplies(post, postReplies.toMutableStateList())
-                        }
-                    }.collect { combined ->
-                        posts.clear()
-                        posts.addAll(combined)
-                    }
-                }
+            postFlow.collect { postList ->
+                posts.clear()
+                posts.addAll(postList)
             }
+        }
+    }
 
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(Color(0xFFF0F0F0))
-            ) {
-                // Posts list
-                LazyColumn(
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color(0xFFF0F0F0))
+    ) {
+        LazyColumn(
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = PaddingValues(8.dp)
+        ) {
+            items(posts) { post ->
+                Card(
                     modifier = Modifier
-                        .weight(1f)
                         .fillMaxWidth()
-                        .padding(8.dp)
+                        .padding(vertical = 4.dp)
+                        .clickable { onPostClick(post.id) },
+                    colors = CardDefaults.cardColors(containerColor = Color.White)
                 ) {
-                    items(posts) { postWithReplies ->
-                        PostCard(
-                            postWithReplies = postWithReplies,
-                            isSelected = selectedPost?.post?.id == postWithReplies.post.id,
-                            onSelect = { selectedPost = postWithReplies }
-                        )
-                    }
-                }
-
-                // Bottom reply bar (global)
-                if (selectedPost != null) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .background(Color.White)
-                            .padding(8.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        TextField(
-                            value = newReply,
-                            onValueChange = { newReply = it },
-                            modifier = Modifier
-                                .weight(1f)
-                                .padding(end = 8.dp),
-                            placeholder = { Text("Write a reply...") },
-                            shape = RoundedCornerShape(24.dp),
-                            colors = TextFieldDefaults.colors(
-                                focusedIndicatorColor = Color.Transparent,
-                                unfocusedIndicatorColor = Color.Transparent
-                            )
-                        )
-                        Button(
-                            onClick = {
-                                if (newReply.isNotBlank()) {
-                                    coroutineScope.launch {
-                                        val reply = NewReply(
-                                            post_id = selectedPost!!.post.id,
-                                            sender = "me@example.com",
-                                            reply_body = newReply
-                                        )
-                                        supabase.from("replies").insert(reply)
-                                        newReply = ""
-                                    }
-                                }
-                            },
-                            shape = CircleShape,
-                            modifier = Modifier.size(48.dp),
-                            contentPadding = PaddingValues(0.dp)
-                        ) {
-                            Icon(Icons.AutoMirrored.Filled.Send, contentDescription = "Send Reply")
-                        }
+                    Column(modifier = Modifier.padding(12.dp)) {
+                        Text(post.sender, fontWeight = FontWeight.Bold)
+                        Spacer(Modifier.height(4.dp))
+                        Text(post.post_body ?: "")
                     }
                 }
             }
@@ -175,68 +152,172 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+@OptIn(SupabaseExperimental::class)
 @Composable
-fun PostCard(
-    postWithReplies: PostWithReplies,
-    isSelected: Boolean,
-    onSelect: () -> Unit
-) {
-    Card(
+fun PostDetailScreen(postId: Long) {
+    val coroutineScope = rememberCoroutineScope()
+    var post by remember { mutableStateOf<Post?>(null) }
+    val replies = remember { mutableStateListOf<Reply>() }
+    var newReply by remember { mutableStateOf("") }
+    var parentReplyId by remember { mutableStateOf<Long?>(null) }
+
+    // Load post
+    LaunchedEffect(postId) {
+        coroutineScope.launch {
+            val postsList: List<Post> = supabase
+                .from("posts")
+                .selectAsFlow(
+                    Post::id,
+                    filter = FilterOperation("id", FilterOperator.EQ, postId)
+                )
+                .first()
+            post = postsList.firstOrNull()
+        }
+    }
+
+    // Load replies
+    LaunchedEffect(postId) {
+        coroutineScope.launch {
+            val replyFlow: Flow<List<Reply>> = supabase
+                .from("replies")
+                .selectAsFlow(
+                    Reply::id,
+                    filter = FilterOperation("post_id", FilterOperator.EQ, postId)
+                )
+
+            replyFlow.collect { replyList ->
+                replies.clear()
+                replies.addAll(replyList)
+            }
+        }
+    }
+
+    Column(
         modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 4.dp)
-            .clickable { onSelect() },
-        colors = CardDefaults.cardColors(containerColor = Color.White)
+            .fillMaxSize()
+            .background(Color(0xFFF0F0F0))
     ) {
-        Column(modifier = Modifier.padding(12.dp)) {
-            // Sender name
-            Text(postWithReplies.post.sender, fontWeight = FontWeight.Bold)
-            Spacer(Modifier.height(4.dp))
-
-            // Post body
-            Text(postWithReplies.post.post_body ?: "")
-            Spacer(Modifier.height(8.dp))
-
-            // Replies list as bubbles
-            if (postWithReplies.replies.isNotEmpty()) {
-                Column(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalArrangement = Arrangement.spacedBy(6.dp)
-                ) {
-                    postWithReplies.replies.forEach { reply ->
-                        val isMine = reply.sender == "me@example.com"
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth(),
-                            contentAlignment = if (isMine) Alignment.CenterEnd else Alignment.CenterStart
-                        ) {
-                            Box(
-                                modifier = Modifier
-                                    .background(
-                                        color = if (isMine) Color(0xFFDCF8C6) else Color(0xFFE5E5EA),
-                                        shape = RoundedCornerShape(16.dp)
-                                    )
-                                    .padding(horizontal = 12.dp, vertical = 8.dp)
-                            ) {
-                                Text(
-                                    text = reply.reply_body,
-                                    color = Color.Black
-                                )
-                            }
+        LazyColumn(
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxWidth()
+                .padding(8.dp),
+            verticalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
+            // Post card at top
+            item {
+                post?.let {
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = CardDefaults.cardColors(containerColor = Color.White)
+                    ) {
+                        Column(modifier = Modifier.padding(12.dp)) {
+                            Text(it.sender, fontWeight = FontWeight.Bold)
+                            Spacer(Modifier.height(4.dp))
+                            Text(it.post_body ?: "")
                         }
                     }
                 }
-                Spacer(Modifier.height(8.dp))
             }
 
-            if (isSelected) {
-                Text(
-                    "Replying...",
-                    color = Color(0xFF0B93F6),
-                    fontSize = 12.sp,
-                    modifier = Modifier.align(Alignment.End)
+            // Recursive reply rendering
+            items(replies.filter { it.parent_reply_id == null }, key = { it.id }) { reply ->
+                ReplyThread(
+                    reply = reply,
+                    replies = replies,
+                    onReplyClick = { parentReplyId = it }
                 )
             }
+        }
+
+        // Reply input bar
+        Column {
+            if (parentReplyId != null) {
+                val parent = replies.find { it.id == parentReplyId }
+                if (parent != null) {
+                    Text(
+                        text = "Replying to: ${parent.sender}",
+                        color = Color.Blue,
+                        fontSize = 12.sp,
+                        modifier = Modifier.padding(horizontal = 8.dp)
+                    )
+                }
+            }
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(Color.White)
+                    .padding(8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                TextField(
+                    value = newReply,
+                    onValueChange = { newReply = it },
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(end = 8.dp),
+                    placeholder = { Text("Write a reply...") },
+                    shape = RoundedCornerShape(24.dp),
+                    colors = TextFieldDefaults.colors(
+                        focusedIndicatorColor = Color.Transparent,
+                        unfocusedIndicatorColor = Color.Transparent
+                    )
+                )
+                Button(
+                    onClick = {
+                        if (newReply.isNotBlank()) {
+                            coroutineScope.launch {
+                                val reply = NewReply(
+                                    post_id = postId,
+                                    sender = "clme@example.com",
+                                    reply_body = newReply,
+                                    parent_reply_id = parentReplyId
+                                )
+                                supabase.from("replies").insert(reply)
+                                newReply = ""
+                                parentReplyId = null
+                            }
+                        }
+                    },
+                    shape = CircleShape,
+                    modifier = Modifier.size(48.dp),
+                    contentPadding = PaddingValues(0.dp)
+                ) {
+                    Icon(Icons.AutoMirrored.Filled.Send, contentDescription = "Send Reply")
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun ReplyThread(
+    reply: Reply,
+    replies: List<Reply>,
+    onReplyClick: (Long) -> Unit,
+    indent: Int = 0
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(start = (indent * 24).dp)
+            .clickable { onReplyClick(reply.id) }
+    ) {
+        Box(
+            modifier = Modifier
+                .background(
+                    color = if (indent == 0) Color(0xFFE5E5EA) else Color(0xFFD8EAFB),
+                    shape = RoundedCornerShape(16.dp)
+                )
+                .padding(horizontal = 12.dp, vertical = 8.dp)
+        ) {
+            Text(reply.reply_body)
+        }
+
+        // Recursively render child replies
+        replies.filter { it.parent_reply_id == reply.id }.forEach { child ->
+            ReplyThread(child, replies, onReplyClick, indent + 1)
         }
     }
 }
@@ -255,7 +336,16 @@ data class Reply(
     val post_id: Long,
     val sender: String,
     val reply_body: String,
-    val created_at: String
+    val created_at: String,
+    val parent_reply_id: Long? = null // NEW
+)
+
+@Serializable
+data class NewReply(
+    val post_id: Long,
+    val sender: String,
+    val reply_body: String,
+    val parent_reply_id: Long? = null // NEW
 )
 
 data class PostWithReplies(
@@ -267,11 +357,4 @@ data class PostWithReplies(
 data class NewPost(
     val sender: String,
     val post_body: String
-)
-
-@Serializable
-data class NewReply(
-    val post_id: Long,
-    val sender: String,
-    val reply_body: String
 )

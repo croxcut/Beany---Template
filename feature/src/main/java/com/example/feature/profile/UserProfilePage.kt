@@ -429,7 +429,7 @@ fun UserProfilePage(
                     when(item.title) {
 //                        "Camera" -> navController.navigate(Route.CameraPage.route)
 //                        "Scan History" -> navController.navigate(Route.ScanHistoryPage.route)
-//                        "Community" -> navController.navigate(Route.CommunityPage.route)
+                        "Community" -> navController.navigate(Route.PostsListPage.route)
 //                        "Chat Support" -> navController.navigate(Route.ChatSupportPage.route)
                     }
                 }

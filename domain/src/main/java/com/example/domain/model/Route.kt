@@ -24,6 +24,11 @@ sealed class Route(
     object ResetPasswordPage: Route(route = "ResetPass")
     object GeoMapPage: Route(route = "GeoMap")
 
+    object PostsListPage: Route(route = "PostsList")
+    object PostDetailPage: Route(route = "PostDetail/{postId}") {
+        fun createRoute(postId: Long) = "PostDetail/$postId"
+    }
+
     companion object {
         val navRoutes: List<String> by lazy {
             Route::class.sealedSubclasses.mapNotNull { it.objectInstance?.route }

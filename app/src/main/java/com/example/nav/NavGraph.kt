@@ -17,6 +17,8 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.navDeepLink
+import com.example.beany.PostDetailScreen
+import com.example.beany.PostsListScreen
 import com.example.core.ui.theme.White
 import com.example.domain.model.Route
 import com.example.feature.aboutUs.AboutUsPage
@@ -133,6 +135,23 @@ fun NavGraph(
                     ?.data
                 ResetPasswordPage()
             }
+            composable(Route.PostsListPage.route) {
+                PostsListScreen(
+                    onPostClick = { postId ->
+                        navController.navigate(Route.PostDetailPage.createRoute(postId))
+                    }
+                )
+            }
+
+            composable(
+                route = Route.PostDetailPage.route
+            ) { backStackEntry ->
+                val postId = backStackEntry.arguments?.getString("postId")?.toLongOrNull()
+                postId?.let {
+                    PostDetailScreen(postId = it)
+                }
+            }
+
         }
 
         if (currentRoute in navRoutes) {
