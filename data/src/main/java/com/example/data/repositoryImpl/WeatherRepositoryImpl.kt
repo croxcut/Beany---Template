@@ -46,7 +46,7 @@ class WeatherRepositoryImpl @Inject constructor(
                 minTemperature = daily.temperature_2m_min[index],
                 weatherCode = daily.weather_code[index],
                 precipitationSum = daily.precipitation_sum[index],
-                windSpeed = daily.wind_speed_10m_max[index]
+                windSpeed = null // Or remove this line if you updated the data class
             )
         }
 

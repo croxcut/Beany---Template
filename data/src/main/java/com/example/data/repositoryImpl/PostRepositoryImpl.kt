@@ -38,4 +38,8 @@ class PostRepositoryImpl @Inject constructor(
         client.from("replies").insert(reply)
     }
 
+    override suspend fun addPost(post: Post) {
+        client.from("posts").insert(post)
+    }
+
 }

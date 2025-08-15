@@ -10,4 +10,5 @@ interface PostRepository {
     fun getPostFlow(postId: Long): Flow<Post?>
     fun getRepliesFlow(postId: Long): Flow<List<Reply>>
     suspend fun sendReply(reply: NewReply)
+    suspend fun addPost(post: Post)
 }

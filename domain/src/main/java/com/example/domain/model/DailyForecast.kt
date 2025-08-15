@@ -7,5 +7,5 @@ data class DailyForecast(
     val minTemperature: Double,
     val weatherCode: Int,
     val precipitationSum: Double,
-    val windSpeed: Double
+    val windSpeed: Double? = null
 )

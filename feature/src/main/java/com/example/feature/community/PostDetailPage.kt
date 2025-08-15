@@ -1,6 +1,7 @@
 package com.example.feature.community
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -41,41 +42,57 @@ fun PostDetailScreen(
                 .padding(8.dp),
             verticalArrangement = Arrangement.spacedBy(6.dp)
         ) {
+            // Post card
             item {
-                state.post?.let {
+                state.post?.let { post ->
                     Card(
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable {
+                                // Tapping the post sets parentReplyId = null to indicate reply to post
+                                viewModel.replyToPost(post.id)
+                            },
                         colors = CardDefaults.cardColors(containerColor = Color.White)
                     ) {
                         Column(modifier = Modifier.padding(12.dp)) {
-                            Text(it.sender, fontWeight = FontWeight.Bold)
+                            Text(post.sender, fontWeight = FontWeight.Bold)
                             Spacer(Modifier.height(4.dp))
-                            Text(it.post_body ?: "")
+                            Text(post.post_body ?: "")
                         }
                     }
                 }
             }
 
-            items(state.replies.filter { it.parent_reply_id == null }, key = { it.id }) { reply ->
-                ReplyThread(
-                    reply = reply,
-                    replies = state.replies,
-                    onReplyClick = { viewModel.setParentReply(it) }
-                )
+            // Replies
+            items(state.replies, key = { it.id }) { reply ->
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(containerColor = Color.White)
+                ) {
+                    Column(modifier = Modifier.padding(12.dp)) {
+                        Text(reply.sender, fontWeight = FontWeight.Bold)
+                        Spacer(Modifier.height(4.dp))
+                        Text(reply.reply_body)
+                    }
+                }
             }
         }
 
         // Reply bar
         Column {
-            state.parentReplyId?.let { parentId ->
-                state.replies.find { it.id == parentId }?.let { parent ->
-                    Text(
-                        text = "Replying to: ${parent.sender}",
-                        color = Color.Blue,
-                        fontSize = 12.sp,
-                        modifier = Modifier.padding(horizontal = 8.dp)
-                    )
-                }
+            // Show who we're replying to
+            val replyTarget = when {
+                state.parentReplyId == state.post?.id -> "Post"
+                state.parentReplyId != null -> state.replies.find { it.id == state.parentReplyId }?.sender
+                else -> null
+            }
+            replyTarget?.let { target ->
+                Text(
+                    text = "Replying to: $target",
+                    color = Color.Blue,
+                    fontSize = 12.sp,
+                    modifier = Modifier.padding(horizontal = 8.dp)
+                )
             }
 
             Row(

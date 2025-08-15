@@ -1,6 +1,7 @@
 package com.example.feature.profile
 
 import android.net.Uri
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
@@ -40,6 +41,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.Dp
@@ -223,6 +225,7 @@ fun UserProfilePage(
     val profile by viewModel.profile.collectAsState()
     val isSignedUp by viewModel.isSignedUp.collectAsState()
 
+    val context = LocalContext.current
 
     val TOP_SIZE_CLIP: Dp = rspDp(120.dp)
     val DESC_FONT_SIZE: TextUnit = rspSp(12.sp)
@@ -429,7 +432,13 @@ fun UserProfilePage(
                     when(item.title) {
 //                        "Camera" -> navController.navigate(Route.CameraPage.route)
 //                        "Scan History" -> navController.navigate(Route.ScanHistoryPage.route)
-                        "Community" -> navController.navigate(Route.PostsListPage.route)
+                        "Community" -> {
+                            if (isSignedUp) {
+                                navController.navigate(Route.PostsListPage.route)
+                            } else {
+                                Toast.makeText(context, "Please sign up to access Community", Toast.LENGTH_SHORT).show()
+                            }
+                        }
 //                        "Chat Support" -> navController.navigate(Route.ChatSupportPage.route)
                     }
                 }

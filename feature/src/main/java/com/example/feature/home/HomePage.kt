@@ -1,5 +1,6 @@
 package com.example.feature.home
 
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -46,6 +47,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -84,6 +86,8 @@ fun HomePage(
     val activityList by viewModel.activityList.collectAsState()
     val state by viewModel.state.collectAsState()
     val selectedCity by viewModel.selectedCity.collectAsState()
+
+    val context = LocalContext.current
 
     LaunchedEffect(Unit) {
         viewModel.dummyActivity()
@@ -609,6 +613,13 @@ fun HomePage(
                         .weight(
                             weight = 1f
                         )
+                        .clickable{
+                            if(profile != null) {
+                                navController.navigate(Route.PostsListPage.route)
+                            } else {
+                                Toast.makeText(context, "Please sign up to access Community", Toast.LENGTH_SHORT).show()
+                            }
+                        }
                         .optionsContainerConfig()
                 ) {
                     Image(

@@ -17,11 +17,11 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.navDeepLink
-import com.example.beany.PostDetailScreen
-import com.example.beany.PostsListScreen
 import com.example.core.ui.theme.White
 import com.example.domain.model.Route
 import com.example.feature.aboutUs.AboutUsPage
+import com.example.feature.community.PostDetailScreen
+import com.example.feature.community.PostsListScreen
 import com.example.feature.detection.FeatureSelectionPage
 import com.example.feature.detection.history.DetectionHistoryPage
 import com.example.feature.detection.realtime.RealtimeDetectionPage
