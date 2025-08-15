@@ -20,6 +20,8 @@ import androidx.navigation.navDeepLink
 import com.example.core.ui.theme.White
 import com.example.domain.model.Route
 import com.example.feature.aboutUs.AboutUsPage
+import com.example.feature.community.pages.PostDetailPage
+import com.example.feature.community.pages.PostsListPage
 import com.example.feature.detection.FeatureSelectionPage
 import com.example.feature.detection.history.DetectionHistoryPage
 import com.example.feature.detection.realtime.RealtimeDetectionPage
@@ -67,7 +69,7 @@ fun NavGraph(
     ) {
         NavHost(
             navController = navController,
-            startDestination = Route.LaunchPage.route,
+            startDestination = Route.PostsListPage.route,
             modifier = Modifier
                 .matchParentSize()
                 .windowInsetsPadding(WindowInsets.navigationBars)
@@ -133,7 +135,19 @@ fun NavGraph(
                     ?.data
                 ResetPasswordPage()
             }
-
+            composable(Route.PostsListPage.route) {
+                PostsListPage(
+                    onPostClick = { postId ->
+                        navController.navigate(Route.PostDetailPage.createRoute(postId))
+                    }
+                )
+            }
+            composable(Route.PostDetailPage.route) { backStackEntry ->
+                val postId = backStackEntry.arguments?.getString("postId")?.toLongOrNull()
+                if (postId != null) {
+                    PostDetailPage(postId = postId)
+                }
+            }
         }
 
         if (currentRoute in navRoutes) {
