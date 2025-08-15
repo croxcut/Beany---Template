@@ -1,8 +1,12 @@
 package com.example.data.di
 
 import com.example.data.repositoryImpl.LoginAuthRepositoryImpl
+import com.example.data.repositoryImpl.PostRepositoryImpl
+import com.example.data.repositoryImpl.ReplyRepositoryImpl
 import com.example.data.repositoryImpl.SignUpRepositoryImpl
 import com.example.domain.repository.LoginAuthRepository
+import com.example.domain.repository.PostRepository
+import com.example.domain.repository.ReplyRepository
 import com.example.domain.repository.SignUpRepository
 import com.example.domain.usecase.LoginUseCase
 import com.example.domain.usecase.SignUpUseCase
@@ -61,5 +65,17 @@ object SupabaseModule {
         return LoginUseCase(loginAuthRepository)
     }
 
+
+    @Provides
+    @Singleton
+    fun provideReplyRepository(supabaseClient: SupabaseClient): ReplyRepository {
+        return ReplyRepositoryImpl(supabaseClient)
+    }
+
+    @Provides
+    @Singleton
+    fun providePostRepository(supabaseClient: SupabaseClient): PostRepository {
+        return PostRepositoryImpl(supabaseClient)
+    }
 
 }

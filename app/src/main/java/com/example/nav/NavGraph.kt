@@ -20,8 +20,6 @@ import androidx.navigation.navDeepLink
 import com.example.core.ui.theme.White
 import com.example.domain.model.Route
 import com.example.feature.aboutUs.AboutUsPage
-import com.example.feature.community.PostDetailScreen
-import com.example.feature.community.PostsListScreen
 import com.example.feature.detection.FeatureSelectionPage
 import com.example.feature.detection.history.DetectionHistoryPage
 import com.example.feature.detection.realtime.RealtimeDetectionPage
@@ -134,22 +132,6 @@ fun NavGraph(
                     ?.getParcelable<Intent>("android-support-nav:controller:deepLinkIntent")
                     ?.data
                 ResetPasswordPage()
-            }
-            composable(Route.PostsListPage.route) {
-                PostsListScreen(
-                    onPostClick = { postId ->
-                        navController.navigate(Route.PostDetailPage.createRoute(postId))
-                    }
-                )
-            }
-
-            composable(
-                route = Route.PostDetailPage.route
-            ) { backStackEntry ->
-                val postId = backStackEntry.arguments?.getString("postId")?.toLongOrNull()
-                postId?.let {
-                    PostDetailScreen(postId = it)
-                }
             }
 
         }

@@ -3,11 +3,9 @@ package com.example.domain.model
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class Post(
-    val id: Long,
+data class NewPost(
     val sender: String,
     val post_title: String, // NEW: Added post title
-    val post_body: String? = null,
-    val image_url: String? = null,
-    val created_at: String
+    val post_body: String,
+    val image_url: String? = null
 )
