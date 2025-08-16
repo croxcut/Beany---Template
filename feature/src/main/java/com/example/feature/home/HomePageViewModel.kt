@@ -7,17 +7,21 @@ import androidx.annotation.RequiresPermission
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.core.network.NetworkUtils
+import com.example.data.repositoryImpl.AuthRepositoryImpl
 import com.example.domain.model.City
 import com.example.domain.model.Profile
 import com.example.domain.model.WeatherForecast
+import com.example.domain.repository.AuthRepository
 import com.example.domain.repository.SessionRepository
 import com.example.domain.repository.WeatherRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.github.jan.supabase.auth.user.UserSession
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -29,38 +33,70 @@ import javax.inject.Inject
 class HomePageViewModel @Inject constructor(
     private val sessionRepository: SessionRepository,
     private val weatherRepository: WeatherRepository,
+    private val authRepository: AuthRepository,
     private val context: Context
 ): ViewModel() {
+
 
     private val _isOnline = MutableStateFlow(NetworkUtils.isInternetAvailable(context))
     val isOnline: StateFlow<Boolean> = _isOnline.asStateFlow()
 
     private val _profile = MutableStateFlow<Profile?>(null)
-    val profile: StateFlow<Profile?> = _profile
+    val profile: StateFlow<Profile?> = _profile.asStateFlow()
 
     private val _session = MutableStateFlow<UserSession?>(null)
-    val session: StateFlow<UserSession?> = _session
+    val session: StateFlow<UserSession?> = _session.asStateFlow()
+
+    // Changed to use stateIn for better flow handling
+    val isSignedUp: StateFlow<Boolean> = authRepository.isLoggedIn()
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = false
+        )
+
+    private val _state = MutableStateFlow(WeatherState())
+    val state: StateFlow<WeatherState> = _state.asStateFlow()
+
+    private val _selectedCity = MutableStateFlow<City?>(null)
+    val selectedCity: StateFlow<City?> = _selectedCity.asStateFlow()
 
     init {
         checkConnectivity()
-        if(isOnline.value) {
-            viewModelScope.launch {
-                var success = false
-                while (!success) {
+        initializeData()
+    }
+
+    private fun initializeData() {
+        viewModelScope.launch {
+            if (isOnline.value) {
+                try {
+                    // Load session first
+                    _session.value = sessionRepository.getCurrentSession()
+
+                    // Then load profile (with single retry)
                     try {
                         _profile.value = sessionRepository.getUserProfile()
-                        success = true
                     } catch (e: Exception) {
-                        // Optional: log the exception
-                        Log.e("ViewModel", "Failed to fetch user profile, retrying...", e)
-                        // You can also add a small delay before retrying
-                        delay(1000)
+                        Log.e("ViewModel", "Profile fetch failed", e)
+                        // Don't retry indefinitely - just show error state
+                        _state.value = _state.value.copy(
+                            error = "Failed to load profile: ${e.message}"
+                        )
                     }
+
+                } catch (e: Exception) {
+                    _state.value = _state.value.copy(
+                        error = "Initialization failed: ${e.message}"
+                    )
                 }
+            } else {
+                _state.value = _state.value.copy(
+                    error = "No internet connection"
+                )
             }
+        }
+        if(isOnline.value) {
             viewModelScope.launch {
-                _session.value = sessionRepository.getCurrentSession()
-                sessionRepository.updateCurrentSession()
                 loadCities()
             }
         }
@@ -96,11 +132,11 @@ class HomePageViewModel @Inject constructor(
 //        _activityList.value = randomActivities
     }
 
-    private val _state = MutableStateFlow(WeatherState())
-    val state: StateFlow<WeatherState> = _state.asStateFlow()
-
-    private val _selectedCity = MutableStateFlow<City?>(null)
-    val selectedCity: StateFlow<City?> = _selectedCity.asStateFlow()
+//    private val _state = MutableStateFlow(WeatherState())
+//    val state: StateFlow<WeatherState> = _state.asStateFlow()
+//
+//    private val _selectedCity = MutableStateFlow<City?>(null)
+//    val selectedCity: StateFlow<City?> = _selectedCity.asStateFlow()
 
     fun selectCity(city: City) {
         _selectedCity.value = city

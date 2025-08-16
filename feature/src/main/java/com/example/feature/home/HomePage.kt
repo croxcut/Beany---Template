@@ -1,5 +1,6 @@
 package com.example.feature.home
 
+import android.content.Context
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -67,6 +68,7 @@ import com.example.core.ui.theme.Kare
 import com.example.core.ui.theme.White
 import com.example.core.utils.rspDp
 import com.example.core.utils.rspSp
+import com.example.domain.model.City
 import com.example.domain.model.DailyForecast
 import com.example.domain.model.Profile
 import com.example.domain.model.Route
@@ -90,183 +92,180 @@ fun HomePage(
     val state by viewModel.state.collectAsState()
     val selectedCity by viewModel.selectedCity.collectAsState()
     val isOnline by viewModel.isOnline.collectAsState()
-
+    val isLoggedIn by viewModel.isSignedUp.collectAsState()
     val context = LocalContext.current
-
-    if (profile == null && isOnline) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(color = Brown1),
-            contentAlignment = Alignment.Center
-        ) {
-            CircularProgressIndicator(color = White)
-        }
-        return
-    }
 
     LaunchedEffect(Unit) {
         viewModel.checkConnectivity()
         if (isOnline) {
             coroutineScope {
                 viewModel.dummyActivity()
-            }
-            coroutineScope {
                 viewModel.refreshSession()
             }
         }
     }
 
+    when {
+        // User not logged in - show basic UI
+        !isLoggedIn -> {
+            HomeContent(
+                navController = navController,
+                profile = null,
+                activityList = emptyList(),
+                state = state,
+                selectedCity = null,
+                isOnline = isOnline,
+                isLoggedIn = false,
+                context = context,
+                viewModel = viewModel
+            )
+        }
+
+        // User logged in but offline - show cached data if available
+        isLoggedIn && !isOnline -> {
+            HomeContent(
+                navController = navController,
+                profile = profile,
+                activityList = activityList,
+                state = state.copy(error = "No internet connection"),
+                selectedCity = selectedCity,
+                isOnline = false,
+                isLoggedIn = true,
+                context = context,
+                viewModel = viewModel
+            )
+        }
+
+        // User logged in, online but data loading
+        isLoggedIn && isOnline && profile == null -> {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(color = Brown1),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator(color = White)
+            }
+        }
+
+        // User logged in, online with data loaded
+        isLoggedIn && isOnline && profile != null -> {
+            HomeContent(
+                navController = navController,
+                profile = profile,
+                activityList = activityList,
+                state = state,
+                selectedCity = selectedCity,
+                isOnline = true,
+                isLoggedIn = true,
+                context = context,
+                viewModel = viewModel
+            )
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun HomeContent(
+    navController: NavController,
+    profile: Profile?,
+    activityList: List<String>,
+    state: WeatherState,
+    selectedCity: City?,
+    isOnline: Boolean,
+    isLoggedIn: Boolean,
+    context: Context,
+    viewModel: HomePageViewModel
+) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .verticalScroll(
-                state = rememberScrollState()
-            )
-            .background(
-                color = Brown1
-            ),
+            .verticalScroll(rememberScrollState())
+            .background(color = Brown1),
     ) {
-
+        // Header
         Column(
             modifier = Modifier
                 .statusBarsPadding()
-                .height(
-                    height = rspDp(
-                        baseDp = 120.dp
-                    )
-                )
-                .padding(
-                    horizontal = rspDp(20.dp)
-                )
-                .fillMaxHeight(
-                    fraction = 0.15f
-                ),
-//                .background(
-//                    color = White
-//                )
+                .height(rspDp(120.dp))
+                .padding(horizontal = rspDp(20.dp))
+                .fillMaxHeight(0.15f),
             verticalArrangement = Arrangement.Center
         ) {
-
             Text(
                 text = "Beany",
                 style = TextStyle(
                     fontFamily = Kare,
                     color = White,
-                    fontSize = rspSp(
-                        baseSp = 50.sp
-                    )
+                    fontSize = rspSp(50.sp)
                 )
             )
-
         }
 
-        // Content: Weather Panel :)
+        // Main Content
         Column(
             modifier = Modifier
-                .height(
-                    height = rspDp(
-                        baseDp = 400.dp
-                    )
-                )
+                .height(rspDp(400.dp))
                 .fillMaxWidth()
-//                .padding(
-//                    horizontal = rspDp(
-//                        baseDp = 10.dp
-//                    )
-//                )
                 .background(
                     color = White,
                     shape = RoundedCornerShape(
-                        topStart = rspDp(
-                            baseDp = 40.dp
-                        ),
-                        topEnd = rspDp(
-                            baseDp = 40.dp
-                        )
+                        topStart = rspDp(40.dp),
+                        topEnd = rspDp(40.dp)
                     )
                 )
         ) {
+            Spacer(modifier = Modifier.height(rspDp(20.dp)))
 
-            Spacer(modifier = Modifier
-                .height(
-                    height = rspDp(
-                        baseDp = 20.dp
-                    )
-                )
-            )
-
-            // Panel: Day Greeting :)
+            // Greeting Section
             Column(
-                modifier = Modifier
-                    .padding(
-                        horizontal = rspDp(
-                            baseDp = 30.dp
-                        ),
-                    )
-                    .fillMaxWidth(),
+                modifier = Modifier.padding(horizontal = rspDp(30.dp))
             ) {
                 Text(
                     text = "Rise and shine, ${profile?.fullName ?: "Guest"}",
                     style = TextStyle(
                         fontFamily = Etna,
                         color = Brown1,
-                        fontSize = rspSp(baseSp = 25.sp)
+                        fontSize = rspSp(25.sp)
                     )
                 )
-
                 Text(
                     text = "what would you like to do today?",
                     style = TextStyle(
                         fontFamily = GlacialIndifference,
-                        fontSize = rspSp(
-                            baseSp = 15.sp
-                        )
+                        fontSize = rspSp(15.sp)
                     )
                 )
             }
 
+            // Weather Card
             Column(
                 modifier = Modifier
-                    .padding(
-                        horizontal = rspDp(baseDp = 20.dp),
-                        vertical = rspDp(baseDp = 10.dp)
-                    )
+                    .padding(horizontal = rspDp(20.dp), vertical = rspDp(10.dp))
                     .fillMaxWidth()
-                    .height(rspDp(baseDp = 150.dp))
+                    .height(rspDp(150.dp))
                     .background(
                         brush = Brush.verticalGradient(
-                            colors = listOf(
-                                Color(0xFF3F51B5),
-                                Color(0xFF2196F3)
-                            )
+                            colors = listOf(Color(0xFF3F51B5), Color(0xFF2196F3))
                         ),
-                        shape = RoundedCornerShape(rspDp(baseDp = 20.dp))
+                        shape = RoundedCornerShape(rspDp(20.dp))
                     )
             ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxSize()
-                ) {
+                Row(modifier = Modifier.fillMaxSize()) {
+                    // City and Temperature
                     Column(
-                        modifier = Modifier
-                            .fillMaxWidth(.5f)
-                            .fillMaxHeight(),
+                        modifier = Modifier.fillMaxWidth(.5f),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         var expanded by remember { mutableStateOf(false) }
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                        ) {
+                        Box(modifier = Modifier.fillMaxWidth()) {
                             ExposedDropdownMenuBox(
                                 expanded = expanded,
                                 onExpandedChange = { expanded = !expanded }
                             ) {
                                 TextField(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .menuAnchor(),
+                                    modifier = Modifier.menuAnchor(),
                                     readOnly = true,
                                     value = selectedCity?.name ?: "",
                                     onValueChange = {},
@@ -293,7 +292,9 @@ fun HomePage(
                                         DropdownMenuItem(
                                             text = { Text(city.name) },
                                             onClick = {
-                                                viewModel.selectCity(city)
+                                                if (isOnline) {
+                                                    viewModel.selectCity(city)
+                                                }
                                                 expanded = false
                                             }
                                         )
@@ -302,51 +303,41 @@ fun HomePage(
                             }
                         }
 
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = rspDp(15.dp))
-                        ) {
-                            // Date from state
+                        Column(modifier = Modifier.padding(horizontal = rspDp(15.dp))) {
                             Text(
                                 text = SimpleDateFormat("dd MMMM yyyy", Locale.getDefault())
                                     .format(Date()),
                                 style = TextStyle(
                                     fontFamily = GlacialIndifferenceBold,
                                     color = Brown1,
-                                    fontSize = rspSp(15.sp)
-                                ),
-                                modifier = Modifier
-                                    .offset(y = rspDp(-10.dp))
+                                    fontSize = rspSp(15.sp)),
+                                modifier = Modifier.offset(y = rspDp(-10.dp))
+                            )
+
+                            val todayMaxTemp = state.forecast?.dailyForecasts
+                                ?.find { it.date == SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+                                    .format(Date()) }
+                                ?.maxTemperature
+
+                            Text(
+                                text = todayMaxTemp?.let { "${it}°C" } ?: "--°C",
+                                style = TextStyle(
+                                    fontFamily = GlacialIndifferenceBold,
+                                    color = Brown1,
+                                    fontSize = rspSp(40.sp))
                             )
                         }
-
-                        val todayMaxTemp = state.forecast?.dailyForecasts
-                            ?.find { it.date == SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(
-                                Date()
-                            ) }
-                            ?.maxTemperature
-
-                        Text(
-                            text = todayMaxTemp?.let { "${it}°C" } ?: "--°C",
-                            style = TextStyle(
-                                fontFamily = GlacialIndifferenceBold,
-                                color = Brown1,
-                                fontSize = rspSp(40.sp)
-                            )
-                        )
                     }
 
+                    // Weather Icon
                     Column(
-                        modifier = Modifier
-                            .fillMaxSize(),
+                        modifier = Modifier.fillMaxSize(),
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.Center
                     ){
                         val weatherCode = state.forecast?.dailyForecasts
-                            ?.find { it.date == SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(
-                                Date()
-                            ) }
+                            ?.find { it.date == SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+                                .format(Date()) }
                             ?.weatherCode
 
                         val weatherIcon = when(weatherCode) {
@@ -362,373 +353,220 @@ fun HomePage(
 
                         Text(
                             text = weatherIcon,
-                            style = TextStyle(
-                                fontSize = rspSp(80.sp)
-                            ),
+                            style = TextStyle(fontSize = rspSp(80.sp)),
                             modifier = Modifier.padding(end = 8.dp)
                         )
                     }
                 }
             }
 
+            // Forecast Section
             Text(
                 text = "Forecast this week",
                 style = TextStyle(
                     color = Brown1,
                     fontFamily = GlacialIndifferenceBold,
-                    fontSize = rspSp(20.sp)
-                ),
-                modifier = Modifier
-                    .padding(horizontal = rspDp(20.dp))
+                    fontSize = rspSp(20.sp)),
+                modifier = Modifier.padding(horizontal = rspDp(20.dp))
             )
 
             state.forecast?.let { forecast ->
                 WeatherForecastList(forecast)
             } ?: run {
                 Text(
-                    text = "Loading forecast...",
+                    text = if (isOnline) "Loading forecast..." else "No forecast data available",
                     style = TextStyle(
                         fontFamily = GlacialIndifference,
                         fontSize = rspSp(15.sp),
-                        color = Brown1
-                    ),
+                        color = Brown1),
                     modifier = Modifier.padding(rspDp(20.dp))
                 )
             }
-
         }
 
+        // Action Buttons Section
         Text(
             text = "Get Started with Beany",
             style = TextStyle(
                 fontFamily = GlacialIndifferenceBold,
                 color = White,
-                fontSize = rspSp(
-                    baseSp = 18.sp
-                )
-            ),
-            modifier = Modifier
-                .padding(
-                    all = rspDp(
-                        baseDp = 10.dp
-                    )
-                )
+                fontSize = rspSp(18.sp)),
+            modifier = Modifier.padding(all = rspDp(10.dp))
         )
 
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(
-                    bottom = rspDp(
-                        baseDp = 10.dp
-                    )
-                ),
-//                .background(
-//                    color = White
-//                )
-            verticalArrangement = Arrangement.spacedBy(rspDp(baseDp = 10.dp))
+                .padding(bottom = rspDp(10.dp)),
+            verticalArrangement = Arrangement.spacedBy(rspDp(10.dp))
         ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-            ) {
+            // First row of buttons
+            Row(modifier = Modifier.fillMaxWidth()) {
+                // Realtime Detection
                 Box(
                     modifier = Modifier
-                        .weight(
-                            weight = 1f
-                        )
+                        .weight(1f)
                         .optionsContainerConfig()
-                        .clickable(
-                            onClick = {
-                                navController.navigate("Realtime")
-                            }
-                        )
+                        .clickable { navController.navigate("Realtime") }
                 ) {
                     Image(
                         painter = painterResource(R.drawable.camera),
-                        contentDescription = "Template",
+                        contentDescription = "Realtime Detection",
                         modifier = Modifier
-                            .size(
-                                size = rspDp(
-                                    baseDp = 80.dp
-                                )
-                            )
-                            .offset(
-                                x = rspDp(
-                                    baseDp = 80.dp
-                                ),
-                                y = rspDp(
-                                    baseDp = 18.dp
-                                )
-                            ),
+                            .size(rspDp(80.dp))
+                            .offset(x = rspDp(80.dp), y = rspDp(18.dp))
                     )
 
-                    Column(
-                        modifier = Modifier
-                            .padding(
-                                all = rspDp(
-                                    baseDp = 10.dp
-                                )
-                            )
-                    ) {
+                    Column(modifier = Modifier.padding(all = rspDp(10.dp))) {
                         Text(
                             text = "Video",
                             style = TextStyle(
                                 fontFamily = Etna,
                                 color = Brown1,
-                                fontSize = rspSp(
-                                    baseSp = 20.sp
-                                )
-                            ),
-
+                                fontSize = rspSp(20.sp))
                         )
-
                         Text(
                             text = "Realtime Detection",
                             style = TextStyle(
                                 fontFamily = GlacialIndifference,
-                                color = Brown1
-                            ),
-                            modifier = Modifier
-                                .fillMaxWidth(
-                                    fraction = 0.5f
-                                )
+                                color = Brown1),
+                            modifier = Modifier.fillMaxWidth(0.5f)
                         )
                     }
                 }
 
+                // Upload Image
                 Box(
                     modifier = Modifier
-                        .weight(
-                            weight = 1f
-                        )
+                        .weight(1f)
                         .optionsContainerConfig()
-                        .clickable(
-                            onClick = {
-                                navController.navigate("UploadImage")
-                            }
-                        )
+                        .clickable { navController.navigate("UploadImage") }
                 ) {
                     Image(
                         painter = painterResource(R.drawable.upload),
-                        contentDescription = "Template",
+                        contentDescription = "Upload Image",
                         modifier = Modifier
-                            .size(
-                                size = rspDp(
-                                    baseDp = 80.dp
-                                )
-                            )
-                            .offset(
-                                x = rspDp(
-                                    baseDp = 80.dp
-                                ),
-                                y = rspDp(
-                                    baseDp = 18.dp
-                                )
-                            ),
+                            .size(rspDp(80.dp))
+                            .offset(x = rspDp(80.dp), y = rspDp(18.dp))
                     )
 
-                    Column(
-                        modifier = Modifier
-                            .padding(
-                                all = rspDp(
-                                    baseDp = 10.dp
-                                )
-                            )
-                    ) {
+                    Column(modifier = Modifier.padding(all = rspDp(10.dp))) {
                         Text(
                             text = "Upload",
                             style = TextStyle(
                                 fontFamily = Etna,
                                 color = Brown1,
-                                fontSize = rspSp(
-                                    baseSp = 20.sp
-                                )
-                            ),
-
-                            )
-
+                                fontSize = rspSp(20.sp))
+                        )
                         Text(
                             text = "Upload Image for diagnosis",
                             style = TextStyle(
                                 fontFamily = GlacialIndifference,
-                                color = Brown1
-                            ),
-                            modifier = Modifier
-                                .fillMaxWidth(
-                                    fraction = 0.5f
-                                )
+                                color = Brown1),
+                            modifier = Modifier.fillMaxWidth(0.5f)
                         )
                     }
                 }
             }
 
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-            ) {
+            // Second row of buttons
+            Row(modifier = Modifier.fillMaxWidth()) {
+                // Camera
                 Box(
                     modifier = Modifier
-                        .weight(
-                            weight = 1f
-                        )
+                        .weight(1f)
                         .optionsContainerConfig()
-                        .clickable(
-                            onClick = {
-                                navController.navigate("SingleImage")
-                            }
-                        )
+                        .clickable { navController.navigate("SingleImage") }
                 ) {
                     Image(
                         painter = painterResource(R.drawable.diagnosis),
-                        contentDescription = "Template",
+                        contentDescription = "Camera",
                         modifier = Modifier
-                            .size(
-                                size = rspDp(
-                                    baseDp = 80.dp
-                                )
-                            )
-                            .offset(
-                                x = rspDp(
-                                    baseDp = 80.dp
-                                ),
-                                y = rspDp(
-                                    baseDp = 18.dp
-                                )
-                            ),
+                            .size(rspDp(80.dp))
+                            .offset(x = rspDp(80.dp), y = rspDp(18.dp))
                     )
 
-                    Column(
-                        modifier = Modifier
-                            .padding(
-                                all = rspDp(
-                                    baseDp = 10.dp
-                                )
-                            )
-                    ) {
+                    Column(modifier = Modifier.padding(all = rspDp(10.dp))) {
                         Text(
                             text = "Camera",
                             style = TextStyle(
                                 fontFamily = Etna,
                                 color = Brown1,
-                                fontSize = rspSp(
-                                    baseSp = 20.sp
-                                )
-                            ),
-
-                            )
-
+                                fontSize = rspSp(20.sp))
+                        )
                         Text(
                             text = "See your latest Diagnosis!",
                             style = TextStyle(
                                 fontFamily = GlacialIndifference,
-                                color = Brown1
-                            ),
-                            modifier = Modifier
-                                .fillMaxWidth(
-                                    fraction = 0.5f
-                                )
+                                color = Brown1),
+                            modifier = Modifier.fillMaxWidth(0.5f)
                         )
                     }
                 }
 
+                // Community Chat
                 Box(
                     modifier = Modifier
-                        .weight(
-                            weight = 1f
-                        )
-                        .clickable{
-                            if(profile != null) {
+                        .weight(1f)
+                        .clickable {
+                            if (isLoggedIn) {
                                 navController.navigate(Route.PostsListPage.route)
                             } else {
-                                Toast.makeText(context, "Please sign up to access Community", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(context,
+                                    "Please sign up to access Community",
+                                    Toast.LENGTH_SHORT).show()
                             }
                         }
                         .optionsContainerConfig()
                 ) {
                     Image(
                         painter = painterResource(R.drawable.chat),
-                        contentDescription = "Template",
+                        contentDescription = "Community Chat",
                         modifier = Modifier
-                            .size(
-                                size = rspDp(
-                                    baseDp = 80.dp
-                                )
-                            )
-                            .offset(
-                                x = rspDp(
-                                    baseDp = 80.dp
-                                ),
-                                y = rspDp(
-                                    baseDp = 22.dp
-                                )
-                            ),
+                            .size(rspDp(80.dp))
+                            .offset(x = rspDp(80.dp), y = rspDp(22.dp))
                     )
 
-                    Column(
-                        modifier = Modifier
-                            .padding(
-                                all = rspDp(
-                                    baseDp = 10.dp
-                                )
-                            )
-                    ) {
+                    Column(modifier = Modifier.padding(all = rspDp(10.dp))) {
                         Text(
                             text = "Chat",
                             style = TextStyle(
                                 fontFamily = Etna,
                                 color = Brown1,
-                                fontSize = rspSp(
-                                    baseSp = 20.sp
-                                )
-                            )
+                                fontSize = rspSp(20.sp))
                         )
-
                         Text(
                             text = "Talk with Experts",
                             style = TextStyle(
                                 fontFamily = GlacialIndifference,
-                                color = Brown1
-                            ),
-                            modifier = Modifier
-                                .fillMaxWidth(
-                                    fraction = 0.5f
-                                )
+                                color = Brown1),
+                            modifier = Modifier.fillMaxWidth(0.5f)
                         )
                     }
                 }
             }
         }
 
-        Spacer(modifier = Modifier.height(height = rspDp(baseDp = 10.dp)))
+        Spacer(modifier = Modifier.height(rspDp(10.dp)))
 
         // Activity Status
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(
-                    color = White
-                ),
+                .background(color = White),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(
-                        all = rspDp(
-                            baseDp = 10.dp
-                        )
-                    )
+                    .padding(all = rspDp(10.dp))
             ) {
                 Text(
                     text = "Activity Status",
                     style = TextStyle(
                         fontFamily = Etna,
                         color = Brown1,
-                        fontSize = rspSp(
-                            baseSp = 20.sp
-                        )
-                    )
+                        fontSize = rspSp(20.sp))
                 )
             }
 
@@ -746,53 +584,47 @@ fun HomePage(
             ) {
                 if (activityList.isEmpty()) {
                     Text(
-                        text = "No activity yet :(*",
-                        style = TextStyle(
-                            fontSize = rspSp(15.sp)
-                        ),
+                        text = if (isLoggedIn && !isOnline)
+                            "No activity data available offline"
+                        else
+                            "No activity yet :(",
+                        style = TextStyle(fontSize = rspSp(15.sp)),
                         modifier = Modifier.align(Alignment.CenterHorizontally)
                     )
                 } else {
-                    LazyColumn(
-                        modifier = Modifier.fillMaxSize()
-                    ) {
+                    LazyColumn(modifier = Modifier.fillMaxSize()) {
                         items(activityList) { activity ->
                             Text(
                                 text = "Activity: $activity",
-                                style = TextStyle(
-                                    fontSize = rspSp(15.sp)
-                                )
+                                style = TextStyle(fontSize = rspSp(15.sp))
                             )
                         }
                     }
                 }
             }
 
-            Spacer(modifier = Modifier.height(height = rspDp(baseDp = 50.dp)))
+            Spacer(modifier = Modifier.height(rspDp(50.dp)))
 
-            // Footer Section
+            // Footer
             Text(
                 text = "Beany",
                 style = TextStyle(
                     fontFamily = Kare,
-                    fontSize = rspSp(
-                        baseSp = 20.sp
-                    ),
-                    color = Brown1
-                )
+                    fontSize = rspSp(20.sp),
+                    color = Brown1)
             )
 
             Footer(
                 modifier = Modifier
                     .navigationBarsPadding()
                     .padding(bottom = rspDp(100.dp)),
-                onClick = {
-                    navController.navigate(Route.AboutUsPage.route)
-                }
+                onClick = { navController.navigate(Route.AboutUsPage.route) }
             )
         }
     }
 }
+
+// Rest of your composables (WeatherForecastList, DailyForecastItem) remain the same
 
 @Composable
 fun WeatherForecastList(forecast: WeatherForecast) {

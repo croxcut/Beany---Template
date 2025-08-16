@@ -7,6 +7,7 @@ import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
@@ -18,6 +19,7 @@ import androidx.compose.ui.unit.dp
 import com.example.feature.detection.misc.DetectionOverlay
 import com.example.feature.detection.viewModel.DetectionViewModel
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.core.ui.theme.Brown1
 import com.example.feature.detection.misc.saveBitmapWithBoxes
 
 @Composable
@@ -41,7 +43,14 @@ fun PaginatedDetectionPage(
         }
     }
 
-    Column(modifier = Modifier.fillMaxSize().background(Color.Black)) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(
+                color = Brown1
+            ),
+        verticalArrangement = Arrangement.Center
+    ) {
         currentBitmap?.let { bitmap ->
             Box(
                 modifier = Modifier
