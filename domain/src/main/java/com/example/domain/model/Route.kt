@@ -31,6 +31,8 @@ sealed class Route(
 
     object PaginatedDetectionPage: Route(route = "PaginatedDetection")
 
+    object UpdateProfilePage: Route(route = "UpdateProfile")
+
     companion object {
         val navRoutes: List<String> by lazy {
             Route::class.sealedSubclasses.mapNotNull { it.objectInstance?.route }

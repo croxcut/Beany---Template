@@ -50,6 +50,7 @@ import com.example.core.composables.Footer
 import com.example.core.composables.InputField
 import com.example.core.ui.theme.Beige1
 import com.example.core.ui.theme.Brown1
+import com.example.core.ui.theme.GlacialIndifference
 import com.example.core.ui.theme.GlacialIndifferenceBold
 import com.example.core.ui.theme.Kare
 import com.example.core.ui.theme.White
@@ -369,7 +370,11 @@ fun SignUpPage(
             val state = viewModel.uiState
             var showDialog by remember { mutableStateOf(false) }
 
-            Column {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = rspDp(22.dp)),
+            ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Checkbox(
                         checked = viewModel.isTermsAccepted,
@@ -378,8 +383,12 @@ fun SignUpPage(
                         }
                     )
                     Text(
-                        text = "Show Terms and Conditions",
-                        style = MaterialTheme.typography.bodyMedium,
+                        text = "I agree to the Terms and privacy policy",
+                        style = TextStyle(
+                            fontFamily = GlacialIndifference,
+                            fontSize = rspSp(14.sp),
+                            color = Brown1
+                        ),
                         modifier = Modifier
                             .clickable{
                                 showDialog = true
@@ -434,6 +443,8 @@ fun SignUpPage(
                         val usernamePattern = "^[A-Za-z]+$".toRegex()
                         val fullNamePattern = "^[A-Za-z ]+$".toRegex()
                         val emailPattern = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,6}$".toRegex()
+                        // Enhanced password pattern - alphanumeric only with at least one letter and one number
+                        val passwordPattern = "^(?=.*[A-Za-z])(?=.*\\d)[A-Za-z\\d]+$".toRegex()
 
                         viewModel.usernameError = false
                         viewModel.fullNameError = false
@@ -470,9 +481,29 @@ fun SignUpPage(
                         if (viewModel.password.isBlank()) {
                             viewModel.passwordError = true
                             if (firstErrorMessage == null) firstErrorMessage = "Password cannot be empty"
-                        } else if (viewModel.password.length < 8) {
-                            viewModel.passwordError = true
-                            if (firstErrorMessage == null) firstErrorMessage = "Password must be at least 8 characters long"
+                        } else {
+                            when {
+                                viewModel.password.length < 8 -> {
+                                    viewModel.passwordError = true
+                                    if (firstErrorMessage == null) firstErrorMessage = "Password must be at least 8 characters long"
+                                }
+                                !viewModel.password.matches(passwordPattern) -> {
+                                    viewModel.passwordError = true
+                                    if (firstErrorMessage == null) firstErrorMessage = "Password must contain only letters and numbers, with at least one of each"
+                                }
+                                viewModel.password.all { it.isDigit() } -> {
+                                    viewModel.passwordError = true
+                                    if (firstErrorMessage == null) firstErrorMessage = "Password must contain at least one letter"
+                                }
+                                viewModel.password.all { it.isLetter() } -> {
+                                    viewModel.passwordError = true
+                                    if (firstErrorMessage == null) firstErrorMessage = "Password must contain at least one number"
+                                }
+                                viewModel.password.equals(viewModel.username, ignoreCase = true) -> {
+                                    viewModel.passwordError = true
+                                    if (firstErrorMessage == null) firstErrorMessage = "Password should not be same as username"
+                                }
+                            }
                         }
 
                         if (viewModel.confirmPassword.isBlank()) {

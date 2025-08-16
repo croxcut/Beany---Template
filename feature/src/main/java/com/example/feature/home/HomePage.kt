@@ -27,6 +27,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Divider
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -36,6 +37,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -71,6 +73,7 @@ import com.example.domain.model.Route
 import com.example.domain.model.WeatherForecast
 import com.example.feature.R
 import io.github.jan.supabase.realtime.Column
+import kotlinx.coroutines.coroutineScope
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
@@ -86,11 +89,32 @@ fun HomePage(
     val activityList by viewModel.activityList.collectAsState()
     val state by viewModel.state.collectAsState()
     val selectedCity by viewModel.selectedCity.collectAsState()
+    val isOnline by viewModel.isOnline.collectAsState()
 
     val context = LocalContext.current
 
+    if (profile == null && isOnline) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(color = Brown1),
+            contentAlignment = Alignment.Center
+        ) {
+            CircularProgressIndicator(color = White)
+        }
+        return
+    }
+
     LaunchedEffect(Unit) {
-        viewModel.dummyActivity()
+        viewModel.checkConnectivity()
+        if (isOnline) {
+            coroutineScope {
+                viewModel.dummyActivity()
+            }
+            coroutineScope {
+                viewModel.refreshSession()
+            }
+        }
     }
 
     Column(

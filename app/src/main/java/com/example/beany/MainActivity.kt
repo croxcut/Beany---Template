@@ -68,7 +68,148 @@ class MainActivity : ComponentActivity() {
                 val navHostController = rememberNavController()
                 NavGraph(navHostController, activity = this)
             }
+
+
+//            val navController = rememberNavController()
+//
+//            NavHost(navController, startDestination = "home") {
+//                composable("home") {
+//                    HomeScreen(supabase)
+//                }
+//                composable(
+//                    route = "reset",
+//                    deepLinks = listOf(
+//                        navDeepLink {
+//                            uriPattern = "beanyapp://password-reset"
+//                        }
+//                    )
+//                ) { backStackEntry ->
+//                    // --- ADDED: Pass the actual deep link URI into the screen ---
+//                    val deepLinkUri = intent?.data
+//                    ResetPasswordScreen(supabase, navController, deepLinkUri)
+//                }
+//            }
         }
     }
 }
 
+@Composable
+fun HomeScreen(supabase: SupabaseClient) {
+    val scope = rememberCoroutineScope()
+    val email = "johnpaulvalenzuelaog@gmail.com" // <-- use your real test email
+
+    Column(modifier = Modifier.padding(16.dp)) {
+        Button(
+            onClick = {
+                scope.launch {
+                    try {
+                        supabase.auth.resetPasswordForEmail(
+                            email = email,
+                            redirectUrl = "beanyapp://password-reset",
+
+                            )
+                        println("Reset link sent to $email")
+                    } catch (e: Exception) {
+                        println("Failed to send reset email: ${e.message}")
+                    }
+                }
+            }
+        ) {
+            Text("Send Password Reset Email")
+        }
+    }
+}
+
+@Composable
+fun ResetPasswordScreen(
+    supabase: SupabaseClient,
+    navController: NavController,
+    deepLinkUri: Uri?
+) {
+    var newPassword by remember { mutableStateOf("") }
+    var confirmPassword by remember { mutableStateOf("") }
+    val scope = rememberCoroutineScope()
+    var isSessionReady by remember { mutableStateOf(false) }
+
+    val rawUriString = deepLinkUri?.toString() ?: ""
+    val fragmentParams = rawUriString
+        .substringAfter("#", "")
+        .split("&")
+        .mapNotNull {
+            val parts = it.split("=")
+            if (parts.size == 2) parts[0] to parts[1] else null
+        }.toMap()
+
+    val accessToken = fragmentParams["access_token"]
+    val type = fragmentParams["type"]
+
+    @OptIn(ExperimentalTime::class)
+    LaunchedEffect(accessToken) {
+        if (!accessToken.isNullOrEmpty() && type == "recovery") {
+            try {
+                val expiresIn = fragmentParams["expires_in"]?.toLongOrNull() ?: 3600L
+                val tokenType = fragmentParams["token_type"] ?: "bearer"
+
+                val session = UserSession(
+                    accessToken = accessToken,
+                    tokenType = tokenType,
+                    refreshToken = fragmentParams["refresh_token"] ?: "",
+                    expiresIn = expiresIn,
+                    user = null // Supabase can fetch user profile after import
+                )
+
+                supabase.auth.importSession(session)
+                println("✅ Session manually restored for password reset")
+                isSessionReady = true
+            } catch (e: Exception) {
+                println("❌ Failed to restore session: ${e.message}")
+            }
+        }
+    }
+
+    Column(modifier = Modifier.padding(16.dp)) {
+        OutlinedTextField(
+            value = newPassword,
+            onValueChange = { newPassword = it },
+            label = { Text("New Password") },
+            visualTransformation = PasswordVisualTransformation(),
+            modifier = Modifier.fillMaxWidth()
+        )
+        OutlinedTextField(
+            value = confirmPassword,
+            onValueChange = { confirmPassword = it },
+            label = { Text("Confirm Password") },
+            visualTransformation = PasswordVisualTransformation(),
+            modifier = Modifier.fillMaxWidth()
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+        Button(
+            onClick = {
+                if (!isSessionReady) {
+                    println("⚠️ Session not ready yet")
+                    return@Button
+                }
+
+                if (newPassword != confirmPassword || newPassword.length < 6) {
+                    println("⚠️ Passwords do not match or are too short")
+                    return@Button
+                }
+
+                scope.launch {
+                    try {
+                        supabase.auth.updateUser {
+                            password = newPassword
+                        }
+                        println("✅ Password updated successfully")
+                        navController.popBackStack()
+                    } catch (e: Exception) {
+                        println("❌ Password update failed: ${e.message}")
+                    }
+                }
+            },
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text("Update Password")
+        }
+    }
+}

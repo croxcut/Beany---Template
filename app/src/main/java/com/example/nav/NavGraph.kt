@@ -42,6 +42,7 @@ import com.example.feature.notification.NotificationPage
 import com.example.feature.onboarding.OnboardingPage
 import com.example.feature.onboarding.OnboardingPageViewModel
 import com.example.feature.profile.UserProfilePage
+import com.example.feature.profile.updateProfile.UpdateProfilePage
 import com.example.feature.signup.SignUpPage
 import com.example.feature.signup.SignUpViewModel
 import com.example.feature.test.UploadPage
@@ -70,7 +71,7 @@ fun NavGraph(
     ) {
         NavHost(
             navController = navController,
-            startDestination = Route.LaunchPage.route,
+            startDestination = Route.ResetPasswordPage.route,
             modifier = Modifier
                 .matchParentSize()
                 .windowInsetsPadding(WindowInsets.navigationBars)
@@ -172,6 +173,11 @@ fun NavGraph(
                 PaginatedDetectionPage(imageUris = uris)
             }
 
+            composable(
+                route = Route.UpdateProfilePage.route
+            ) {
+                UpdateProfilePage()
+            }
         }
 
         if (currentRoute in navRoutes) {
@@ -186,7 +192,7 @@ fun NavGraph(
                     onTabSelected = { route ->
                         if (route != currentRoute) {
                             navController.navigate(route) {
-                                popUpTo(Route.HomePage.route) { saveState = true }
+                                popUpTo(Route.HomePage.route) { inclusive = true }
                                 launchSingleTop = true
                                 restoreState = true
                             }

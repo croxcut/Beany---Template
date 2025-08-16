@@ -67,7 +67,8 @@ fun ResetPasswordPage(
     LaunchedEffect(state) {
         if (state is PasswordResetState.Success) {
             navController.navigate(Route.LoginPage.route) {
-                popUpTo(Route.LoginPage.route) { inclusive = true }
+                popUpTo(0)  // Pop everything from the back stack
+                launchSingleTop = true
             }
         }
     }
@@ -77,75 +78,170 @@ fun ResetPasswordPage(
             .fillMaxSize()
             .background(Brown1)
             .statusBarsPadding()
-            .navigationBarsPadding()
+            .navigationBarsPadding(),
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Spacer(modifier = Modifier.padding(40.dp))
 
-        when (state) {
-            is PasswordResetState.Error -> {
-                Text(
-                    text = (state as PasswordResetState.Error).message,
-                    color = Color.Red,
-                    modifier = Modifier.padding(20.dp)
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 40.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = "Change password",
+                style = TextStyle(
+                    color = White,
+                    fontFamily = Kare,
+                    fontSize = rspSp(50.sp)
                 )
-            }
-            is PasswordResetState.Loading -> {
-                Text("Updating password...", color = White, modifier = Modifier.padding(20.dp))
-            }
-            else -> {
-                InputField(
-                    value = newPassword,
-                    onValueChange = { newPassword = it },
-                    textStyle = TextStyle(
-                        fontSize = rspSp(17.sp),
-                        fontFamily = GlacialIndifference,
-                        color = Color.Gray
-                    ),
-                    singleLine = true,
-                    maxLength = 64,
-                    modifier = Modifier
-                        .height(rspDp(53.dp))
-                        .fillMaxWidth()
-                        .background(White, RoundedCornerShape(rspDp(15.dp)))
-                        .border(rspDp(2.dp), Brown1, RoundedCornerShape(rspDp(15.dp))),
-                    isPasswordField = true
+            )
+            Text(
+                text = "Password must be at least 8 characters long, containing at least one uppercase letter, at least one lowercase letter, at least one number, and at least one special character. It must not match any of your previous passwords.",
+                style = TextStyle(
+                    color = White,
+                    fontFamily = Etna,
+                    fontSize = rspSp(14.sp)
                 )
-
-                InputField(
-                    value = confirmPassword,
-                    onValueChange = { confirmPassword = it },
-                    textStyle = TextStyle(
-                        fontSize = rspSp(17.sp),
-                        fontFamily = GlacialIndifference,
-                        color = Color.Gray
-                    ),
-                    singleLine = true,
-                    maxLength = 64,
-                    modifier = Modifier
-                        .height(rspDp(53.dp))
-                        .fillMaxWidth()
-                        .background(White, RoundedCornerShape(rspDp(15.dp)))
-                        .border(rspDp(2.dp), Brown1, RoundedCornerShape(rspDp(15.dp))),
-                    isPasswordField = true
-                )
-
-                Button(
-                    onClick = {
-                        if (newPassword != confirmPassword || newPassword.length < 6) {
-                            println("⚠ Passwords do not match or too short")
-                            return@Button
-                        }
-                        viewModel.changePassword(newPassword)
-                    },
-                    colors = ButtonDefaults.buttonColors(containerColor = Beige1),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = rspDp(40.dp))
-                        .background(Beige1, RoundedCornerShape(rspDp(40.dp)))
-                ) {
-                    Text("Update Password", fontSize = rspSp(20.sp), fontFamily = GlacialIndifference, color = Brown1)
-                }
-            }
+            )
         }
+
+        Spacer(modifier = Modifier.height(20.dp))
+
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = rspDp(40.dp))
+        ) {
+            Text(
+                text = "New Password",
+                style = TextStyle(
+                    color = White,
+                    fontFamily = Etna,
+                    fontSize = rspSp(16.sp)
+                )
+            )
+            InputField(
+                value = newPassword,
+                onValueChange = { newPassword = it },
+                textStyle = TextStyle(
+                    fontSize = rspSp(17.sp),
+                    fontFamily = GlacialIndifference,
+                    color = Color.Gray
+                ),
+                singleLine = true,
+                maxLength = 64,
+                modifier = Modifier
+                    .height(rspDp(53.dp))
+                    .fillMaxWidth()
+                    .background(White, RoundedCornerShape(rspDp(15.dp)))
+                    .border(
+                        width = rspDp(2.dp),
+                        color = Beige1,
+                        shape = RoundedCornerShape(rspDp(15.dp))
+                    ),
+                isPasswordField = true
+            )
+        }
+
+        Spacer(modifier = Modifier.height(10.dp))
+
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = rspDp(40.dp))
+        ) {
+            Text(
+                text = "Confirm New Password",
+                style = TextStyle(
+                    color = White,
+                    fontFamily = Etna,
+                    fontSize = rspSp(16.sp)
+                )
+            )
+            InputField(
+                value = confirmPassword,
+                onValueChange = { confirmPassword = it },
+                textStyle = TextStyle(
+                    fontSize = rspSp(17.sp),
+                    fontFamily = GlacialIndifference,
+                    color = Color.Gray
+                ),
+                singleLine = true,
+                maxLength = 64,
+                modifier = Modifier
+                    .height(rspDp(53.dp))
+                    .fillMaxWidth()
+                    .background(White, RoundedCornerShape(rspDp(15.dp)))
+                    .border(
+                        width = rspDp(2.dp),
+                        color = Beige1,
+                        shape = RoundedCornerShape(rspDp(15.dp))
+                    ),
+                isPasswordField = true
+            )
+        }
+
+        Spacer(modifier = Modifier.weight(1f))
+
+        Row {
+            Text(
+                text = "Remember your password? ",
+                style = TextStyle(
+                    fontFamily = GlacialIndifference,
+                    color = White,
+                    fontSize = rspSp(15.sp)
+                )
+            )
+            Text(
+                text = "Login",
+                style = TextStyle(
+                    fontFamily = GlacialIndifferenceBold,
+                    color = White,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = rspSp(15.sp)
+                ),
+                modifier = Modifier.clickable {
+                    navController.navigate(Route.LoginPage.route) {
+                        popUpTo(Route.LoginPage.route) {
+                            inclusive = true
+                        }
+                    }
+                }
+            )
+        }
+
+        Spacer(modifier = Modifier.padding(5.dp))
+
+        Button(
+            onClick = {
+                if (newPassword != confirmPassword || newPassword.length < 6) {
+                    println("⚠ Passwords do not match or too short")
+                    return@Button
+                }
+                viewModel.changePassword(newPassword)
+            },
+            colors = ButtonDefaults.buttonColors(containerColor = Beige1),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = rspDp(40.dp))
+                .background(
+                    color = Beige1,
+                    shape = RoundedCornerShape(rspDp(40.dp))
+                )
+        ) {
+            Text(
+                text = "Change Password",
+                style = TextStyle(
+                    fontSize = rspSp(20.sp),
+                    fontFamily = GlacialIndifference,
+                    color = Brown1
+                )
+            )
+        }
+
+        Spacer(modifier = Modifier.padding(20.dp))
+
     }
 }

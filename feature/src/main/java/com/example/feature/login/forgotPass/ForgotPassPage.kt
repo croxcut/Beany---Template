@@ -1,5 +1,6 @@
 package com.example.feature.login.forgotPass
 
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -45,86 +46,159 @@ fun ForgotPasswordPage(
     navController: NavController,
     viewModel: PassWordResetViewModel
 ) {
-    val state by viewModel.state.collectAsState()
-
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Brown1)
+            .background(color = Brown1)
             .statusBarsPadding()
             .navigationBarsPadding()
     ) {
+        // Optional Back Button
+        // Row(
+        //     modifier = Modifier.padding(horizontal = 10.dp)
+        // ) {
+        //     Text(
+        //         text = "<",
+        //         style = TextStyle(
+        //             color = White,
+        //             fontSize = rspSp(30.sp),
+        //             fontFamily = FontFamily.Serif,
+        //             fontWeight = FontWeight.Bold
+        //         )
+        //     )
+        // }
+
         Spacer(modifier = Modifier.padding(40.dp))
 
-        when (state) {
-            is PasswordResetState.PendingVerification -> {
-                Text(
-                    text = "We sent a password reset link to ${viewModel.userEmail}. Please check your inbox.",
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 40.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = "Change password",
+                style = TextStyle(
                     color = White,
-                    modifier = Modifier.padding(20.dp)
+                    fontFamily = Kare,
+                    fontSize = rspSp(50.sp)
                 )
-            }
-            is PasswordResetState.Error -> {
-                Text(
-                    text = (state as PasswordResetState.Error).message,
-                    color = Color.Red,
-                    modifier = Modifier.padding(20.dp)
+            )
+            Text(
+                text = "Enter your registered email to get a confirmation link and reset your password.",
+                style = TextStyle(
+                    color = White,
+                    fontFamily = Etna,
+                    fontSize = rspSp(16.sp)
                 )
-            }
-            else -> {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 40.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Text(
-                        text = "Change password",
-                        color = White,
-                        fontFamily = Kare,
-                        fontSize = rspSp(50.sp)
-                    )
-                    Text(
-                        text = "Enter your registered email to get a reset link.",
-                        color = White,
-                        fontFamily = Etna,
-                        fontSize = rspSp(16.sp)
-                    )
-                }
+            )
+        }
 
-                Spacer(modifier = Modifier.padding(10.dp))
+        Spacer(modifier = Modifier.padding(10.dp))
 
-                InputField(
-                    value = viewModel.userEmail,
-                    onValueChange = { viewModel.setNewEmail(it) },
-                    textStyle = TextStyle(
-                        fontSize = rspSp(17.sp),
-                        fontFamily = GlacialIndifference,
-                        color = Color.Gray
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 40.dp)
+        ) {
+            Text(
+                text = "Email Address",
+                style = TextStyle(
+                    color = White,
+                    fontFamily = Etna,
+                    fontSize = rspSp(16.sp)
+                )
+            )
+            InputField(
+                value = viewModel.userEmail,
+                onValueChange = { viewModel.setNewEmail(it) },
+                textStyle = TextStyle(
+                    fontSize = rspSp(17.sp),
+                    fontFamily = GlacialIndifference,
+                    color = Color.Gray
+                ),
+                singleLine = true,
+                maxLength = 64,
+                modifier = Modifier
+                    .height(height = rspDp(53.dp))
+                    .fillMaxWidth()
+                    .background(
+                        color = White,
+                        shape = RoundedCornerShape(rspDp(15.dp))
+                    )
+                    .border(
+                        width = rspDp(2.dp),
+                        shape = RoundedCornerShape(rspDp(15.dp)),
+                        color = Brown1
                     ),
-                    singleLine = true,
-                    maxLength = 64,
-                    modifier = Modifier
-                        .height(rspDp(53.dp))
-                        .fillMaxWidth()
-                        .background(White, RoundedCornerShape(rspDp(15.dp)))
-                        .border(rspDp(2.dp), Brown1, RoundedCornerShape(rspDp(15.dp))),
-                    isPasswordField = false
+                isPasswordField = false
+            )
+        }
+
+        Spacer(modifier = Modifier.weight(1f))
+
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Row {
+                Text(
+                    text = "Remember your password? ",
+                    style = TextStyle(
+                        fontFamily = GlacialIndifference,
+                        color = White,
+                        fontSize = rspSp(15.sp)
+                    )
                 )
+                Text(
+                    text = "Login",
+                    style = TextStyle(
+                        fontFamily = GlacialIndifferenceBold,
+                        color = White,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = rspSp(15.sp)
+                    ),
+                    modifier = Modifier.clickable {
+                        navController.navigate(Route.LoginPage.route) {
+                            popUpTo(Route.LoginPage.route) {
+                                inclusive = true
+                            }
+                        }
+                    }
+                )
+            }
 
-                Spacer(modifier = Modifier.weight(1f))
+            Spacer(modifier = Modifier.height(rspDp(10.dp)))
 
-                Button(
-                    onClick = { viewModel.sendEmail() },
-                    colors = ButtonDefaults.buttonColors(containerColor = Beige1),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = rspDp(40.dp))
-                        .background(Beige1, RoundedCornerShape(rspDp(40.dp)))
-                ) {
-                    Text("Send", fontSize = rspSp(20.sp), fontFamily = GlacialIndifference, color = Brown1)
-                }
+            Button(
+                onClick = {
+                    viewModel.sendEmail()
+                    Log.i("Reset-Pass", "User: ${viewModel.userEmail}")
+                          },
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color.Transparent,
+                    disabledContainerColor = Color.Transparent,
+                    disabledContentColor = Color.Gray
+                ),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = rspDp(40.dp))
+                    .background(
+                        color = Beige1,
+                        shape = RoundedCornerShape(rspDp(40.dp))
+                    )
+            ) {
+                Text(
+                    text = "Send",
+                    style = TextStyle(
+                        fontSize = rspSp(20.sp),
+                        fontFamily = GlacialIndifference,
+                        color = Brown1
+                    )
+                )
             }
         }
+
+        Spacer(modifier = Modifier.padding(20.dp))
     }
 }

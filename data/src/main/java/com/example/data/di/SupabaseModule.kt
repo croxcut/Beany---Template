@@ -5,12 +5,14 @@ import com.example.data.repositoryImpl.PostRepositoryImpl
 import com.example.data.repositoryImpl.ReplyRepositoryImpl
 import com.example.data.repositoryImpl.ResetPasswordRepositoryImpl
 import com.example.data.repositoryImpl.SignUpRepositoryImpl
+import com.example.data.repositoryImpl.UpdateProfileRepositoryImpl
 import com.example.data.repositoryImpl.UserRepositoryImpl
 import com.example.domain.repository.LoginAuthRepository
 import com.example.domain.repository.PostRepository
 import com.example.domain.repository.ReplyRepository
 import com.example.domain.repository.ResetPasswordRepository
 import com.example.domain.repository.SignUpRepository
+import com.example.domain.repository.UpdateProfileRepository
 import com.example.domain.repository.UsersRepository
 import com.example.domain.usecase.LoginUseCase
 import com.example.domain.usecase.SignUpUseCase
@@ -94,5 +96,10 @@ object SupabaseModule {
         return ResetPasswordRepositoryImpl(supabaseClient)
     }
 
+    @Provides
+    @Singleton
+    fun provideUpdateProfileRepository(supabaseClient: SupabaseClient): UpdateProfileRepository {
+        return UpdateProfileRepositoryImpl(supabaseClient)
+    }
 
 }

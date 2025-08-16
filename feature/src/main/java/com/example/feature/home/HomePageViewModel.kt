@@ -1,14 +1,19 @@
 package com.example.feature.home
 
+import android.Manifest
+import android.content.Context
 import android.util.Log
+import androidx.annotation.RequiresPermission
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.core.network.NetworkUtils
 import com.example.domain.model.City
 import com.example.domain.model.Profile
 import com.example.domain.model.WeatherForecast
 import com.example.domain.repository.SessionRepository
 import com.example.domain.repository.WeatherRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import io.github.jan.supabase.auth.user.UserSession
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -19,30 +24,56 @@ import java.util.Date
 import java.util.Locale
 import javax.inject.Inject
 
+
 @HiltViewModel
 class HomePageViewModel @Inject constructor(
     private val sessionRepository: SessionRepository,
-    private val weatherRepository: WeatherRepository
+    private val weatherRepository: WeatherRepository,
+    private val context: Context
 ): ViewModel() {
+
+    private val _isOnline = MutableStateFlow(NetworkUtils.isInternetAvailable(context))
+    val isOnline: StateFlow<Boolean> = _isOnline.asStateFlow()
 
     private val _profile = MutableStateFlow<Profile?>(null)
     val profile: StateFlow<Profile?> = _profile
 
+    private val _session = MutableStateFlow<UserSession?>(null)
+    val session: StateFlow<UserSession?> = _session
+
     init {
-        viewModelScope.launch {
-            var success = false
-            while (!success) {
-                try {
-                    _profile.value = sessionRepository.getUserProfile()
-                    success = true
-                } catch (e: Exception) {
-                    // Optional: log the exception
-                    Log.e("ViewModel", "Failed to fetch user profile, retrying...", e)
-                    // You can also add a small delay before retrying
-                    delay(1000)
+        checkConnectivity()
+        if(isOnline.value) {
+            viewModelScope.launch {
+                var success = false
+                while (!success) {
+                    try {
+                        _profile.value = sessionRepository.getUserProfile()
+                        success = true
+                    } catch (e: Exception) {
+                        // Optional: log the exception
+                        Log.e("ViewModel", "Failed to fetch user profile, retrying...", e)
+                        // You can also add a small delay before retrying
+                        delay(1000)
+                    }
                 }
             }
+            viewModelScope.launch {
+                _session.value = sessionRepository.getCurrentSession()
+                sessionRepository.updateCurrentSession()
+                loadCities()
+            }
         }
+    }
+
+    fun refreshSession() {
+        viewModelScope.launch {
+            sessionRepository.updateCurrentSession()
+        }
+    }
+
+    fun checkConnectivity() {
+        _isOnline.value = NetworkUtils.isInternetAvailable(context)
     }
 
     private val _activityList = MutableStateFlow<List<String>>(emptyList())
@@ -70,10 +101,6 @@ class HomePageViewModel @Inject constructor(
 
     private val _selectedCity = MutableStateFlow<City?>(null)
     val selectedCity: StateFlow<City?> = _selectedCity.asStateFlow()
-
-    init {
-        loadCities()
-    }
 
     fun selectCity(city: City) {
         _selectedCity.value = city

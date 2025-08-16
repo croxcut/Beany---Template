@@ -7,6 +7,7 @@ import android.util.Log
 import androidx.core.net.toUri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.core.network.NetworkUtils
 import com.example.domain.model.Profile
 import com.example.domain.repository.AuthRepository
 import com.example.domain.repository.BucketRepository
@@ -14,6 +15,7 @@ import com.example.domain.repository.SessionRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.ktor.client.plugins.HttpRequestTimeoutException
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -42,11 +44,41 @@ class UserProfileViewModel @Inject constructor(
     private val _selectedImageUri = MutableStateFlow<Uri?>(null)
     val selectedImageUri: StateFlow<Uri?> = _selectedImageUri.asStateFlow()
 
+
+    private val _isOnline = MutableStateFlow(NetworkUtils.isInternetAvailable(appContext))
+    val isOnline: StateFlow<Boolean> = _isOnline.asStateFlow()
+
+    private val _isLoading = MutableStateFlow(false)
+    val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
+
     init {
-        viewModelScope.launch {
-            _profile.value = sessionRepository.getUserProfile()
-            _isSignedUp.value = sessionRepository.isSignedUp()
+        checkConnectivity()
+        if(isOnline.value) {
+            loadProfileData()
         }
+    }
+
+    private fun loadProfileData() {
+        _isLoading.value = true
+        viewModelScope.launch {
+            try {
+                _profile.value = sessionRepository.getUserProfile()
+                _isSignedUp.value = sessionRepository.isSignedUp()
+            } catch (e: Exception) {
+                Log.e("ViewModel", "Failed to fetch profile data", e)
+            } finally {
+                _isLoading.value = false
+            }
+        }
+    }
+    fun refreshSession() {
+        viewModelScope.launch {
+            sessionRepository.updateCurrentSession()
+        }
+    }
+
+    fun checkConnectivity() {
+        _isOnline.value = NetworkUtils.isInternetAvailable(appContext)
     }
 
     fun logout() {

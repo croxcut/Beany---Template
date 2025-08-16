@@ -1,6 +1,7 @@
 package com.example.feature.detection.screens
 
 import android.graphics.Bitmap
+import android.net.Uri
 import android.provider.MediaStore
 import android.widget.Toast
 import androidx.compose.foundation.Image
@@ -21,21 +22,22 @@ import com.example.feature.detection.misc.saveBitmapWithBoxes
 
 @Composable
 fun PaginatedDetectionPage(
-    imageUris: List<android.net.Uri>,
+    imageUris: List<Uri>,
     viewModel: DetectionViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
-    var currentIndex by remember { mutableStateOf(0) }
+    var currentIndex by remember { mutableStateOf(-1) } // Start before first valid image
     var currentBitmap by remember { mutableStateOf<Bitmap?>(null) }
     val overlayBoxes by viewModel.boxes.collectAsState()
     val inferenceTime by viewModel.inferenceTime.collectAsState()
 
-    // Load the first image
+    // Load the first image with detections
     LaunchedEffect(imageUris) {
         if (imageUris.isNotEmpty()) {
-            val bitmap = MediaStore.Images.Media.getBitmap(context.contentResolver, imageUris[0])
-            currentBitmap = bitmap
-            viewModel.detect(bitmap)
+            loadNextDetectedImage(context, imageUris, viewModel) { bitmap, index ->
+                currentBitmap = bitmap
+                currentIndex = index
+            } ?: Toast.makeText(context, "No images with detections", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -64,27 +66,14 @@ fun PaginatedDetectionPage(
             horizontalArrangement = Arrangement.SpaceEvenly
         ) {
             Button(onClick = {
-                var nextIndex = currentIndex + 1
-                while (nextIndex < imageUris.size) {
-                    val bitmap = MediaStore.Images.Media.getBitmap(context.contentResolver, imageUris[nextIndex])
-                    viewModel.detect(bitmap)
-
-                    if (viewModel.boxes.value.isNotEmpty()) {
-                        currentBitmap = bitmap
-                        currentIndex = nextIndex
-                        break
-                    }
-                    nextIndex++
-                }
-
-                if (nextIndex >= imageUris.size) {
-                    Toast.makeText(context, "No more images with detections", Toast.LENGTH_SHORT).show()
-                }
+                loadNextDetectedImage(context, imageUris, viewModel, startIndex = currentIndex + 1) { bitmap, index ->
+                    currentBitmap = bitmap
+                    currentIndex = index
+                } ?: Toast.makeText(context, "No more images with detections", Toast.LENGTH_SHORT).show()
             }) {
                 Text("Next Image")
             }
 
-            // Save Image Button
             Button(onClick = {
                 currentBitmap?.let { bitmap ->
                     saveBitmapWithBoxes(context, bitmap, overlayBoxes)
@@ -94,4 +83,25 @@ fun PaginatedDetectionPage(
             }
         }
     }
+}
+
+/**
+ * Finds and loads the next image with detected objects.
+ */
+private fun loadNextDetectedImage(
+    context: android.content.Context,
+    imageUris: List<Uri>,
+    viewModel: DetectionViewModel,
+    startIndex: Int = 0,
+    onImageFound: (Bitmap, Int) -> Unit
+): Boolean? {
+    for (i in startIndex until imageUris.size) {
+        val bitmap = MediaStore.Images.Media.getBitmap(context.contentResolver, imageUris[i])
+        viewModel.detect(bitmap)
+        if (viewModel.boxes.value.isNotEmpty()) {
+            onImageFound(bitmap, i)
+            return true
+        }
+    }
+    return null
 }

@@ -13,6 +13,7 @@ import androidx.core.content.ContextCompat
 import com.example.domain.model.AABB
 import java.io.OutputStream
 import kotlin.collections.forEach
+import androidx.core.graphics.scale
 
 //fun saveBitmapWithBoxes(context: Context, bitmap: Bitmap, boxes: List<AABB>) {
 //    val mutableBitmap = bitmap.copy(Bitmap.Config.ARGB_8888, true)
@@ -62,11 +63,14 @@ import kotlin.collections.forEach
 //    } ?: Toast.makeText(context, "Failed to save image", Toast.LENGTH_SHORT).show()
 //}
 
+fun sanitizeFileName(name: String): String {
+    return name.replace("[^a-zA-Z0-9_]".toRegex(), "_")
+}
+
 fun saveBitmapWithBoxes(context: Context, bitmap: Bitmap, boxes: List<AABB>) {
-    // Scale the bitmap to 1920x1080
     val targetWidth = 1920
     val targetHeight = 1080
-    val scaledBitmap = Bitmap.createScaledBitmap(bitmap, targetWidth, targetHeight, true)
+    val scaledBitmap = bitmap.scale(targetWidth, targetHeight)
     val canvas = Canvas(scaledBitmap)
 
     val boxPaint = Paint().apply {
@@ -94,7 +98,9 @@ fun saveBitmapWithBoxes(context: Context, bitmap: Bitmap, boxes: List<AABB>) {
         canvas.drawText(box.clsName, left, top - 10f, textPaint)
     }
 
-    val filename = "detection_${System.currentTimeMillis()}.png"
+    val className = if (boxes.isNotEmpty()) sanitizeFileName(boxes.first().clsName) else "unknown"
+    val filename = "${className}_${System.currentTimeMillis()}.png"
+
     val outputStream = context.contentResolver.insert(
         MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
         android.content.ContentValues().apply {
@@ -109,7 +115,6 @@ fun saveBitmapWithBoxes(context: Context, bitmap: Bitmap, boxes: List<AABB>) {
         Toast.makeText(context, "Saved to gallery", Toast.LENGTH_SHORT).show()
     } ?: Toast.makeText(context, "Failed to save image", Toast.LENGTH_SHORT).show()
 }
-
 fun takeHighResSnapshot(
     context: Context,
     imageCapture: ImageCapture,

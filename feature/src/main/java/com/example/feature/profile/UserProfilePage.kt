@@ -56,6 +56,7 @@ import com.example.core.utils.rspDp
 import com.example.core.utils.rspSp
 import com.example.domain.model.Route
 import com.example.feature.R
+import kotlinx.coroutines.coroutineScope
 
 data class ProfileItem(
     val icon: Int,
@@ -164,10 +165,18 @@ fun ProfilePicture(
 ) {
     val isSignedUp by viewModel.isSignedUp.collectAsState()
     val selectedImageUri by viewModel.selectedImageUri.collectAsState()
+    val uploadState by viewModel.uploadState.collectAsState()
+    val isOnline by viewModel.isOnline.collectAsState()
 
-    LaunchedEffect(isSignedUp) {
-        if (isSignedUp) {
-            viewModel.downloadProfileImage()
+    LaunchedEffect(isOnline) {
+        viewModel.checkConnectivity()
+        if (isOnline) {
+            coroutineScope {
+                viewModel.downloadProfileImage()
+            }
+            coroutineScope {
+                viewModel.refreshSession()
+            }
         }
     }
 
@@ -178,40 +187,55 @@ fun ProfilePicture(
         Box(
             contentAlignment = Alignment.BottomEnd
         ) {
-            // Common image modifier with both borders
-            val imageModifier = Modifier
-                .padding(all = 4.dp)
-                .border(width = 4.dp, color = White, shape = CircleShape) // Outer white border
-                .padding(4.dp) // Space between borders
-                .border(width = 4.dp, color = Brown1, shape = CircleShape) // Inner brown border
-                .size(size = 110.dp)
-                .clip(CircleShape)
-
-            if (isSignedUp && selectedImageUri != null) {
-                Image(
-                    painter = rememberAsyncImagePainter(selectedImageUri),
-                    contentDescription = "Profile Picture",
-                    modifier = imageModifier,
-                    contentScale = ContentScale.Crop
-                )
+            // Show loading indicator during upload/download
+            if (uploadState is UploadState.Loading) {
+                Box(
+                    modifier = Modifier
+                        .size(110.dp)
+                        .clip(CircleShape)
+                        .background(Brown1.copy(alpha = 0.7f)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator(color = White)
+                }
             } else {
-                Image(
-                    painter = painterResource(id = R.drawable.plchldr),
-                    contentDescription = "Default Profile Picture",
-                    modifier = imageModifier,
-                    contentScale = ContentScale.Crop
-                )
-            }
+                // Common image modifier with both borders
+                val imageModifier = Modifier
+                    .padding(all = 4.dp)
+                    .border(width = 4.dp, color = White, shape = CircleShape) // Outer white border
+                    .padding(4.dp) // Space between borders
+                    .border(width = 4.dp, color = Brown1, shape = CircleShape) // Inner brown border
+                    .size(size = 110.dp)
+                    .clip(CircleShape)
 
-            IconButton(
-                onClick = onEditClick,
-                modifier = Modifier.size(30.dp)
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Edit,
-                    contentDescription = "Edit Profile Picture",
-                    tint = White
-                )
+                if (isSignedUp && selectedImageUri != null) {
+                    Image(
+                        painter = rememberAsyncImagePainter(selectedImageUri),
+                        contentDescription = "Profile Picture",
+                        modifier = imageModifier,
+                        contentScale = ContentScale.Crop
+                    )
+                } else {
+                    Image(
+                        painter = painterResource(id = R.drawable.plchldr),
+                        contentDescription = "Default Profile Picture",
+                        modifier = imageModifier,
+                        contentScale = ContentScale.Crop
+                    )
+                }
+
+                if (isSignedUp) {
+                    IconButton(
+                        onClick = onEditClick,
+                        modifier = Modifier.size(30.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Edit,
+                            contentDescription = "Edit Profile Picture",
+                            tint = White
+                        )
+                    }
+                }
             }
         }
     }
@@ -224,13 +248,50 @@ fun UserProfilePage(
 ) {
     val profile by viewModel.profile.collectAsState()
     val isSignedUp by viewModel.isSignedUp.collectAsState()
-
+    val isOnline by viewModel.isOnline.collectAsState()
     val context = LocalContext.current
+
+    val isLoading by viewModel.isLoading.collectAsState()
 
     val TOP_SIZE_CLIP: Dp = rspDp(120.dp)
     val DESC_FONT_SIZE: TextUnit = rspSp(12.sp)
     val ROW_PADDING: Dp = rspDp(10.dp)
     val CONTAINER_PADDING: Dp = rspDp(30.dp)
+
+    LaunchedEffect(Unit) {
+        viewModel.checkConnectivity()
+        if(isOnline) {
+            coroutineScope {
+                viewModel.refreshSession()
+            }
+        }
+    }
+
+    // Only show loading spinner if online but profile is still loading
+    if (profile == null && isOnline) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(color = Brown1),
+            contentAlignment = Alignment.Center
+        ) {
+            CircularProgressIndicator(color = White)
+        }
+        return
+    }
+
+    if (isLoading) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(color = Brown1),
+            contentAlignment = Alignment.Center
+        ) {
+            CircularProgressIndicator(color = White)
+        }
+        return
+    }
+
 
     val accountItems = listOf(
         ProfileItem(
@@ -411,7 +472,13 @@ fun UserProfilePage(
                     containerPadding = CONTAINER_PADDING
                 ) { item ->
                     when(item.title) {
-//                        "My Profile" -> navController.navigate(Route.ProfilePage.route)
+                        "My Profile" -> {
+                            if(isSignedUp && isOnline) {
+                                navController.navigate(Route.UpdateProfilePage.route)
+                            } else {
+                                Toast.makeText(context, "Please sign or check internet Connection", Toast.LENGTH_SHORT).show()
+                            }
+                        }
                         "Notification" -> navController.navigate(Route.NotificationPage.route)
 //                        "Uploaded Photos" -> navController.navigate(Route.UploadedPhotosPage.route)
 //                        "My Diagnosis" -> navController.navigate(Route.MyDiagnosisPage.route)
