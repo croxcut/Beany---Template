@@ -1,5 +1,6 @@
 package com.example.feature.home
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.domain.model.City
@@ -8,6 +9,7 @@ import com.example.domain.model.WeatherForecast
 import com.example.domain.repository.SessionRepository
 import com.example.domain.repository.WeatherRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -28,7 +30,18 @@ class HomePageViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            _profile.value = sessionRepository.getUserProfile()
+            var success = false
+            while (!success) {
+                try {
+                    _profile.value = sessionRepository.getUserProfile()
+                    success = true
+                } catch (e: Exception) {
+                    // Optional: log the exception
+                    Log.e("ViewModel", "Failed to fetch user profile, retrying...", e)
+                    // You can also add a small delay before retrying
+                    delay(1000)
+                }
+            }
         }
     }
 

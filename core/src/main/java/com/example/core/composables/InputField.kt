@@ -53,7 +53,7 @@ fun InputField(
                     onValueChange(it)
                 }
             },
-            label = label, // This will be null if no label is provided
+            label = label,
             textStyle = textStyle,
             maxLines = maxLines,
             singleLine = singleLine,
@@ -66,8 +66,8 @@ fun InputField(
             } else {
                 VisualTransformation.None
             },
-            trailingIcon = {
-                if (isPasswordField) {
+            trailingIcon = if (isPasswordField) {
+                {
                     IconButton(onClick = { passwordVisible = !passwordVisible }) {
                         Icon(
                             imageVector = if (passwordVisible) Icons.Filled.Visibility else Icons.Filled.VisibilityOff,
@@ -75,7 +75,7 @@ fun InputField(
                         )
                     }
                 }
-            },
+            } else null, // Pass null instead of an empty lambda
             colors = TextFieldDefaults.colors(
                 focusedContainerColor = Color.Transparent,
                 unfocusedContainerColor = Color.Transparent,

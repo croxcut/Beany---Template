@@ -3,11 +3,15 @@ package com.example.data.di
 import com.example.data.repositoryImpl.LoginAuthRepositoryImpl
 import com.example.data.repositoryImpl.PostRepositoryImpl
 import com.example.data.repositoryImpl.ReplyRepositoryImpl
+import com.example.data.repositoryImpl.ResetPasswordRepositoryImpl
 import com.example.data.repositoryImpl.SignUpRepositoryImpl
+import com.example.data.repositoryImpl.UserRepositoryImpl
 import com.example.domain.repository.LoginAuthRepository
 import com.example.domain.repository.PostRepository
 import com.example.domain.repository.ReplyRepository
+import com.example.domain.repository.ResetPasswordRepository
 import com.example.domain.repository.SignUpRepository
+import com.example.domain.repository.UsersRepository
 import com.example.domain.usecase.LoginUseCase
 import com.example.domain.usecase.SignUpUseCase
 import dagger.Module
@@ -77,5 +81,18 @@ object SupabaseModule {
     fun providePostRepository(supabaseClient: SupabaseClient): PostRepository {
         return PostRepositoryImpl(supabaseClient)
     }
+
+    @Provides
+    @Singleton
+    fun provideUserRepository(supabaseClient: SupabaseClient): UsersRepository {
+        return UserRepositoryImpl(supabaseClient)
+    }
+
+    @Provides
+    @Singleton
+    fun provideResetPasswordRepository(supabaseClient: SupabaseClient): ResetPasswordRepository {
+        return ResetPasswordRepositoryImpl(supabaseClient)
+    }
+
 
 }

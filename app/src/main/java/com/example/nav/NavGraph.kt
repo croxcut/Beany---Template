@@ -2,6 +2,7 @@ package com.example.nav
 
 import android.app.Activity
 import android.content.Intent
+import android.net.Uri
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -17,15 +18,15 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.navDeepLink
-import com.example.core.ui.theme.White
 import com.example.domain.model.Route
 import com.example.feature.aboutUs.AboutUsPage
 import com.example.feature.community.pages.PostDetailPage
 import com.example.feature.community.pages.PostsListPage
 import com.example.feature.detection.FeatureSelectionPage
-import com.example.feature.detection.history.DetectionHistoryPage
-import com.example.feature.detection.realtime.RealtimeDetectionPage
-import com.example.feature.detection.upload.UploadDetectionPage
+import com.example.feature.detection.DetectionHistoryPage
+import com.example.feature.detection.screens.PaginatedDetectionPage
+import com.example.feature.detection.screens.RealtimeDetectionPage
+import com.example.feature.detection.screens.UploadDetectionPage
 import com.example.feature.geomap.GeoMapPage
 import com.example.feature.geomap.GeoMapViewModel
 import com.example.feature.home.HomePage
@@ -56,7 +57,7 @@ fun NavGraph(
     val navRoutes = listOf(
         Route.HomePage.route,
         Route.DetectionHistoryPage.route,
-        Route.FeatureSelectionPage.route,
+//        Route.FeatureSelectionPage.route,
         Route.NotificationPage.route,
         Route.UserProfilePage.route
     )
@@ -69,7 +70,7 @@ fun NavGraph(
     ) {
         NavHost(
             navController = navController,
-            startDestination = Route.PostsListPage.route,
+            startDestination = Route.LaunchPage.route,
             modifier = Modifier
                 .matchParentSize()
                 .windowInsetsPadding(WindowInsets.navigationBars)
@@ -97,7 +98,6 @@ fun NavGraph(
                 //SingleImageDetectionPage()
                 UploadPage()
             }
-            composable(Route.UploadDetectionPage.route) { UploadDetectionPage() }
             composable(Route.UserProfilePage.route) {
                 UserProfilePage(navController = navController)
             }
@@ -108,7 +108,11 @@ fun NavGraph(
 //                    viewModel = viewModel
 //                )
             }
-            composable(Route.FeatureSelectionPage.route) { FeatureSelectionPage() }
+            composable(
+                route = Route.FeatureSelectionPage.route
+            ) {
+                RealtimeDetectionPage()
+            }
             composable(Route.NotificationPage.route) { NotificationPage() }
             composable(Route.GeoMapPage.route) {
                 val viewModel: GeoMapViewModel = hiltViewModel()
@@ -133,7 +137,10 @@ fun NavGraph(
                     .arguments
                     ?.getParcelable<Intent>("android-support-nav:controller:deepLinkIntent")
                     ?.data
-                ResetPasswordPage()
+                ResetPasswordPage(
+                    navController = navController,
+                    deepLinkUri = deepLinkUri
+                    )
             }
             composable(Route.PostsListPage.route) {
                 PostsListPage(
@@ -148,6 +155,23 @@ fun NavGraph(
                     PostDetailPage(postId = postId)
                 }
             }
+            composable(Route.UploadDetectionPage.route) {
+                UploadDetectionPage(
+                    onImagesPicked = { uris ->
+                        // Save the URIs to the back stack to pass to next screen
+                        navController.currentBackStackEntry?.savedStateHandle?.set("images", uris)
+                        navController.navigate(Route.PaginatedDetectionPage.route)
+                    }
+                )
+            }
+
+            composable(Route.PaginatedDetectionPage.route) {
+                val uris: List<Uri> =
+                    navController.previousBackStackEntry?.savedStateHandle?.get<List<Uri>>("images")
+                        ?: emptyList()
+                PaginatedDetectionPage(imageUris = uris)
+            }
+
         }
 
         if (currentRoute in navRoutes) {

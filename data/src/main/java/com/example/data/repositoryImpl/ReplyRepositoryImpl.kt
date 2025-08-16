@@ -9,6 +9,7 @@ import io.github.jan.supabase.postgrest.from
 import io.github.jan.supabase.postgrest.query.filter.FilterOperation
 import io.github.jan.supabase.postgrest.query.filter.FilterOperator
 import io.github.jan.supabase.realtime.selectAsFlow
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import javax.inject.Inject
 
@@ -21,6 +22,12 @@ class ReplyRepositoryImpl @Inject constructor(
         return supabaseClient.from("replies")
             .selectAsFlow(Reply::id, filter = FilterOperation("post_id", FilterOperator.EQ, postId))
             .first()
+    }
+
+    @OptIn(SupabaseExperimental::class)
+    override fun getRepliesFlow(postId: Long): Flow<List<Reply>> {
+        return supabaseClient.from("replies")
+            .selectAsFlow(Reply::id, filter = FilterOperation("post_id", FilterOperator.EQ, postId))
     }
 
     override suspend fun createReply(reply: NewReply) {

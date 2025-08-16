@@ -29,6 +29,8 @@ sealed class Route(
         fun createRoute(postId: Long) = "PostDetail/$postId"
     }
 
+    object PaginatedDetectionPage: Route(route = "PaginatedDetection")
+
     companion object {
         val navRoutes: List<String> by lazy {
             Route::class.sealedSubclasses.mapNotNull { it.objectInstance?.route }

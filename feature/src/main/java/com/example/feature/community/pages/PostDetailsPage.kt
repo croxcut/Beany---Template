@@ -1,8 +1,5 @@
 package com.example.feature.community.pages
 
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -12,19 +9,17 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Send
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.domain.model.Post
+import com.example.domain.model.Profile
 import com.example.domain.model.Reply
 import com.example.feature.community.viewModels.PostDetailViewModel
 
@@ -37,7 +32,12 @@ fun PostDetailPage(
     val replies by remember { derivedStateOf { viewModel.replies } }
     var newReply by remember { mutableStateOf("") }
 
+    val profiles by viewModel.profiles.collectAsState()
+    val sesson by viewModel.profile.collectAsState()
+
     LaunchedEffect(postId) {
+        viewModel.loadSession()
+        viewModel.loadProfiles()
         viewModel.loadPost(postId)
         viewModel.loadReplies(postId)
     }
@@ -56,7 +56,16 @@ fun PostDetailPage(
         ) {
             item {
                 post?.let { postItem ->
-                    PostCard(postItem, replies, viewModel::setParentReplyId, viewModel::unsendReply)
+                    profiles.let {
+                        PostCard(
+                            post = postItem,
+                            replies = replies,
+                            onReplyClick = viewModel::setParentReplyId,
+                            onUnsendReply = viewModel::unsendReply,
+                            profiles = profiles,
+                            sessionId = sesson?.id.toString()
+                        )
+                    }
                 }
             }
         }
@@ -64,6 +73,7 @@ fun PostDetailPage(
         ReplyInput(
             parentReplyId = viewModel.parentReplyId.value,
             replies = replies,
+            profiles = profiles, // <- pass profiles here
             newReply = newReply,
             onNewReplyChange = { newReply = it },
             onSendReply = {
@@ -79,14 +89,19 @@ private fun PostCard(
     post: Post,
     replies: List<Reply>,
     onReplyClick: (Long) -> Unit,
-    onUnsendReply: (Long) -> Unit
+    onUnsendReply: (Long) -> Unit,
+    profiles: List<Profile>,
+    sessionId: String
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(containerColor = Color.White)
     ) {
         Column(modifier = Modifier.padding(12.dp)) {
-            Text(post.sender, fontWeight = FontWeight.Bold)
+            val postProfile = profiles.find { it.id == post.sender }
+            val displayName = postProfile?.username ?: "Unknown"
+
+            Text(displayName, fontWeight = FontWeight.Bold)
             Spacer(Modifier.height(4.dp))
             Text(post.post_title, fontWeight = FontWeight.SemiBold)
             Spacer(Modifier.height(8.dp))
@@ -99,7 +114,9 @@ private fun PostCard(
                     replies = replies,
                     onReplyClick = onReplyClick,
                     onUnsendReply = onUnsendReply,
-                    indent = 1
+                    indent = 1,
+                    profiles = profiles,
+                    currentUserId = sessionId
                 )
             }
         }
@@ -110,6 +127,7 @@ private fun PostCard(
 private fun ReplyInput(
     parentReplyId: Long?,
     replies: List<Reply>,
+    profiles: List<Profile>, // <- add this
     newReply: String,
     onNewReplyChange: (String) -> Unit,
     onSendReply: () -> Unit
@@ -117,7 +135,8 @@ private fun ReplyInput(
     Column {
         parentReplyId?.let { parentId ->
             replies.find { it.id == parentId }?.let { parent ->
-                ParentReplyPreview(parent)
+                val parentProfile = profiles.find { it.id == parent.sender }
+                ParentReplyPreview(parent = parent, profile = parentProfile)
             }
         }
 
@@ -154,7 +173,10 @@ private fun ReplyInput(
 }
 
 @Composable
-private fun ParentReplyPreview(parent: Reply) {
+private fun ParentReplyPreview(
+    parent: Reply,
+    profile: Profile? // pass the profile corresponding to the parent sender
+) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -162,7 +184,8 @@ private fun ParentReplyPreview(parent: Reply) {
         colors = CardDefaults.cardColors(containerColor = Color(0xFFE5E5EA))
     ) {
         Column(modifier = Modifier.padding(8.dp)) {
-            Text("${parent.sender}:", fontWeight = FontWeight.Bold, fontSize = 12.sp)
+            val displayName = profile?.username ?: "Unknown"
+            Text("$displayName:", fontWeight = FontWeight.Bold, fontSize = 12.sp)
             Text(parent.reply_body, fontSize = 14.sp)
         }
     }
@@ -174,12 +197,23 @@ private fun ReplyThread(
     replies: List<Reply>,
     onReplyClick: (Long) -> Unit,
     onUnsendReply: (Long) -> Unit,
-    indent: Int
+    indent: Int,
+    profiles: List<Profile>,
+    currentUserId: String// <-- pass the current logged-in user ID
 ) {
     val maxIndent = 4
     val actualIndent = minOf(indent, maxIndent)
     var showDialog by remember { mutableStateOf(false) }
-    val canUnsend = reply.reply_body != "Unsent a message"
+
+    // Only allow unsend if current user is the sender
+    val canUnsend = reply.reply_body != "Unsent a message" && reply.sender == currentUserId
+
+    val parentReply = reply.parent_reply_id?.let { parentId ->
+        replies.find { it.id == parentId }
+    }
+
+    val replyProfile = profiles.find { it.id == reply.sender }
+    val replyDisplayName = replyProfile?.username ?: "Unknown"
 
     Column(
         modifier = Modifier
@@ -187,6 +221,24 @@ private fun ReplyThread(
             .padding(start = (actualIndent * 12).dp, end = 4.dp)
             .clickable { onReplyClick(reply.id) }
     ) {
+        parentReply?.let { parent ->
+            val parentProfile = profiles.find { it.id == parent.sender }
+            val parentDisplayName = parentProfile?.username ?: "Unknown"
+
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 4.dp)
+                    .offset(x = (-10).dp, y = 10.dp),
+                colors = CardDefaults.cardColors(containerColor = Color(0xFFE5E5EA))
+            ) {
+                Column(modifier = Modifier.padding(8.dp)) {
+                    Text(parentDisplayName, fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                    Text(parent.reply_body, fontSize = 12.sp, color = Color.Gray)
+                }
+            }
+        }
+
         Box(
             modifier = Modifier
                 .background(
@@ -197,7 +249,7 @@ private fun ReplyThread(
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Column(modifier = Modifier.weight(1f)) {
-                    Text(reply.sender, fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                    Text(replyDisplayName, fontWeight = FontWeight.Bold, fontSize = 12.sp)
                     Text(reply.reply_body, fontSize = 14.sp)
                 }
 
@@ -225,16 +277,10 @@ private fun ReplyThread(
                             onUnsendReply(reply.id)
                             showDialog = false
                         }
-                    ) {
-                        Text("Yes")
-                    }
+                    ) { Text("Yes") }
                 },
                 dismissButton = {
-                    TextButton(
-                        onClick = { showDialog = false }
-                    ) {
-                        Text("No")
-                    }
+                    TextButton(onClick = { showDialog = false }) { Text("No") }
                 }
             )
         }
@@ -245,7 +291,9 @@ private fun ReplyThread(
                 replies = replies,
                 onReplyClick = onReplyClick,
                 onUnsendReply = onUnsendReply,
-                indent = indent + 1
+                indent = indent + 1,
+                profiles = profiles,
+                currentUserId = currentUserId // <-- pass current user ID down
             )
         }
     }

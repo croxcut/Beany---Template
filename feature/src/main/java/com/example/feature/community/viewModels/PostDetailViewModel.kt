@@ -7,26 +7,42 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.domain.model.NewReply
 import com.example.domain.model.Post
+import com.example.domain.model.Profile
 import com.example.domain.model.Reply
 import com.example.domain.repository.PostRepository
 import com.example.domain.repository.ReplyRepository
+import com.example.domain.repository.SessionRepository
+import com.example.domain.repository.UsersRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class PostDetailViewModel @Inject constructor(
     private val postRepository: PostRepository,
-    private val replyRepository: ReplyRepository
+    private val replyRepository: ReplyRepository,
+    private val userRepository: UsersRepository,
+    private val sessionRepository: SessionRepository
 ) : ViewModel() {
+    private val _profile = MutableStateFlow<Profile?>(null)
+    val profile: StateFlow<Profile?> = _profile.asStateFlow()
+
+    private val _profiles = MutableStateFlow<List<Profile>>(emptyList())
+    val profiles: StateFlow<List<Profile>> = _profiles
     private val _post = mutableStateOf<Post?>(null)
-    val post: State<Post?> get() = _post
+    val post: State<Post?> = _post
 
     private val _replies = mutableStateListOf<Reply>()
-    val replies: List<Reply> get() = _replies
+    val replies: List<Reply> = _replies
 
     private val _parentReplyId = mutableStateOf<Long?>(null)
-    val parentReplyId: State<Long?> get() = _parentReplyId
+    val parentReplyId: State<Long?> = _parentReplyId
+
+    private var repliesJob: Job? = null
 
     fun loadPost(postId: Long) {
         viewModelScope.launch {
@@ -38,11 +54,27 @@ class PostDetailViewModel @Inject constructor(
         }
     }
 
-    fun loadReplies(postId: Long) {
+    fun loadProfiles() {
         viewModelScope.launch {
+            _profiles.value = userRepository.getProfiles()
+        }
+    }
+    fun loadSession() {
+        viewModelScope.launch {
+            _profile.value = sessionRepository.getUserProfile()
+        }
+    }
+
+    fun loadReplies(postId: Long) {
+        // Cancel any existing job
+        repliesJob?.cancel()
+
+        repliesJob = viewModelScope.launch {
             try {
-                _replies.clear()
-                _replies.addAll(replyRepository.getRepliesForPost(postId))
+                replyRepository.getRepliesFlow(postId).collect { replyList ->
+                    _replies.clear()
+                    _replies.addAll(replyList)
+                }
             } catch (e: Exception) {
                 println("Failed to fetch replies: ${e.message}")
             }
@@ -55,13 +87,12 @@ class PostDetailViewModel @Inject constructor(
                 try {
                     val reply = NewReply(
                         post_id = postId,
-                        sender = "clme@example.com",
+                        sender = profile.value?.id.toString(),
                         reply_body = body,
                         parent_reply_id = _parentReplyId.value
                     )
                     replyRepository.createReply(reply)
                     _parentReplyId.value = null
-                    loadReplies(postId)
                 } catch (e: Exception) {
                     println("Error creating reply: ${e.message}")
                 }
@@ -77,10 +108,14 @@ class PostDetailViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 replyRepository.unsendReply(replyId)
-                loadReplies(_post.value?.id ?: return@launch)
             } catch (e: Exception) {
                 println("Error unsending reply: ${e.message}")
             }
         }
+    }
+
+    override fun onCleared() {
+        repliesJob?.cancel()
+        super.onCleared()
     }
 }

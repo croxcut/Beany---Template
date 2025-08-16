@@ -1,30 +1,25 @@
 package com.example.feature.community.pages
 
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.*
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.Send
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Send
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.domain.model.Post
+import com.example.domain.model.Profile
 import com.example.feature.community.viewModels.PostsViewModel
 
 @Composable
@@ -33,112 +28,140 @@ fun PostsListPage(
     onPostClick: (Long) -> Unit
 ) {
     val posts by remember { derivedStateOf { viewModel.sortedPosts } }
+    var expanded by remember { mutableStateOf(false) }
+    var showNewPostDialog by remember { mutableStateOf(false) }
     var newPostTitle by remember { mutableStateOf("") }
     var newPostBody by remember { mutableStateOf("") }
-    var expanded by remember { mutableStateOf(false) }
 
-    Column(
+    val profile by viewModel.profiles.collectAsState()
+    val session by viewModel.profile.collectAsState()
+
+    Box(
         modifier = Modifier
             .fillMaxSize()
             .background(Color(0xFFF0F0F0))
     ) {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(8.dp)
-                .background(Color.White, RoundedCornerShape(8.dp))
-                .clickable { expanded = true }
-                .padding(12.dp)
+        Column(
+            modifier = Modifier.fillMaxSize()
         ) {
-            Text("Sort by: ${viewModel.sortOption.value}")
-            DropdownMenu(
-                expanded = expanded,
-                onDismissRequest = { expanded = false }
-            ) {
-                DropdownMenuItem(
-                    text = { Text("Date") },
-                    onClick = {
-                        viewModel.setSortOption("Date")
-                        expanded = false
-                    }
-                )
-                DropdownMenuItem(
-                    text = { Text("Name") },
-                    onClick = {
-                        viewModel.setSortOption("Name")
-                        expanded = false
-                    }
-                )
-            }
-        }
-
-        LazyColumn(
-            modifier = Modifier.weight(1f),
-            contentPadding = PaddingValues(8.dp)
-        ) {
-            items(posts) { post ->
-                PostItem(post, onPostClick, onDeleteClick = {
-                        viewModel.setPostToDelete(it)
-                    }
-                )
-            }
-        }
-
-        TextField(
-            value = newPostTitle,
-            onValueChange = { newPostTitle = it },
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 8.dp),
-            placeholder = { Text("Post title...") },
-            singleLine = true,
-            shape = RoundedCornerShape(8.dp),
-            colors = TextFieldDefaults.colors(
-                focusedIndicatorColor = Color.Transparent,
-                unfocusedIndicatorColor = Color.Transparent
-            )
-        )
-
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(Color.White)
-                .padding(8.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            TextField(
-                value = newPostBody,
-                onValueChange = { newPostBody = it },
+            // Sorting dropdown
+            Box(
                 modifier = Modifier
-                    .weight(1f)
-                    .padding(end = 8.dp),
-                placeholder = { Text("Write a new post...") },
-                shape = RoundedCornerShape(24.dp),
-                colors = TextFieldDefaults.colors(
-                    focusedIndicatorColor = Color.Transparent,
-                    unfocusedIndicatorColor = Color.Transparent
-                )
-            )
-            Button(
-                onClick = {
-                    viewModel.createPost(newPostTitle, newPostBody)
-                    newPostTitle = ""
-                    newPostBody = ""
-                },
-                shape = CircleShape,
-                modifier = Modifier.size(48.dp),
-                contentPadding = PaddingValues(0.dp)
+                    .fillMaxWidth()
+                    .padding(8.dp)
+                    .background(Color.White, RoundedCornerShape(8.dp))
+                    .clickable { expanded = true }
+                    .padding(12.dp)
             ) {
-                Icon(Icons.AutoMirrored.Filled.Send, contentDescription = "Send Post")
+                Text("Sort by: ${viewModel.sortOption.value}")
+                DropdownMenu(
+                    expanded = expanded,
+                    onDismissRequest = { expanded = false }
+                ) {
+                    DropdownMenuItem(
+                        text = { Text("Date") },
+                        onClick = {
+                            viewModel.setSortOption("Date")
+                            expanded = false
+                        }
+                    )
+                    DropdownMenuItem(
+                        text = { Text("Name") },
+                        onClick = {
+                            viewModel.setSortOption("Name")
+                            expanded = false
+                        }
+                    )
+                }
+            }
+
+            // Posts list
+            LazyColumn(
+                modifier = Modifier.weight(1f),
+                contentPadding = PaddingValues(8.dp)
+            ) {
+                items(posts) { post ->
+                    val postProfile = profile.find { it.id == post.sender }
+                    profile.let {
+                        PostItem(
+                            post = post,
+                            onPostClick = onPostClick,
+                            onDeleteClick = { viewModel.setPostToDelete(it) },
+                            profile = postProfile,
+                            currentUserId = session?.id.toString()
+                        )
+                    }
+                }
             }
         }
-    }
 
-    viewModel.postToDelete.value?.let { post ->
-        DeletePostDialog(
-            onDismiss = { viewModel.setPostToDelete(null) },
-            onConfirm = { viewModel.deletePost(post.id) }
-        )
+        // Floating Action Button
+        FloatingActionButton(
+            onClick = { showNewPostDialog = true },
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(16.dp),
+            containerColor = MaterialTheme.colorScheme.primary,
+            contentColor = MaterialTheme.colorScheme.onPrimary
+        ) {
+            Icon(Icons.Default.Add, contentDescription = "Add new post")
+        }
+
+        // Delete post dialog
+        viewModel.postToDelete.value?.let { post ->
+            DeletePostDialog(
+                onDismiss = { viewModel.setPostToDelete(null) },
+                onConfirm = { viewModel.deletePost(post.id) }
+            )
+        }
+
+        // New post dialog
+        if (showNewPostDialog) {
+            AlertDialog(
+                onDismissRequest = { showNewPostDialog = false },
+                title = { Text("Create New Post") },
+                text = {
+                    Column {
+                        TextField(
+                            value = newPostTitle,
+                            onValueChange = { newPostTitle = it },
+                            modifier = Modifier.fillMaxWidth(),
+                            label = { Text("Title") },
+                            singleLine = true
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        TextField(
+                            value = newPostBody,
+                            onValueChange = { newPostBody = it },
+                            modifier = Modifier.fillMaxWidth(),
+                            label = { Text("Content") },
+                            maxLines = 5
+                        )
+                    }
+                },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            if (newPostTitle.isNotBlank() && newPostBody.isNotBlank()) {
+                                viewModel.createPost(newPostTitle, newPostBody)
+                                newPostTitle = ""
+                                newPostBody = ""
+                                showNewPostDialog = false
+                            }
+                        }
+                    ) {
+                        Text("Post")
+                    }
+                },
+                dismissButton = {
+                    TextButton(
+                        onClick = { showNewPostDialog = false }
+                    ) {
+                        Text("Cancel")
+                    }
+                }
+            )
+        }
     }
 }
 
@@ -146,40 +169,72 @@ fun PostsListPage(
 private fun PostItem(
     post: Post,
     onPostClick: (Long) -> Unit,
-    onDeleteClick: (Post) -> Unit
+    onDeleteClick: (Post) -> Unit,
+    profile: Profile?,      // Current logged-in user's profile
+    currentUserId: String     // Pass the current logged-in user's ID
 ) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 4.dp),
+            .padding(vertical = 4.dp)
+            .clickable { onPostClick(post.id) },
         colors = CardDefaults.cardColors(containerColor = Color.White)
     ) {
-        Row(
+        Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(12.dp),
-            verticalAlignment = Alignment.CenterVertically
+                .padding(12.dp)
         ) {
-            Column(
-                modifier = Modifier
-                    .weight(1f)
-                    .clickable { onPostClick(post.id) }
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween,
+                modifier = Modifier.fillMaxWidth()
             ) {
-                Text(post.sender, fontWeight = FontWeight.Bold)
-                Spacer(Modifier.height(4.dp))
-                Text(post.post_body ?: "")
+                val displayName = profile?.username ?: "Unknown"
+
+                Text(
+                    text = displayName,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 14.sp
+                )
+
+                // Only show delete icon if the current user is the sender
+                if (post.sender == currentUserId) {
+                    Icon(
+                        imageVector = Icons.Default.Close,
+                        contentDescription = "Delete Post",
+                        tint = Color.Red,
+                        modifier = Modifier
+                            .size(20.dp)
+                            .clickable(
+                                interactionSource = remember { MutableInteractionSource() },
+                                indication = null
+                            ) { onDeleteClick(post) }
+                    )
+                }
             }
-            Icon(
-                imageVector = Icons.Default.Close,
-                contentDescription = "Delete Post",
-                tint = Color.Red,
-                modifier = Modifier
-                    .size(24.dp)
-                    .clickable { onDeleteClick(post) }
-            )
+
+            Spacer(modifier = Modifier.height(4.dp))
+
+            if (!post.post_title.isNullOrBlank()) {
+                Text(
+                    text = post.post_title,
+                    fontWeight = FontWeight.SemiBold,
+                    fontSize = 16.sp,
+                    modifier = Modifier.padding(bottom = 4.dp)
+                )
+            }
+
+            if (!post.post_body.isNullOrBlank()) {
+                Text(
+                    text = post.post_body.toString(),
+                    fontSize = 14.sp
+                )
+            }
         }
     }
 }
+
 
 @Composable
 private fun DeletePostDialog(

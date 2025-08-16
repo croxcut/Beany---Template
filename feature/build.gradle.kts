@@ -76,6 +76,10 @@ dependencies {
     implementation(libs.supabase.auth)
     implementation(libs.supabase.storage)
 
+    // TensorFlow
+    implementation(libs.tensorflow)
+    implementation(libs.tensorflow.support)
+
     // Ktor (required by Supabase)
     implementation(libs.ktor.client.core)
     implementation(libs.ktor.client.cio)
@@ -93,6 +97,10 @@ dependencies {
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
     implementation(libs.androidx.security)
+    implementation(libs.androidx.concurrent.futures)
+
+    // Guava
+    implementation(libs.guava)
 
     // CameraX
     implementation(libs.camera.core)
