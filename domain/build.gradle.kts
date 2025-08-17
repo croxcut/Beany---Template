@@ -57,6 +57,15 @@ dependencies {
     implementation(libs.supabase.auth)
     implementation(libs.supabase.storage)
 
+    // Gson
+    implementation(libs.gson)
+
+    // Room
+    implementation(libs.room.runtime)
+    implementation(libs.room.ktx)
+    kapt(libs.room.compiler)
+    implementation(libs.room.paging)
+
     // Img Cropper
     implementation(libs.img.android)
 

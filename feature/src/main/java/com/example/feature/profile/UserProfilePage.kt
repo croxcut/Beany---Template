@@ -50,6 +50,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import androidx.navigation.compose.currentBackStackEntryAsState
 import com.example.core.composables.Footer
 import com.example.core.ui.theme.*
 import com.example.core.utils.rspDp
@@ -260,12 +261,24 @@ fun UserProfilePage(
 
     LaunchedEffect(Unit) {
         viewModel.checkConnectivity()
-        if(isOnline) {
-            coroutineScope {
-                viewModel.refreshSession()
+        if (isOnline) {
+            viewModel.initializeData()
+        }
+    }
+
+    // Add navigation awareness
+    val currentBackStackEntry by navController.currentBackStackEntryAsState()
+    val currentDestination = currentBackStackEntry?.destination
+
+    LaunchedEffect(currentDestination) {
+        if (currentDestination?.route == Route.UserProfilePage.route) { // Use your actual route
+            viewModel.checkConnectivity()
+            if (isOnline) {
+                viewModel.initializeData()
             }
         }
     }
+
 
     // Only show loading spinner if online but profile is still loading
     if (profile == null && isOnline) {
@@ -481,7 +494,7 @@ fun UserProfilePage(
                         }
                         "Notification" -> navController.navigate(Route.NotificationPage.route)
 //                        "Uploaded Photos" -> navController.navigate(Route.UploadedPhotosPage.route)
-//                        "My Diagnosis" -> navController.navigate(Route.MyDiagnosisPage.route)
+                        "My Diagnosis" -> navController.navigate(Route.DiagnosisPage.route)
                     }
                 }
 

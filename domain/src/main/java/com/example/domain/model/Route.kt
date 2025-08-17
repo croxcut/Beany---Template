@@ -33,6 +33,8 @@ sealed class Route(
 
     object UpdateProfilePage: Route(route = "UpdateProfile")
 
+    object DiagnosisPage: Route(route = "DiagnosisPage")
+
     companion object {
         val navRoutes: List<String> by lazy {
             Route::class.sealedSubclasses.mapNotNull { it.objectInstance?.route }

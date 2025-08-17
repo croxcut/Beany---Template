@@ -11,5 +11,6 @@ data class Profile(
     val province: String? = null,
     val farm: String? = null,
     @SerialName("registered_as") val registeredAs: String? = null,
-    @SerialName("created_at") val createdAt: String? = null
+    @SerialName("created_at") val createdAt: String? = null,
+    val verified: Boolean? = null
 )

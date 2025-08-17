@@ -10,5 +10,6 @@ data class SignUpCredential(
     val password: String,
     val province: String,
     val farm: String,
-    val registeredAs: String
+    val registeredAs: String,
+    val verified: Boolean = false
 )

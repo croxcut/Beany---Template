@@ -48,10 +48,19 @@ dependencies {
     // Domain
     implementation(project(":domain"))
 
+    // Gson
+    implementation(libs.gson)
+
     // Google Auth
     implementation(libs.google.auth)
     implementation(libs.google.services)
     implementation(libs.google.googleid)
+
+    // Room
+    implementation(libs.room.runtime)
+    implementation(libs.room.ktx)
+    kapt(libs.room.compiler)
+    implementation(libs.room.paging)
 
     // DataStore
     implementation(libs.datastore)

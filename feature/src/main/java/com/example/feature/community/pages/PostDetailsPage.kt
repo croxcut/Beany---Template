@@ -73,7 +73,7 @@ fun PostDetailPage(
         ReplyInput(
             parentReplyId = viewModel.parentReplyId.value,
             replies = replies,
-            profiles = profiles, // <- pass profiles here
+            profiles = profiles,
             newReply = newReply,
             onNewReplyChange = { newReply = it },
             onSendReply = {
@@ -81,6 +81,17 @@ fun PostDetailPage(
                 newReply = ""
             }
         )
+    }
+}
+
+@Composable
+private fun formatUserRole(profile: Profile?): String {
+    return when {
+        profile == null -> ""
+        profile.registeredAs == "Administrator" -> "[Administrator]"
+        profile.registeredAs == "Expert" && profile.verified == true -> "[Expert]"
+        profile.registeredAs == "Farmer" -> "Farmer"
+        else -> ""
     }
 }
 
@@ -100,8 +111,20 @@ private fun PostCard(
         Column(modifier = Modifier.padding(12.dp)) {
             val postProfile = profiles.find { it.id == post.sender }
             val displayName = postProfile?.username ?: "Unknown"
+            val userRole = formatUserRole(postProfile)
 
-            Text(displayName, fontWeight = FontWeight.Bold)
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(displayName, fontWeight = FontWeight.Bold)
+                if (userRole.isNotEmpty()) {
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text(
+                        text = userRole,
+                        color = if (userRole == "[Administrator]") Color.Red else Color.Gray,
+                        fontSize = 12.sp
+                    )
+                }
+            }
+
             Spacer(Modifier.height(4.dp))
             Text(post.post_title, fontWeight = FontWeight.SemiBold)
             Spacer(Modifier.height(8.dp))
@@ -123,11 +146,12 @@ private fun PostCard(
     }
 }
 
+
 @Composable
 private fun ReplyInput(
     parentReplyId: Long?,
     replies: List<Reply>,
-    profiles: List<Profile>, // <- add this
+    profiles: List<Profile>,
     newReply: String,
     onNewReplyChange: (String) -> Unit,
     onSendReply: () -> Unit
@@ -175,7 +199,7 @@ private fun ReplyInput(
 @Composable
 private fun ParentReplyPreview(
     parent: Reply,
-    profile: Profile? // pass the profile corresponding to the parent sender
+    profile: Profile?
 ) {
     Card(
         modifier = Modifier
@@ -185,7 +209,19 @@ private fun ParentReplyPreview(
     ) {
         Column(modifier = Modifier.padding(8.dp)) {
             val displayName = profile?.username ?: "Unknown"
-            Text("$displayName:", fontWeight = FontWeight.Bold, fontSize = 12.sp)
+            val userRole = formatUserRole(profile)
+
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text("$displayName:", fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                if (userRole.isNotEmpty()) {
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text(
+                        text = userRole,
+                        color = if (userRole == "[Administrator]") Color.Red else Color.Gray,
+                        fontSize = 10.sp
+                    )
+                }
+            }
             Text(parent.reply_body, fontSize = 14.sp)
         }
     }
@@ -199,13 +235,12 @@ private fun ReplyThread(
     onUnsendReply: (Long) -> Unit,
     indent: Int,
     profiles: List<Profile>,
-    currentUserId: String// <-- pass the current logged-in user ID
+    currentUserId: String
 ) {
     val maxIndent = 4
     val actualIndent = minOf(indent, maxIndent)
     var showDialog by remember { mutableStateOf(false) }
 
-    // Only allow unsend if current user is the sender
     val canUnsend = reply.reply_body != "Unsent a message" && reply.sender == currentUserId
 
     val parentReply = reply.parent_reply_id?.let { parentId ->
@@ -249,7 +284,24 @@ private fun ReplyThread(
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Column(modifier = Modifier.weight(1f)) {
-                    Text(replyDisplayName, fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                    val replyProfile = profiles.find { it.id == reply.sender }
+                    val userRole = formatUserRole(replyProfile)
+
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(replyDisplayName, fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                        if (userRole.isNotEmpty()) {
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text(
+                                text = userRole,
+                                color = when {
+                                    userRole == "[Administrator]" -> Color.Red
+                                    userRole == "[Expert]" -> Color(0xFF6200EE)
+                                    else -> Color.Gray
+                                },
+                                fontSize = 10.sp
+                            )
+                        }
+                    }
                     Text(reply.reply_body, fontSize = 14.sp)
                 }
 
@@ -293,7 +345,7 @@ private fun ReplyThread(
                 onUnsendReply = onUnsendReply,
                 indent = indent + 1,
                 profiles = profiles,
-                currentUserId = currentUserId // <-- pass current user ID down
+                currentUserId = currentUserId
             )
         }
     }

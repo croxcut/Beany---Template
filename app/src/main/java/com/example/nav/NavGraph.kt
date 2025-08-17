@@ -24,6 +24,7 @@ import com.example.feature.community.pages.PostDetailPage
 import com.example.feature.community.pages.PostsListPage
 import com.example.feature.detection.FeatureSelectionPage
 import com.example.feature.detection.DetectionHistoryPage
+import com.example.feature.detection.screens.DiagnosisPage
 import com.example.feature.detection.screens.PaginatedDetectionPage
 import com.example.feature.detection.screens.RealtimeDetectionPage
 import com.example.feature.detection.screens.UploadDetectionPage
@@ -37,6 +38,7 @@ import com.example.feature.login.LoginPageViewModel
 import com.example.feature.login.forgotPass.ForgotPasswordPage
 import com.example.feature.login.forgotPass.PassWordResetViewModel
 import com.example.feature.login.forgotPass.ResetPasswordPage
+import com.example.feature.login.verify.VerifyUserPage
 import com.example.feature.navigation.NavigationBar
 import com.example.feature.notification.NotificationPage
 import com.example.feature.onboarding.OnboardingPage
@@ -103,11 +105,7 @@ fun NavGraph(
                 UserProfilePage(navController = navController)
             }
             composable(Route.DetectionHistoryPage.route) {
-                DetectionHistoryPage()
-//                val viewModel: GeoMapViewModel = hiltViewModel()
-//                GeoMapPage(
-//                    viewModel = viewModel
-//                )
+                VerifyUserPage()
             }
             composable(
                 route = Route.FeatureSelectionPage.route
@@ -177,6 +175,11 @@ fun NavGraph(
                 route = Route.UpdateProfilePage.route
             ) {
                 UpdateProfilePage()
+            }
+            composable(
+                route = Route.DiagnosisPage.route
+            ) {
+                DiagnosisPage()
             }
         }
 

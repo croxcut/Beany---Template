@@ -66,33 +66,17 @@ class HomePageViewModel @Inject constructor(
         initializeData()
     }
 
-    private fun initializeData() {
+    fun initializeData() {
         viewModelScope.launch {
             if (isOnline.value) {
                 try {
-                    // Load session first
                     _session.value = sessionRepository.getCurrentSession()
-
-                    // Then load profile (with single retry)
-                    try {
-                        _profile.value = sessionRepository.getUserProfile()
-                    } catch (e: Exception) {
-                        Log.e("ViewModel", "Profile fetch failed", e)
-                        // Don't retry indefinitely - just show error state
-                        _state.value = _state.value.copy(
-                            error = "Failed to load profile: ${e.message}"
-                        )
-                    }
-
+                    _profile.value = sessionRepository.getUserProfile()
                 } catch (e: Exception) {
                     _state.value = _state.value.copy(
                         error = "Initialization failed: ${e.message}"
                     )
                 }
-            } else {
-                _state.value = _state.value.copy(
-                    error = "No internet connection"
-                )
             }
         }
         if(isOnline.value) {
@@ -131,12 +115,6 @@ class HomePageViewModel @Inject constructor(
 //
 //        _activityList.value = randomActivities
     }
-
-//    private val _state = MutableStateFlow(WeatherState())
-//    val state: StateFlow<WeatherState> = _state.asStateFlow()
-//
-//    private val _selectedCity = MutableStateFlow<City?>(null)
-//    val selectedCity: StateFlow<City?> = _selectedCity.asStateFlow()
 
     fun selectCity(city: City) {
         _selectedCity.value = city

@@ -1,16 +1,29 @@
 package com.example.beany
 
+import android.Manifest
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.app.PendingIntent
+import android.content.Context
+import android.content.Intent
+import android.content.pm.PackageManager
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
+import androidx.core.app.NotificationCompat
+import androidx.core.app.NotificationManagerCompat
+import androidx.core.content.ContextCompat
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
@@ -68,148 +81,69 @@ class MainActivity : ComponentActivity() {
                 val navHostController = rememberNavController()
                 NavGraph(navHostController, activity = this)
             }
-
-
-//            val navController = rememberNavController()
-//
-//            NavHost(navController, startDestination = "home") {
-//                composable("home") {
-//                    HomeScreen(supabase)
-//                }
-//                composable(
-//                    route = "reset",
-//                    deepLinks = listOf(
-//                        navDeepLink {
-//                            uriPattern = "beanyapp://password-reset"
-//                        }
-//                    )
-//                ) { backStackEntry ->
-//                    // --- ADDED: Pass the actual deep link URI into the screen ---
-//                    val deepLinkUri = intent?.data
-//                    ResetPasswordScreen(supabase, navController, deepLinkUri)
-//                }
-//            }
         }
     }
 }
 
-@Composable
-fun HomeScreen(supabase: SupabaseClient) {
-    val scope = rememberCoroutineScope()
-    val email = "johnpaulvalenzuelaog@gmail.com" // <-- use your real test email
-
-    Column(modifier = Modifier.padding(16.dp)) {
-        Button(
-            onClick = {
-                scope.launch {
-                    try {
-                        supabase.auth.resetPasswordForEmail(
-                            email = email,
-                            redirectUrl = "beanyapp://password-reset",
-
-                            )
-                        println("Reset link sent to $email")
-                    } catch (e: Exception) {
-                        println("Failed to send reset email: ${e.message}")
-                    }
-                }
-            }
-        ) {
-            Text("Send Password Reset Email")
+fun createNotificationChannel(context: Context) {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+        val name = "Beany Channel"
+        val descriptionText = "Channel for Beany notifications"
+        val importance = NotificationManager.IMPORTANCE_DEFAULT
+        val channel = NotificationChannel("beany_channel_id", name, importance).apply {
+            description = descriptionText
         }
+        val notificationManager: NotificationManager =
+            context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        notificationManager.createNotificationChannel(channel)
     }
 }
 
+// 2. Function to show notification
+
 @Composable
-fun ResetPasswordScreen(
-    supabase: SupabaseClient,
-    navController: NavController,
-    deepLinkUri: Uri?
-) {
-    var newPassword by remember { mutableStateOf("") }
-    var confirmPassword by remember { mutableStateOf("") }
-    val scope = rememberCoroutineScope()
-    var isSessionReady by remember { mutableStateOf(false) }
-
-    val rawUriString = deepLinkUri?.toString() ?: ""
-    val fragmentParams = rawUriString
-        .substringAfter("#", "")
-        .split("&")
-        .mapNotNull {
-            val parts = it.split("=")
-            if (parts.size == 2) parts[0] to parts[1] else null
-        }.toMap()
-
-    val accessToken = fragmentParams["access_token"]
-    val type = fragmentParams["type"]
-
-    @OptIn(ExperimentalTime::class)
-    LaunchedEffect(accessToken) {
-        if (!accessToken.isNullOrEmpty() && type == "recovery") {
-            try {
-                val expiresIn = fragmentParams["expires_in"]?.toLongOrNull() ?: 3600L
-                val tokenType = fragmentParams["token_type"] ?: "bearer"
-
-                val session = UserSession(
-                    accessToken = accessToken,
-                    tokenType = tokenType,
-                    refreshToken = fragmentParams["refresh_token"] ?: "",
-                    expiresIn = expiresIn,
-                    user = null // Supabase can fetch user profile after import
-                )
-
-                supabase.auth.importSession(session)
-                println("✅ Session manually restored for password reset")
-                isSessionReady = true
-            } catch (e: Exception) {
-                println("❌ Failed to restore session: ${e.message}")
+fun NotificationButton(context: android.content.Context) {
+    // Launcher to request POST_NOTIFICATIONS permission
+    val permissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission(),
+        onResult = { granted ->
+            if (granted) {
+                showNotification(context)
+            } else {
+                // Handle denial gracefully
+                println("Notification permission denied")
             }
         }
-    }
+    )
 
-    Column(modifier = Modifier.padding(16.dp)) {
-        OutlinedTextField(
-            value = newPassword,
-            onValueChange = { newPassword = it },
-            label = { Text("New Password") },
-            visualTransformation = PasswordVisualTransformation(),
-            modifier = Modifier.fillMaxWidth()
-        )
-        OutlinedTextField(
-            value = confirmPassword,
-            onValueChange = { confirmPassword = it },
-            label = { Text("Confirm Password") },
-            visualTransformation = PasswordVisualTransformation(),
-            modifier = Modifier.fillMaxWidth()
-        )
-        Spacer(modifier = Modifier.height(16.dp))
-        Button(
-            onClick = {
-                if (!isSessionReady) {
-                    println("⚠️ Session not ready yet")
-                    return@Button
-                }
-
-                if (newPassword != confirmPassword || newPassword.length < 6) {
-                    println("⚠️ Passwords do not match or are too short")
-                    return@Button
-                }
-
-                scope.launch {
-                    try {
-                        supabase.auth.updateUser {
-                            password = newPassword
-                        }
-                        println("✅ Password updated successfully")
-                        navController.popBackStack()
-                    } catch (e: Exception) {
-                        println("❌ Password update failed: ${e.message}")
-                    }
-                }
-            },
-            modifier = Modifier.fillMaxWidth()
+    Button(onClick = {
+        // Check if permission is already granted
+        if (ContextCompat.checkSelfPermission(
+                context,
+                Manifest.permission.POST_NOTIFICATIONS
+            ) == PackageManager.PERMISSION_GRANTED
         ) {
-            Text("Update Password")
+            showNotification(context)
+        } else {
+            // Request the permission
+            permissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
         }
+    }) {
+        Text("Show Notification")
+    }
+}
+
+@androidx.annotation.RequiresPermission(Manifest.permission.POST_NOTIFICATIONS)
+// Reuse this from before
+fun showNotification(context: android.content.Context) {
+    val builder = NotificationCompat.Builder(context, "beany_channel_id")
+        .setSmallIcon(android.R.drawable.ic_dialog_info)
+        .setContentTitle("Hello from Beany!")
+        .setContentText("This is your notification.")
+        .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+        .setAutoCancel(true)
+
+    with(NotificationManagerCompat.from(context)) {
+        notify(1001, builder.build())
     }
 }

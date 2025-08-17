@@ -24,6 +24,7 @@ class SignUpRepositoryImpl @Inject constructor(
                     put("province", signUpCredential.province)
                     put("farm", signUpCredential.farm)
                     put("registeredAs", signUpCredential.registeredAs)
+                    put("verified", signUpCredential.verified)
                 }
             }
 

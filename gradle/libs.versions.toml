@@ -46,8 +46,14 @@ tflite-support = "0.5.0"
 # Guava
 guava = "33.4.8-android"
 
+# Room
+room = "2.7.2"
+
 # Datastore
 datastore = "1.1.7"
+
+# Gson
+gson = "2.13.1"
 
 # GoogleAuth
 google-auth = "21.4.0"
@@ -89,6 +95,12 @@ androidx-concurrent-futures = { module = "androidx.concurrent:concurrent-futures
 
 # Compose Icons
 material-icons-extended = { module = "androidx.compose.material:material-icons-extended" , version.ref = "icons" }
+
+# Room
+room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "room" }
+room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "room" }
+room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "room" }
+room-paging = { group = "androidx.room", name = "room-paging", version.ref = "room" }
 
 # CameraX
 camera-core = { module = "androidx.camera:camera-core", version.ref = "camera" }
@@ -132,6 +144,9 @@ android-material = { module = "com.google.android.material:material", version.re
 
 # Img Crop
 yalantis-ucrop = { module = "com.github.yalantis:ucrop", version.ref = "ucrop"}
+
+# Gson
+gson = { group = "com.google.code.gson", name = "gson", version.ref = "gson" }
 
 # Google Auth
 google-auth = { module = "com.google.android.gms:play-services-auth", version.ref = "google-auth"}

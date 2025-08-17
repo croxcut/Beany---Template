@@ -23,14 +23,13 @@ class UpdateProfileRepositoryImpl @Inject constructor(
                 return Result.failure(IllegalArgumentException("Profile ID is required to update."))
             }
 
-            // 1️⃣ Update
             supabase.from("profiles").update(
                 mapOf(
                     "full_name" to profile.fullName,
                     "username" to profile.username,
                     "province" to profile.province,
                     "farm" to profile.farm,
-                    "registered_as" to profile.registeredAs
+                    "registered_as" to profile.registeredAs,
                 )
             ) {
                 filter {
@@ -53,4 +52,30 @@ class UpdateProfileRepositoryImpl @Inject constructor(
         }
     }
 
+
+    override suspend fun updateVerified(profileId: String, verified: Boolean): Result<Profile> {
+        return try {
+            if (profileId.isBlank()) {
+                return Result.failure(IllegalArgumentException("Profile ID is required"))
+            }
+
+            // Update the 'verified' field
+            supabase.from("profiles").update(
+                mapOf("verified" to verified)
+            ) {
+                filter { eq("id", profileId) }
+            }
+
+            // Fetch the updated profile
+            val updatedProfile = supabase.from("profiles").select {
+                filter { eq("id", profileId) }
+            }.decodeSingle<Profile>()
+
+            Log.i("Update-Verified", "User: $updatedProfile")
+            Result.success(updatedProfile)
+        } catch (e: Exception) {
+            Log.e("Update-Verified", "Error updating verified", e)
+            Result.failure(e)
+        }
+    }
 }

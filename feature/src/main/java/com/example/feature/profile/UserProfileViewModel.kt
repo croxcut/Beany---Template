@@ -58,6 +58,33 @@ class UserProfileViewModel @Inject constructor(
         }
     }
 
+    fun refreshData() {
+        checkConnectivity()
+        if(isOnline.value) {
+            loadProfileData()
+            downloadProfileImage()
+        }
+    }
+
+    // Make this public
+    fun initializeData() {
+        _isLoading.value = true
+        viewModelScope.launch {
+            try {
+                refreshSession()
+                _profile.value = sessionRepository.getUserProfile()
+                _isSignedUp.value = sessionRepository.isSignedUp()
+                if (_isSignedUp.value) {
+                    downloadProfileImage()
+                }
+            } catch (e: Exception) {
+                Log.e("ViewModel", "Failed to fetch profile data", e)
+            } finally {
+                _isLoading.value = false
+            }
+        }
+    }
+
     private fun loadProfileData() {
         _isLoading.value = true
         viewModelScope.launch {

@@ -3,6 +3,8 @@ package com.example.feature.detection.viewModel
 import android.graphics.Bitmap
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.data.local.repository.DiagnosisRepository
+import com.example.data.model.Diagnosis
 import com.example.domain.model.AABB
 import com.example.domain.repository.DetectionRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -13,7 +15,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class DetectionViewModel @Inject constructor(
-    private val repository: DetectionRepository
+    private val repository: DetectionRepository,
+    private val diagnosisRepository: DiagnosisRepository
 ) : ViewModel() {
 
     private val _boxes = MutableStateFlow<List<AABB>>(emptyList())
@@ -30,4 +33,11 @@ class DetectionViewModel @Inject constructor(
             }
         }
     }
+
+    fun saveDiagnosis(diagnosis: Diagnosis) {
+        viewModelScope.launch {
+            diagnosisRepository.saveDiagnosis(diagnosis)
+        }
+    }
+
 }

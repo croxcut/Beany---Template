@@ -97,6 +97,13 @@ fun HomePage(
 
     LaunchedEffect(Unit) {
         viewModel.checkConnectivity()
+        if (viewModel.isOnline.value) {
+            viewModel.initializeData() // Make this function public in ViewModel
+        }
+    }
+
+    LaunchedEffect(Unit) {
+        viewModel.checkConnectivity()
         if (isOnline) {
             coroutineScope {
                 viewModel.dummyActivity()
