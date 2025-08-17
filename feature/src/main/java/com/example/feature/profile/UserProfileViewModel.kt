@@ -130,7 +130,6 @@ class UserProfileViewModel @Inject constructor(
 
                 bucketRepository.upload(remotePath, bytes)
 
-                // Update UI immediately
                 _selectedImageUri.value = uri
 
                 sessionRepository.updateCurrentSession()

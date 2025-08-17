@@ -10,6 +10,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -20,10 +21,12 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -32,6 +35,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
@@ -57,17 +61,14 @@ import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.ApiException
 import io.ktor.util.collections.getValue
 
-object InputFieldUiParam{
 
+object InputFieldUiParam {
     @Composable
-    fun clipShape(): RoundedCornerShape
-            = RoundedCornerShape(size = rspDp(15.dp))
+    fun clipShape(): RoundedCornerShape = RoundedCornerShape(size = rspDp(15.dp))
 
     val borderColor: Color = Brown1
     val fillColor: Color = White
-
-    val borderWidth: Dp =  2.dp
-
+    val borderWidth: Dp = 2.dp
     const val width: Float = 0.8f
     val height: Dp = 80.dp
 
@@ -84,7 +85,6 @@ object InputFieldUiParam{
         fontFamily = GlacialIndifferenceBold,
         color = Brown1
     )
-
 }
 
 @Composable
@@ -93,13 +93,14 @@ fun LoginPage(
     viewModel: LoginPageViewModel,
     activity: Activity,
     clientId: String
-)  {
-
+) {
     val success by viewModel.success.collectAsState()
     val isLoggedIn by viewModel.isLoggedIn.collectAsState()
+    val isLoading by viewModel.isLoading.collectAsState()
+    val context = LocalContext.current
 
     LaunchedEffect(success) {
-        if(success || isLoggedIn) {
+        if (success || isLoggedIn) {
             navController.navigate(Route.HomePage.route) {
                 popUpTo(Route.LoginPage.route) {
                     inclusive = true
@@ -109,298 +110,304 @@ fun LoginPage(
         }
     }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(
-                color = Brown1
-            )
-    ) {
-
-        Column(
-            modifier = Modifier
-                .statusBarsPadding()
-                .fillMaxHeight(0.2f)
-                .fillMaxWidth()
-//                .background(
-//                    color = White
-//                )
-                .padding(rspDp(30.dp)),
-            verticalArrangement = Arrangement.Center
-        ) {
-            Text(
-                text = "beany",
-                style = TextStyle(
-                    fontFamily = Kare,
-                    color = White,
-                    fontSize = rspSp(52.sp)
-                )
-            )
-            Text(
-                text = "Discover The World of Precision Farming!",
-                style = TextStyle(
-                    color = Beige1,
-                    fontSize = rspSp(15.sp)
-                ),
-                modifier = Modifier
-                    .offset(y = rspDp(-10.dp))
-            )
-
-        }
-
+    Box(modifier = Modifier.fillMaxSize()) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .navigationBarsPadding()
-                .background(
-                    color = Beige1,
-                    shape = RoundedCornerShape(topStart = rspDp(100.dp))
-                ),
-            horizontalAlignment = Alignment.CenterHorizontally
+                .background(color = Brown1)
         ) {
-
-            Spacer(modifier = Modifier.height(rspDp(100.dp)))
-
-            InputField(
-                label = {
-                    Text(
-                        text = "Email",
-                        style = InputFieldUiParam.labelTextStyle()
-                    )
-                },
-                value = viewModel.email,
-                onValueChange = {
-                    viewModel.setUsernameOnChange(it)
-                },
-                textStyle = InputFieldUiParam.inputTextStyle(),
-                singleLine = true,
-                maxLength = 64,
-                maxLines = 1,
+            Column(
                 modifier = Modifier
-                    .height(height = InputFieldUiParam.height)
-                    .fillMaxWidth(fraction = InputFieldUiParam.width)
-                    .background(
-                        color = InputFieldUiParam.fillColor,
-                        shape = InputFieldUiParam.clipShape()
-                    )
-                    .border(
-                        width = InputFieldUiParam.borderWidth,
-                        shape = InputFieldUiParam.clipShape(),
-                        color = if (viewModel.emailError) Color.Red else InputFieldUiParam.borderColor
-                    )
-            )
-
-            Spacer(modifier = Modifier.height(rspDp(15.dp)))
-
-            InputField(
-                label = {
-                    Text(
-                        text = "Password",
-                        style = InputFieldUiParam.labelTextStyle()
-                    )
-                },
-                value = viewModel.password,
-                onValueChange = {
-                    viewModel.setPasswordOnChange(it)
-                },
-                textStyle = InputFieldUiParam.inputTextStyle(),
-                singleLine = true,
-                maxLength = 64,
-                maxLines = 1,
-                modifier = Modifier
-                    .height(height = InputFieldUiParam.height)
-                    .fillMaxWidth(fraction = InputFieldUiParam.width)
-                    .background(
-                        color = InputFieldUiParam.fillColor,
-                        shape = InputFieldUiParam.clipShape()
-                    )
-                    .border(
-                        width = InputFieldUiParam.borderWidth,
-                        shape = InputFieldUiParam.clipShape(),
-                        color = if (viewModel.passwordError) Color.Red else InputFieldUiParam.borderColor
-                    ),
-                isPasswordField = true
-            )
-
-            Spacer(modifier = Modifier.height(rspDp(10.dp)))
-
-            Row(
-                modifier = Modifier
+                    .statusBarsPadding()
+                    .fillMaxHeight(0.2f)
                     .fillMaxWidth()
-                    .padding(horizontal = rspDp(40.dp))
+                    .padding(rspDp(30.dp)),
+                verticalArrangement = Arrangement.Center
             ) {
+                Text(
+                    text = "beany",
+                    style = TextStyle(
+                        fontFamily = Kare,
+                        color = White,
+                        fontSize = rspSp(52.sp)
+                    )
+                )
+                Text(
+                    text = "Discover The World of Precision Farming!",
+                    style = TextStyle(
+                        color = Beige1,
+                        fontSize = rspSp(15.sp)
+                    ),
+                    modifier = Modifier
+                        .offset(y = rspDp(-10.dp))
+                )
+            }
+
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .navigationBarsPadding()
+                    .background(
+                        color = Beige1,
+                        shape = RoundedCornerShape(topStart = rspDp(100.dp))
+                    ),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Spacer(modifier = Modifier.height(rspDp(100.dp)))
+
+                InputField(
+                    label = {
+                        Text(
+                            text = "Email",
+                            style = InputFieldUiParam.labelTextStyle()
+                        )
+                    },
+                    value = viewModel.email,
+                    onValueChange = {
+                        viewModel.setUsernameOnChange(it)
+                        viewModel.emailError = false
+                    },
+                    textStyle = InputFieldUiParam.inputTextStyle(),
+                    singleLine = true,
+                    maxLength = 64,
+                    maxLines = 1,
+                    modifier = Modifier
+                        .height(height = InputFieldUiParam.height)
+                        .fillMaxWidth(fraction = InputFieldUiParam.width)
+                        .background(
+                            color = InputFieldUiParam.fillColor,
+                            shape = InputFieldUiParam.clipShape()
+                        )
+                        .border(
+                            width = InputFieldUiParam.borderWidth,
+                            shape = InputFieldUiParam.clipShape(),
+                            color = if (viewModel.emailError) Color.Red else InputFieldUiParam.borderColor
+                        )
+                )
+
+                Spacer(modifier = Modifier.height(rspDp(15.dp)))
+
+                InputField(
+                    label = {
+                        Text(
+                            text = "Password",
+                            style = InputFieldUiParam.labelTextStyle()
+                        )
+                    },
+                    value = viewModel.password,
+                    onValueChange = {
+                        viewModel.setPasswordOnChange(it)
+                        viewModel.passwordError = false
+                    },
+                    textStyle = InputFieldUiParam.inputTextStyle(),
+                    singleLine = true,
+                    maxLength = 64,
+                    maxLines = 1,
+                    modifier = Modifier
+                        .height(height = InputFieldUiParam.height)
+                        .fillMaxWidth(fraction = InputFieldUiParam.width)
+                        .background(
+                            color = InputFieldUiParam.fillColor,
+                            shape = InputFieldUiParam.clipShape()
+                        )
+                        .border(
+                            width = InputFieldUiParam.borderWidth,
+                            shape = InputFieldUiParam.clipShape(),
+                            color = if (viewModel.passwordError) Color.Red else InputFieldUiParam.borderColor
+                        ),
+                    isPasswordField = true
+                )
+
+                Spacer(modifier = Modifier.height(rspDp(10.dp)))
+
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = rspDp(40.dp))
+                ) {
+                    Spacer(modifier = Modifier.weight(1f))
+                    Text(
+                        text = "Forgot Password?",
+                        style = TextStyle(
+                            fontFamily = GlacialIndifference,
+                            fontStyle = FontStyle.Italic,
+                            color = Brown1
+                        ),
+                        modifier = Modifier
+                            .clickable {
+                                navController.navigate(Route.ForgotPasswordPage.route)
+                            }
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(rspDp(10.dp)))
+
+                Button(
+                    onClick = {
+                        var valid = true
+
+                        if (viewModel.email.isBlank()) {
+                            viewModel.emailError = true
+                            Toast.makeText(context, "Email cannot be empty", Toast.LENGTH_SHORT).show()
+                            valid = false
+                        }
+                        if (viewModel.password.isBlank()) {
+                            viewModel.passwordError = true
+                            Toast.makeText(context, "Password cannot be empty", Toast.LENGTH_SHORT).show()
+                            valid = false
+                        }
+
+                        if (valid) {
+                            viewModel.login(
+                                LoginCredential(
+                                    email = viewModel.email,
+                                    password = viewModel.password
+                                )
+                            )
+                        }
+                    },
+                    enabled = !isLoading,
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color.Transparent,
+                        disabledContainerColor = Color.Transparent,
+                        disabledContentColor = Color.Gray
+                    ),
+                    modifier = Modifier
+                        .background(
+                            color = Brown1,
+                            shape = RoundedCornerShape(rspDp(20.dp))
+                        )
+                        .fillMaxWidth(fraction = 0.4f)
+                ) {
+                    Text(
+                        text = "SIGN IN",
+                        style = TextStyle(
+                            fontFamily = GlacialIndifferenceBold,
+                            fontSize = rspSp(20.sp),
+                            color = White
+                        )
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(5.dp))
+
+                Row {
+                    Text(
+                        text = "Don't have an account?",
+                        style = TextStyle(
+                            color = Brown1,
+                            fontFamily = GlacialIndifferenceBold,
+                            fontSize = rspSp(15.sp)
+                        ),
+                    )
+                    Text(
+                        text = " Sign Up",
+                        style = TextStyle(
+                            color = White,
+                            fontFamily = GlacialIndifferenceBold,
+                            fontSize = rspSp(15.sp)
+                        ),
+                        modifier = Modifier
+                            .clickable {
+                                navController.navigate(Route.SignUp.route)
+                            }
+                    )
+                }
+
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth(0.65f)
+                        .padding(vertical = rspDp(10.dp)),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    HorizontalDivider(
+                        color = Brown1,
+                        thickness = rspDp(1.dp),
+                        modifier = Modifier.weight(1f)
+                    )
+                    Text(
+                        text = "or",
+                        style = TextStyle(
+                            fontFamily = GlacialIndifference,
+                            fontSize = rspSp(20.sp),
+                            fontStyle = FontStyle.Italic,
+                            color = Brown1
+                        ),
+                        modifier = Modifier
+                            .padding(horizontal = rspDp(15.dp))
+                    )
+                    HorizontalDivider(
+                        color = Brown1,
+                        thickness = rspDp(1.dp),
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+
+                Row {
+                    Text(
+                        text = "Continue With Google",
+                        style = TextStyle(
+                            fontFamily = GlacialIndifference,
+                            fontSize = rspSp(15.sp),
+                            color = Brown1
+                        ),
+                    )
+                }
+
+                Spacer(modifier = Modifier.padding(vertical = rspDp(10.dp)))
+
+                Row {
+                    Text(
+                        text = "Continue without an account",
+                        style = TextStyle(
+                            fontFamily = GlacialIndifference,
+                            fontSize = rspSp(15.sp),
+                            color = Brown1,
+                            fontStyle = FontStyle.Italic
+                        ),
+                        modifier = Modifier
+                            .clickable {
+                                navController.navigate(Route.HomePage.route)
+                            }
+                    )
+                }
+
                 Spacer(modifier = Modifier.weight(1f))
 
                 Text(
-                    text = "Forgot Password?",
+                    text = "Beany",
                     style = TextStyle(
-                        fontFamily = GlacialIndifference,
-                        fontStyle = FontStyle.Italic,
-                        color = Brown1
-                    ),
+                        color = Brown1,
+                        fontFamily = Kare,
+                        fontSize = rspSp(20.sp)
+                    )
+                )
+
+                Footer(
+                    onClick = {
+                        navController.navigate(Route.AboutUsPage.route)
+                    },
                     modifier = Modifier
-                        .clickable{
-                            navController.navigate(Route.ForgotPasswordPage.route)
-                        }
+                        .navigationBarsPadding()
+                        .padding(vertical = rspDp(10.dp))
                 )
             }
+        }
 
-            Spacer(modifier = Modifier.height(rspDp(10.dp)))
-
-            Button(
-                onClick = {
-                    var valid = true
-
-                    if (viewModel.email.isBlank()) {
-                        viewModel.emailError = true
-                        Toast.makeText(activity, "Email cannot be empty", Toast.LENGTH_SHORT).show()
-                        valid = false
-                    }
-                    if (viewModel.password.isBlank()) {
-                        viewModel.passwordError = true
-                        Toast.makeText(activity, "Password cannot be empty", Toast.LENGTH_SHORT).show()
-                        valid = false
-                    }
-
-                    if (valid) {
-                        viewModel.login(
-                            LoginCredential(
-                                email = viewModel.email,
-                                password = viewModel.password
-                            )
-                        )
-                    }
-                },
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color.Transparent,
-                    disabledContainerColor = Color.Transparent,
-                    disabledContentColor = Color.Gray
-                ),
+        if (isLoading) {
+            CircularProgressIndicator(
                 modifier = Modifier
-                    .background(
-                        color = Brown1,
-                        shape = RoundedCornerShape(rspDp(20.dp))
-                    )
-                    .fillMaxWidth(fraction = 0.4f)
-            ) {
-                Text(
-                    text = "SIGN IN",
-                    style = TextStyle(
-                        fontFamily = GlacialIndifferenceBold,
-                        fontSize = rspSp(20.sp),
-                        color = White
-                    )
-                )
-            }
-
-            Spacer(modifier = Modifier.height(5.dp))
-
-            Row {
-                Text(
-                    text = "Don't have an account?",
-                    style = TextStyle(
-                        color = Brown1,
-                        fontFamily = GlacialIndifferenceBold,
-                        fontSize = rspSp(15.sp)
-                    ),
-                )
-                Text(
-                    text = " Sign Up",
-                    style = TextStyle(
-                        color = White,
-                        fontFamily = GlacialIndifferenceBold,
-                        fontSize = rspSp(15.sp)
-                    ),
-                    modifier = Modifier
-                        .clickable{
-                            navController.navigate(Route.SignUp.route)
-                        }
-                    )
-            }
-
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth(0.65f)
-                    .padding(vertical = rspDp(10.dp)),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                HorizontalDivider(
-                    color = Brown1,
-                    thickness = rspDp(1.dp),
-                    modifier = Modifier.weight(1f)
-                )
-                Text(
-                    text = "or",
-                    style = TextStyle(
-                        fontFamily = GlacialIndifference,
-                        fontSize = rspSp(20.sp),
-                        fontStyle = FontStyle.Italic,
-                        color = Brown1
-                    ),
-                    modifier = Modifier
-                        .padding(horizontal = rspDp(15.dp))
-                )
-                HorizontalDivider(
-                    color = Brown1,
-                    thickness = rspDp(1.dp),
-                    modifier = Modifier.weight(1f)
-                )
-            }
-
-            Row {
-                Text(
-                    text = "Continue With Google",
-                    style = TextStyle(
-                        fontFamily = GlacialIndifference,
-                        fontSize = rspSp(15.sp),
-                        color = Brown1
-                    ),
-                )
-            }
-
-            Spacer(modifier = Modifier.padding(vertical = rspDp(10.dp)))
-
-            Row {
-                Text(
-                    text = "Continue without an account",
-                    style = TextStyle(
-                        fontFamily = GlacialIndifference,
-                        fontSize = rspSp(15.sp),
-                        color = Brown1,
-                        fontStyle = FontStyle.Italic
-                    ),
-                    modifier = Modifier
-                        .clickable{
-                            navController.navigate(Route.HomePage.route)
-                        }
-                )
-            }
-
-
-            Spacer(modifier = Modifier.weight(1f))
-
-            Text(
-                text = "Beany",
-                style = TextStyle(
-                    color = Brown1,
-                    fontFamily = Kare,
-                    fontSize = rspSp(20.sp)
-                )
+                    .align(Alignment.Center)
+                    .size(64.dp),
+                color = Brown1,
+                strokeWidth = 4.dp
             )
-
-            Footer(
-                onClick = {
-                    navController.navigate(Route.AboutUsPage.route)
-                },
-                modifier = Modifier
-                    .navigationBarsPadding()
-                    .padding(vertical = rspDp(10.dp))
-            )
-
         }
     }
-
 }
+
+// Keytool command to get SHA-1 fingerprint for Google Sign-In:
+// keytool -list -v -keystore ~/.android/debug.keystore -alias androiddebugkey -storepass android -keypass android
 
 
 //  keytool -list -v -keystore ~/.android/debug.keystore -alias androiddebugkey -storepass android -keypass android

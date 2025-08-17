@@ -598,11 +598,8 @@ fun SignUpPage(
                     navController.navigate(Route.AboutUsPage.route)
                 },
             )
-
         }
-
     }
-
 }
 
 @Composable

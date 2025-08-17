@@ -32,6 +32,9 @@ class PostsViewModel @Inject constructor(
     private val _posts = mutableStateListOf<Post>()
     val posts: List<Post> get() = _posts
 
+    private val _searchQuery = mutableStateOf("")
+    val searchQuery: State<String> = _searchQuery
+
     private val _sortOption = mutableStateOf("Date")
     val sortOption: State<String> = _sortOption
 
@@ -49,6 +52,25 @@ class PostsViewModel @Inject constructor(
         loadPosts()
         loadSession()
         loadProfiles()
+    }
+
+    val filteredPosts: List<Post>
+        get() {
+            val query = _searchQuery.value.lowercase()
+            val baseList = when (_sortOption.value) {
+                "Date" -> _posts.sortedByDescending { it.created_at }
+                "Name" -> _posts.sortedBy { it.sender }
+                else -> _posts
+            }
+            return if (query.isBlank()) baseList
+            else baseList.filter { post ->
+                post.post_title.lowercase().contains(query) ||
+                        (post.post_body?.lowercase()?.contains(query) ?: false)
+            }
+        }
+
+    fun setSearchQuery(query: String) {
+        _searchQuery.value = query
     }
 
     fun loadProfiles() {

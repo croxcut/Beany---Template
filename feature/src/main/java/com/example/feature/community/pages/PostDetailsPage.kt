@@ -18,6 +18,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.core.ui.theme.Beige1
 import com.example.domain.model.Post
 import com.example.domain.model.Profile
 import com.example.domain.model.Reply
@@ -237,7 +238,7 @@ private fun ReplyThread(
     profiles: List<Profile>,
     currentUserId: String
 ) {
-    val maxIndent = 4
+    val maxIndent = 1
     val actualIndent = minOf(indent, maxIndent)
     var showDialog by remember { mutableStateOf(false) }
 
@@ -265,7 +266,7 @@ private fun ReplyThread(
                     .fillMaxWidth()
                     .padding(vertical = 4.dp)
                     .offset(x = (-10).dp, y = 10.dp),
-                colors = CardDefaults.cardColors(containerColor = Color(0xFFE5E5EA))
+                colors = CardDefaults.cardColors(containerColor = Beige1)
             ) {
                 Column(modifier = Modifier.padding(8.dp)) {
                     Text(parentDisplayName, fontWeight = FontWeight.Bold, fontSize = 12.sp)

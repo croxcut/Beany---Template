@@ -25,32 +25,39 @@ import javax.inject.Inject
 class LoginPageViewModel @Inject constructor(
     private val loginUseCase: LoginUseCase,
     private val authRepository: AuthRepository
-): ViewModel() {
+) : ViewModel() {
 
+    private val _isLoading = MutableStateFlow(false)
+    val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
     var warning: String by mutableStateOf("")
 
     private val _success = MutableStateFlow(false)
-    val success: StateFlow<Boolean> = _success
+    val success: StateFlow<Boolean> = _success.asStateFlow()
 
-    val isLoggedIn: StateFlow<Boolean> =
-        authRepository.isLoggedIn()
-            .stateIn(viewModelScope, SharingStarted.Eagerly, false)
+    val isLoggedIn: StateFlow<Boolean> = authRepository.isLoggedIn()
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.Eagerly,
+            initialValue = false
+        )
 
-    var email: String by mutableStateOf(value = "")
+    var email: String by mutableStateOf("")
         private set
 
-    var password: String by mutableStateOf(value = "")
+    var password: String by mutableStateOf("")
         private set
 
-    var emailError by mutableStateOf(false)
-    var passwordError by mutableStateOf(false)
+    var emailError: Boolean by mutableStateOf(false)
+    var passwordError: Boolean by mutableStateOf(false)
 
     fun setUsernameOnChange(newValue: String) {
         email = newValue
+        emailError = false
     }
 
     fun setPasswordOnChange(newValue: String) {
         password = newValue
+        passwordError = false
     }
 
     fun setWarningOnChange(newValue: String) {
@@ -59,17 +66,22 @@ class LoginPageViewModel @Inject constructor(
 
     fun login(loginCredential: LoginCredential) {
         viewModelScope.launch {
-            loginUseCase(loginCredential)
-                .onSuccess {
-                    _success.value = true
-                    authRepository.setLoggedIn(true)
-                    Log.e("Sign In", "Success")
-                }
-                .onFailure {
-                    _success.value = false
-                    Log.e("Sign In", "Failed")
-                }
+            _isLoading.value = true
+            try {
+                loginUseCase(loginCredential)
+                    .onSuccess {
+                        _success.value = true
+                        authRepository.setLoggedIn(true)
+                        Log.d("LoginPageViewModel", "Login successful")
+                    }
+                    .onFailure { exception ->
+                        _success.value = false
+                        warning = exception.message ?: "Login failed"
+                        Log.e("LoginPageViewModel", "Login failed", exception)
+                    }
+            } finally {
+                _isLoading.value = false
+            }
         }
     }
-
 }

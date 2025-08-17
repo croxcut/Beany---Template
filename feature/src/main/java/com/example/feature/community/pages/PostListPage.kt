@@ -9,15 +9,27 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.core.ui.theme.Beige1
+import com.example.core.ui.theme.Brown1
+import com.example.core.ui.theme.Etna
+import com.example.core.ui.theme.GlacialIndifference
+import com.example.core.ui.theme.GlacialIndifferenceBold
+import com.example.core.ui.theme.Kare
+import com.example.core.ui.theme.White
+import com.example.core.utils.rspDp
+import com.example.core.utils.rspSp
 import com.example.domain.model.Post
 import com.example.domain.model.Profile
 import com.example.feature.community.viewModels.PostsViewModel
@@ -39,58 +51,88 @@ fun PostsListPage(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFFF0F0F0))
+            .background(
+                color = Brown1
+            )
+            .statusBarsPadding()
+            .navigationBarsPadding()
     ) {
+
         Column(
-            modifier = Modifier.fillMaxSize()
+            modifier = Modifier
+                .fillMaxSize(),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Sorting dropdown
+
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(8.dp)
-                    .background(Color.White, RoundedCornerShape(8.dp))
-                    .clickable { expanded = true }
-                    .padding(12.dp)
+                    .padding(top = rspDp(20.dp))
             ) {
-                Text("Sort by: ${viewModel.sortOption.value}")
-                DropdownMenu(
-                    expanded = expanded,
-                    onDismissRequest = { expanded = false }
-                ) {
-                    DropdownMenuItem(
-                        text = { Text("Date") },
-                        onClick = {
-                            viewModel.setSortOption("Date")
-                            expanded = false
-                        }
-                    )
-                    DropdownMenuItem(
-                        text = { Text("Name") },
-                        onClick = {
-                            viewModel.setSortOption("Name")
-                            expanded = false
-                        }
-                    )
-                }
+                Text(
+                    text = "BEANY",
+                    style = TextStyle(
+                        fontFamily = Kare,
+                        fontSize = rspSp(25.sp),
+                        color = White
+                    ),
+                    modifier = Modifier
+                        .align(alignment = Alignment.Center)
+                )
             }
 
-            // Posts list
+            Text(
+                text = "COMMUNITY",
+                style = TextStyle(
+                    fontFamily = GlacialIndifferenceBold,
+                    fontSize = rspSp(25.sp),
+                    color = White,
+                    letterSpacing = rspSp(5.sp)
+                ),
+            )
+
+            // 🔍 Search Bar
+            TextField(
+                value = viewModel.searchQuery.value,
+                onValueChange = { viewModel.setSearchQuery(it) },
+                textStyle = TextStyle(
+                    color = Brown1,
+                    fontFamily = Etna,
+                    fontSize = rspSp(20.sp)
+                ),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(8.dp)
+                    .background(
+                        color = White,
+                        shape = RoundedCornerShape(rspDp(10.dp))
+                    ),
+                placeholder = { Text("Search posts...") },
+                singleLine = true,
+                colors = TextFieldDefaults.colors(
+                    focusedContainerColor = Color.Transparent,
+                    unfocusedContainerColor = Color.Transparent,
+                    cursorColor = Brown1,
+                    focusedIndicatorColor = Color.Transparent,
+                    unfocusedIndicatorColor = Color.Transparent,
+                    disabledIndicatorColor = Color.Transparent
+                )
+            )
+
+            // Posts list (filtered)
             LazyColumn(
                 modifier = Modifier.weight(1f),
                 contentPadding = PaddingValues(8.dp)
             ) {
-                items(posts) { post ->
+                items(viewModel.filteredPosts) { post ->
                     val postProfile = profile.find { it.id == post.sender }
-                    profile.let {
-                        PostItem(
-                            post = post,
-                            onPostClick = onPostClick,
-                            onDeleteClick = { viewModel.setPostToDelete(it) },
-                            profile = postProfile,
-                            currentUserId = session?.id.toString()
-                        )
-                    }
+                    PostItem(
+                        post = post,
+                        onPostClick = onPostClick,
+                        onDeleteClick = { viewModel.setPostToDelete(it) },
+                        profile = postProfile,
+                        currentUserId = session?.id.toString()
+                    )
                 }
             }
         }
@@ -101,8 +143,8 @@ fun PostsListPage(
             modifier = Modifier
                 .align(Alignment.BottomEnd)
                 .padding(16.dp),
-            containerColor = MaterialTheme.colorScheme.primary,
-            contentColor = MaterialTheme.colorScheme.onPrimary
+            containerColor = Beige1,
+            contentColor = Brown1
         ) {
             Icon(Icons.Default.Add, contentDescription = "Add new post")
         }
@@ -170,9 +212,11 @@ private fun PostItem(
     post: Post,
     onPostClick: (Long) -> Unit,
     onDeleteClick: (Post) -> Unit,
-    profile: Profile?,      // Current logged-in user's profile
-    currentUserId: String     // Pass the current logged-in user's ID
+    profile: Profile?,
+    currentUserId: String
 ) {
+    var menuExpanded by remember { mutableStateOf(false) }
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -198,19 +242,40 @@ private fun PostItem(
                     fontSize = 14.sp
                 )
 
-                // Only show delete icon if the current user is the sender
+                // Show menu only for the current user's posts
                 if (post.sender == currentUserId) {
-                    Icon(
-                        imageVector = Icons.Default.Close,
-                        contentDescription = "Delete Post",
-                        tint = Color.Red,
-                        modifier = Modifier
-                            .size(20.dp)
-                            .clickable(
-                                interactionSource = remember { MutableInteractionSource() },
-                                indication = null
-                            ) { onDeleteClick(post) }
-                    )
+                    Box {
+                        IconButton(
+                            onClick = { menuExpanded = true },
+                            modifier = Modifier.size(32.dp) // make the whole button smaller
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Edit, // horizontal 3 dots
+                                contentDescription = "More Options",
+                                modifier = Modifier.size(18.dp) // make just the icon smaller
+                            )
+                        }
+
+                        DropdownMenu(
+                            expanded = menuExpanded,
+                            onDismissRequest = { menuExpanded = false }
+                        ) {
+                            DropdownMenuItem(
+                                text = { Text("Edit") },
+                                onClick = {
+                                    // TODO: handle edit
+                                    menuExpanded = false
+                                }
+                            )
+                            DropdownMenuItem(
+                                text = { Text("Delete") },
+                                onClick = {
+                                    onDeleteClick(post)
+                                    menuExpanded = false
+                                }
+                            )
+                        }
+                    }
                 }
             }
 
