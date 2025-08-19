@@ -40,6 +40,7 @@ class PostDetailViewModel @Inject constructor(
     private val _profile = MutableStateFlow<Profile?>(null)
     val profile: StateFlow<Profile?> = _profile.asStateFlow()
 
+    private val _postImageUris = mutableStateMapOf<String, Uri?>()
     private val _profiles = MutableStateFlow<List<Profile>>(emptyList())
     val profiles: StateFlow<List<Profile>> = _profiles
     private val _post = mutableStateOf<Post?>(null)
@@ -168,4 +169,38 @@ class PostDetailViewModel @Inject constructor(
 
         return flow.asStateFlow()
     }
+
+    fun getPostImageUri(imageUrl: String?): StateFlow<Uri?> {
+        val flow = MutableStateFlow<Uri?>(null)
+        if (imageUrl.isNullOrBlank()) return flow.asStateFlow()
+
+        viewModelScope.launch {
+            try {
+                if (!_postImageUris.containsKey(imageUrl)) {
+                    // For post images, the remote path should be the imageUrl directly
+                    // since it already contains the full path like "posts/12345.jpg"
+                    val remotePath = "posts/$imageUrl"
+                    println("DEBUG: Fetching post image from: $remotePath")
+
+                    val imageBytes = bucketRepository.getImage(remotePath)
+                    val tempFile = File(context.cacheDir, "${imageUrl}.jpg")
+                    tempFile.writeBytes(imageBytes)
+                    _postImageUris[imageUrl] = tempFile.toUri()
+                    println("DEBUG: Successfully cached post image: ${tempFile.toUri()}")
+                }
+                flow.value = _postImageUris[imageUrl]
+            } catch (e: Exception) {
+                println("Error getting post image: ${e.message}")
+                flow.value = null
+            }
+        }
+
+        return flow.asStateFlow()
+    }
+
+    // Clear cached images if needed
+    fun clearPostImageCache() {
+        _postImageUris.clear()
+    }
+
 }

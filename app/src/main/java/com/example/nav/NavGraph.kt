@@ -32,6 +32,7 @@ import com.example.feature.detection.DetectionHistoryPage
 import com.example.feature.detection.screens.DiagnosisPage
 import com.example.feature.detection.screens.PaginatedDetectionPage
 import com.example.feature.detection.screens.RealtimeDetectionPage
+import com.example.feature.detection.screens.SingleCaptureDetectionPage
 import com.example.feature.detection.screens.UploadDetectionPage
 import com.example.feature.detection.screens.diagnosis.DiagnosisDetailScreen
 import com.example.feature.detection.screens.diagnosis.DiagnosisListScreen
@@ -81,7 +82,7 @@ fun NavGraph(
     ) {
         NavHost(
             navController = navController,
-            startDestination = Route.NotificationPage.route,
+            startDestination = Route.HomePage.route,
             modifier = Modifier
                 .matchParentSize()
                 .windowInsetsPadding(WindowInsets.navigationBars)
@@ -104,7 +105,9 @@ fun NavGraph(
                 val viewModel: SignUpViewModel = hiltViewModel()
                 SignUpPage(viewModel, navController)
             }
-            composable(Route.RealtimeDetectionPage.route) { RealtimeDetectionPage() }
+            composable(Route.RealtimeDetectionPage.route) {
+                RealtimeDetectionPage(navController = navController)
+            }
             composable(Route.SingleImageDetectionPage.route) {
                 //SingleImageDetectionPage()
                 UploadPage()
@@ -118,7 +121,7 @@ fun NavGraph(
             composable(
                 route = Route.FeatureSelectionPage.route
             ) {
-                RealtimeDetectionPage()
+                RealtimeDetectionPage(navController = navController)
             }
             composable(Route.GeoMapPage.route) {
                 val viewModel: GeoMapViewModel = hiltViewModel()
@@ -157,8 +160,12 @@ fun NavGraph(
             }
             composable(Route.PostDetailPage.route) { backStackEntry ->
                 val postId = backStackEntry.arguments?.getString("postId")?.toLongOrNull()
+
                 if (postId != null) {
-                    PostDetailPage(postId = postId)
+                    PostDetailPage(
+                        postId = postId,
+                        onBackClick = { navController.popBackStack() }
+                    )
                 }
             }
             composable(Route.UploadDetectionPage.route) {
@@ -193,6 +200,7 @@ fun NavGraph(
 
             composable(Route.DiagnosisListPage.route) {
                 DiagnosisListScreen(
+                    navController = navController,
                     onDiagnosisClick = { diagnosisId ->
                         navController.navigate(Route.DiagnosisDetailPage.createRoute(diagnosisId))
                     }
@@ -211,6 +219,10 @@ fun NavGraph(
 
             composable(Route.NotificationPage.route) {
                 NotificationPage(navController = navController)
+            }
+
+            composable(Route.SingleImageDetectionPage.route) {
+                SingleCaptureDetectionPage(navController = navController)
             }
 
             composable(
@@ -239,7 +251,7 @@ fun NavGraph(
                     onTabSelected = { route ->
                         if (route != currentRoute) {
                             navController.navigate(route) {
-                                popUpTo(Route.HomePage.route) { inclusive = true }
+                                popUpTo(Route.HomePage.route) // { inclusive = true }
                                 launchSingleTop = true
                                 restoreState = true
                             }

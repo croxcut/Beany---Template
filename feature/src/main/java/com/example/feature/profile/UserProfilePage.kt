@@ -48,6 +48,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -57,6 +58,7 @@ import com.example.core.utils.rspDp
 import com.example.core.utils.rspSp
 import com.example.domain.model.Route
 import com.example.feature.R
+import com.example.feature.signup.TermsContent
 import kotlinx.coroutines.coroutineScope
 
 data class ProfileItem(
@@ -245,6 +247,7 @@ fun ProfilePicture(
 @Composable
 fun UserProfilePage(
     viewModel: UserProfileViewModel = hiltViewModel(),
+    termsViewModel: TermsViewModel = hiltViewModel(),
     navController: NavController
 ) {
     val profile by viewModel.profile.collectAsState()
@@ -253,6 +256,43 @@ fun UserProfilePage(
     val context = LocalContext.current
 
     val isLoading by viewModel.isLoading.collectAsState()
+
+    val termsState by termsViewModel.uiState.collectAsState()
+
+    // Terms Dialog
+    if (termsState.showDialog) {
+        Dialog(
+            onDismissRequest = {
+                termsViewModel.dismissDialog()
+            },
+        ) {
+            Surface(
+                tonalElevation = 6.dp,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = rspDp(20.dp))
+                    .clip(shape = RoundedCornerShape(rspDp(20.dp))),
+                color = Color.Transparent
+            ) {
+                if (termsState.isLoading) {
+                    Box(Modifier.padding(24.dp)) {
+                        CircularProgressIndicator(Modifier.align(Alignment.Center))
+                    }
+                } else if (termsState.error != null) {
+                    Text(
+                        text = termsState.error!!,
+                        style = MaterialTheme.typography.bodyLarge,
+                        modifier = Modifier.padding(24.dp)
+                    )
+                } else if (termsState.terms != null) {
+                    TermsContent(
+                        terms = termsState.terms!!,
+                        onClose = { termsViewModel.dismissDialog() }
+                    )
+                }
+            }
+        }
+    }
 
     val TOP_SIZE_CLIP: Dp = rspDp(120.dp)
     val DESC_FONT_SIZE: TextUnit = rspSp(12.sp)
@@ -271,7 +311,7 @@ fun UserProfilePage(
     val currentDestination = currentBackStackEntry?.destination
 
     LaunchedEffect(currentDestination) {
-        if (currentDestination?.route == Route.UserProfilePage.route) { // Use your actual route
+        if (currentDestination?.route == Route.UserProfilePage.route) {
             viewModel.checkConnectivity()
             if (isOnline) {
                 viewModel.initializeData()
@@ -279,32 +319,281 @@ fun UserProfilePage(
         }
     }
 
+    var showPrivacyDialog by remember { mutableStateOf(false) }
+    val privacyPolicyContent = """
+        PRIVACY POLICY - BEANY APP
+        
+        LAST UPDATED: MAY 2025
+        
+        1. INTRODUCTION
+        Welcome to Beany! We respect your privacy and are committed to protecting your personal information. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our agricultural mobile application.
+        
+        2. INFORMATION WE COLLECT
+        
+        2.1 Personal Information:
+        - Full name, email address, phone number
+        - Farm location, province, and geographical coordinates
+        - Farm size, crop types, and agricultural practices
+        - Profile pictures and farm photographs
+        
+        2.2 Agricultural Data:
+        - Crop health information and growth stages
+        - Plant disease detection results and scan data
+        - Soil conditions and farming techniques
+        - Harvest data and yield information
+        - Pest management practices
+        
+        2.3 Technical Information:
+        - Device type, operating system, and unique device identifiers
+        - IP address, browser type, and mobile network information
+        - App usage statistics and feature interactions
+        - Crash reports and performance data
+        
+        2.4 Location Data:
+        - Precise GPS coordinates of your farm
+        - Regional agricultural data for personalized recommendations
+        - Weather and climate information specific to your location
+        
+        3. HOW WE USE YOUR DATA
+        
+        3.1 Service Provision:
+        - Provide personalized farming recommendations and alerts
+        - Enable plant disease detection and diagnosis
+        - Offer customized agricultural advice based on your location
+        - Facilitate communication with agricultural experts
+        
+        3.2 Improvement & Development:
+        - Enhance our AI models for better plant disease recognition
+        - Develop new features based on user needs and feedback
+        - Conduct agricultural research and analysis
+        - Improve app performance and user experience
+        
+        3.3 Communication:
+        - Send important agricultural updates and weather alerts
+        - Provide farming tips and best practices
+        - Notify about new features and updates
+        - Offer customer support and technical assistance
+        
+        3.4 Legal Compliance:
+        - Comply with agricultural regulations and standards
+        - Fulfill legal obligations and respond to legal requests
+        - Protect our rights and prevent fraudulent activities
+        
+        4. DATA SHARING AND DISCLOSURE
+        
+        4.1 Service Providers:
+        - Cloud storage providers for data hosting
+        - Analytics services for app improvement
+        - Agricultural experts for consultation services
+        - Payment processors (if applicable)
+        
+        4.2 Aggregated Data:
+        - We may share anonymized, aggregated agricultural data with research institutions
+        - Statistical information about crop health trends regionally
+        - Agricultural insights without personal identification
+        
+        4.3 Legal Requirements:
+        - When required by law or governmental authorities
+        - To protect our legal rights and property
+        - In emergency situations involving user safety
+        
+        5. DATA SECURITY
+        
+        We implement comprehensive security measures including:
+        - End-to-end encryption for all sensitive data
+        - Regular security audits and vulnerability assessments
+        - Secure server infrastructure with firewalls
+        - Access controls and authentication protocols
+        - Regular data backups and disaster recovery plans
+        
+        6. DATA RETENTION
+        
+        We retain your information only as long as necessary for:
+        - Providing ongoing services to you
+        - Compliance with legal obligations
+        - Agricultural research and improvement purposes
+        - Resolving disputes and enforcing agreements
+        
+        7. YOUR RIGHTS
+        
+        You have the right to:
+        - Access and review your personal information
+        - Correct inaccurate or incomplete data
+        - Request deletion of your personal data
+        - Export your data in a portable format
+        - Object to certain data processing activities
+        - Withdraw consent where consent-based processing
+        
+        8. CHILDREN'S PRIVACY
+        
+        Our services are intended for farmers and agricultural professionals aged 18 years and above. We do not knowingly collect information from children under 18.
+        
+        9. INTERNATIONAL DATA TRANSFERS
+        
+        Your data may be processed and stored in servers located outside your country of residence. We ensure adequate protection through standard contractual clauses and security measures.
+        
+        10. CHANGES TO THIS POLICY
+        
+        We may update this policy periodically. Significant changes will be notified through:
+        - In-app notifications and announcements
+        - Email communications to registered users
+        - Updated version timestamp in the app
+        
+        11. CONTACT INFORMATION
+        
+        For privacy-related inquiries, please contact:
+        - Email: privacy@beanyapp.com (primary)
+        - Support: support@beanyapp.com
+        - Agricultural Hotline: +1-800-BEANY-AG
+        - Mail: Beany Agricultural Technologies
+          123 Farm Innovation Road
+          Agricultural District, CA 94102
+        
+        12. DISPUTE RESOLUTION
+        
+        Any privacy-related disputes will be resolved through:
+        - Initial contact and resolution with our support team
+        - Mediation services if required
+        - Arbitration in accordance with agricultural industry standards
+        
+        13. CONSENT
+        
+        By using Beany application, you acknowledge that:
+        - You have read and understood this Privacy Policy
+        - You consent to the collection and use of your information as described
+        - You agree to receive agricultural communications and updates
+        - You understand your rights regarding your personal data
+        
+        14. AGRICULTURAL DATA SPECIFICS
+        
+        14.1 Crop Data:
+        - We collect data on crop types, varieties, and planting dates
+        - Growth stage information and health indicators
+        - Yield predictions and harvest quality data
+        
+        14.2 Soil Information:
+        - Soil composition and nutrient levels
+        - Irrigation practices and water usage
+        - Fertilizer and amendment applications
+        
+        14.3 Pest Management:
+        - Pest identification and infestation levels
+        - Treatment methods and effectiveness
+        - Integrated pest management strategies
+        
+        15. THIRD-PARTY INTEGRATIONS
+        
+        We may integrate with:
+        - Weather services for agricultural forecasting
+        - Agricultural equipment manufacturers
+        - Research institutions for data collaboration
+        - Government agricultural departments
+        
+        16. EMERGENCY SITUATIONS
+        
+        In agricultural emergency situations (disease outbreaks, natural disasters), we may:
+        - Share critical information with agricultural authorities
+        - Provide aggregated data for emergency response planning
+        - Send emergency alerts to affected farmers
+        
+        17. DATA ACCURACY
+        
+        We rely on users to provide accurate agricultural information. We are not responsible for decisions made based on inaccurate user-provided data.
+        
+        18. FARMER COMMUNITY
+        
+        When using community features:
+        - Your agricultural insights may be shared with other farmers
+        - Personal identification is protected in community discussions
+        - Best practices and success stories may be featured anonymously
+        
+        19. COMPLIANCE WITH AGRICULTURAL STANDARDS
+        
+        We adhere to:
+        - Good Agricultural Practices (GAP) guidelines
+        - Sustainable farming principles
+        - Local agricultural regulations and standards
+        
+        20. FEEDBACK AND SUGGESTIONS
+        
+        Any feedback or suggestions you provide becomes our property and may be used to improve our services without compensation.
+        
+        By continuing to use Beany, you agree to the terms outlined in this comprehensive Privacy Policy.
+        """.trimIndent()
 
-    // Only show loading spinner if online but profile is still loading
-    if (profile == null && isOnline) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(color = Brown1),
-            contentAlignment = Alignment.Center
+    if (showPrivacyDialog) {
+        Dialog(
+            onDismissRequest = { showPrivacyDialog = false },
         ) {
-            CircularProgressIndicator(color = White)
-        }
-        return
-    }
+            Surface(
+                tonalElevation = 6.dp,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = rspDp(20.dp))
+                    .clip(shape = RoundedCornerShape(rspDp(20.dp))),
+                color = Beige1
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(24.dp)
+                ) {
+                    Text(
+                        text = "Privacy Policy",
+                        style = TextStyle(
+                            fontFamily = GlacialIndifferenceBold,
+                            fontSize = 20.sp,
+                            color = Brown1
+                        ),
+                        modifier = Modifier.padding(bottom = 8.dp)
+                    )
 
-    if (isLoading) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(color = Brown1),
-            contentAlignment = Alignment.Center
-        ) {
-            CircularProgressIndicator(color = White)
-        }
-        return
-    }
+                    Text(
+                        text = "Last Updated: January 2024",
+                        style = TextStyle(
+                            fontFamily = GlacialIndifference,
+                            fontSize = 12.sp,
+                            color = Color.Gray
+                        ),
+                        modifier = Modifier.padding(bottom = 16.dp)
+                    )
 
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .heightIn(max = 400.dp)
+                            .verticalScroll(rememberScrollState())
+                            .padding(bottom = 16.dp)
+                    ) {
+                        Text(
+                            text = privacyPolicyContent,
+                            style = TextStyle(
+                                fontFamily = GlacialIndifference,
+                                fontSize = 14.sp,
+                                color = Color.Black,
+                                lineHeight = 20.sp
+                            )
+                        )
+                    }
+
+                    Button(
+                        onClick = { showPrivacyDialog = false },
+                        colors = ButtonDefaults.buttonColors(containerColor = Brown1),
+                        modifier = Modifier.align(Alignment.End)
+                    ) {
+                        Text(
+                            text = "Close",
+                            style = TextStyle(
+                                fontFamily = GlacialIndifferenceBold,
+                                fontSize = 16.sp,
+                                color = White
+                            )
+                        )
+                    }
+                }
+            }
+        }
+    }
 
     val accountItems = listOf(
         ProfileItem(
@@ -536,8 +825,13 @@ fun UserProfilePage(
                 ) { item ->
                     when(item.title) {
                         "About Us" -> navController.navigate(Route.AboutUsPage.route)
-//                        "Terms and Conditions" -> navController.navigate(Route.TermsPage.route)
-//                        "Privacy Policy" -> navController.navigate(Route.PrivacyPage.route)
+                        "Terms and Conditions" -> {
+                            // Load and show terms when clicked
+                            termsViewModel.loadTerms()
+                        }
+                        "Privacy Policy" -> {
+                            showPrivacyDialog = true
+                        }
 //                        "Contact Us" -> navController.navigate(Route.ContactPage.route)
                     }
                 }

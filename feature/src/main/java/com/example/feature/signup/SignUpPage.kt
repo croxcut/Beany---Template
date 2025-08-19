@@ -22,6 +22,7 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -49,7 +50,9 @@ import com.example.core.composables.DropdownField
 import com.example.core.composables.Footer
 import com.example.core.composables.InputField
 import com.example.core.ui.theme.Beige1
+import com.example.core.ui.theme.Black
 import com.example.core.ui.theme.Brown1
+import com.example.core.ui.theme.Etna
 import com.example.core.ui.theme.GlacialIndifference
 import com.example.core.ui.theme.GlacialIndifferenceBold
 import com.example.core.ui.theme.Kare
@@ -380,7 +383,12 @@ fun SignUpPage(
                         checked = viewModel.isTermsAccepted,
                         onCheckedChange = { checked ->
                             viewModel.isTermsAccepted = checked
-                        }
+                        },
+                        colors = CheckboxDefaults.colors(
+                            checkedColor = Brown1,
+                            checkmarkColor = White,
+                            uncheckedColor = Brown1
+                        )
                     )
                     Text(
                         text = "I agree to the Terms and privacy policy",
@@ -550,7 +558,8 @@ fun SignUpPage(
                     text = "SIGN UP",
                     style = TextStyle(
                         fontFamily = GlacialIndifferenceBold,
-                        fontSize = rspSp(20.sp)
+                        fontSize = rspSp(20.sp),
+                        color = White
                     )
                 )
             }
@@ -598,6 +607,9 @@ fun SignUpPage(
                     navController.navigate(Route.AboutUsPage.route)
                 },
             )
+
+            Spacer(modifier = Modifier.height(rspDp(20.dp)))
+
         }
     }
 }
@@ -618,14 +630,22 @@ fun TermsContent(
     ) {
         Text(
             text = terms.title,
-            style = MaterialTheme.typography.headlineSmall
+            style = TextStyle(
+                color = Black,
+                fontSize = rspSp(25.sp),
+                fontFamily = Etna
+            )
         )
 
         Spacer(modifier = Modifier.height(rspDp(20.dp)))
 
         Text(
             text = terms.intro,
-            style = MaterialTheme.typography.bodyLarge
+            style = TextStyle(
+                color = Black,
+                fontSize = rspSp(15.sp),
+                fontFamily = GlacialIndifferenceBold
+            )
         )
 
         Spacer(modifier = Modifier.height(rspDp(20.dp)))
@@ -633,24 +653,41 @@ fun TermsContent(
         terms.sections.forEach { section ->
             Text(
                 text = "${section.number}. ${section.title}",
-                style = MaterialTheme.typography.titleMedium,
+                style = TextStyle(
+                    color = Black,
+                    fontSize = rspSp(15.sp),
+                    fontFamily = GlacialIndifferenceBold
+                ),
                 fontWeight = FontWeight.Bold
             )
             Text(
                 text = section.content,
-                style = MaterialTheme.typography.bodyMedium
+                style = TextStyle(
+                    color = Black,
+                    fontSize = rspSp(13.sp),
+                    fontFamily = GlacialIndifference
+                )
             )
             Spacer(modifier = Modifier.height(rspDp(20.dp)))
         }
 
         Spacer(modifier = Modifier.height(rspDp(20.dp)))
 
-        // OK button
         Button(
             onClick = onClose,
-            modifier = Modifier.align(Alignment.End)
+            modifier = Modifier.align(Alignment.End),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = Color.Transparent
+            )
         ) {
-            Text("OK")
+            Text(
+                text = "OK",
+                style = TextStyle(
+                    color = Black,
+                    fontSize = rspSp(15.sp),
+                    fontFamily = GlacialIndifferenceBold
+                )
+            )
         }
     }
 }

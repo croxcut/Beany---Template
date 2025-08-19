@@ -3,6 +3,8 @@ package com.example.feature.community.pages
 import android.net.Uri
 import android.util.Log
 import android.view.Menu
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -48,12 +50,17 @@ import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.window.Dialog
 import androidx.paging.LoadState
 import androidx.paging.compose.collectAsLazyPagingItems
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
+import com.canhub.cropper.CropImageContract
+import com.example.core.composables.InputField
 import com.example.domain.model.Reply
+import com.example.feature.community.misc.ZoomableImageDialog
 import kotlinx.coroutines.delay
+import com.example.feature.community.misc.ZoomableImageState
 
 @Composable
 fun PostsListPage(
@@ -71,10 +78,10 @@ fun PostsListPage(
     val profile by viewModel.profiles.collectAsState(initial = emptyList())
     val session by viewModel.profile.collectAsState()
 
+    var zoomState by remember { mutableStateOf(ZoomableImageState()) }
 
     var tagsDropdownExpanded by remember { mutableStateOf(false) }
 
-    // Debounced search
     var localSearchQuery by remember { mutableStateOf("") }
     LaunchedEffect(localSearchQuery) {
         delay(300)
@@ -88,11 +95,16 @@ fun PostsListPage(
             .statusBarsPadding()
             .navigationBarsPadding()
     ) {
+
+        ZoomableImageDialog(
+            imageUri = zoomState.imageUri,
+            onDismiss = { zoomState = ZoomableImageState() }
+        )
+
         Column(
             modifier = Modifier.fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Header
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -119,7 +131,6 @@ fun PostsListPage(
                 )
             )
 
-            // Search Bar
             TextField(
                 value = localSearchQuery,
                 onValueChange = { localSearchQuery = it },
@@ -147,7 +158,6 @@ fun PostsListPage(
                 )
             )
 
-            // Tags Section
             Box(modifier = Modifier.fillMaxWidth()) {
                 Button(
                     onClick = { tagsDropdownExpanded = true },
@@ -231,7 +241,6 @@ fun PostsListPage(
                 }
             }
 
-            // Posts List
             when (posts.loadState.refresh) {
                 is LoadState.Loading -> {
                     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -264,7 +273,10 @@ fun PostsListPage(
                                     onDeleteClick = { viewModel.setPostToDelete(it) },
                                     profile = postProfile,
                                     currentUserId = session?.id.toString(),
-                                    viewModel = viewModel
+                                    viewModel = viewModel,
+                                    onImageZoom = { uri ->
+                                        zoomState = ZoomableImageState(isVisible = true, imageUri = uri)
+                                    }
                                 )
                             }
                         }
@@ -284,7 +296,6 @@ fun PostsListPage(
             }
         }
 
-        // Floating Action Button
         FloatingActionButton(
             onClick = { showNewPostDialog = true },
             modifier = Modifier
@@ -296,7 +307,6 @@ fun PostsListPage(
             Icon(Icons.Default.Add, contentDescription = "Add new post")
         }
 
-        // Dialogs
         viewModel.postToDelete.value?.let { post ->
             DeletePostDialog(
                 onDismiss = { viewModel.setPostToDelete(null) },
@@ -304,23 +314,30 @@ fun PostsListPage(
             )
         }
 
+        val selectedImage by viewModel.selectedImageUri
+
         if (showNewPostDialog) {
             NewPostDialog(
-                onDismiss = { showNewPostDialog = false },
-                onPost = { title, body, tags ->
-                    viewModel.createPost(title, body, tags)
+                onDismiss = {
+                    showNewPostDialog = false
+                    viewModel.clearSelectedImage()
+                },
+                onPost = { title, body, tags, imageUri ->
+                    viewModel.createPost(title, body, tags, imageUri)
                     newPostTitle = ""
                     newPostBody = ""
-                    viewModel.setSelectedTags(emptyList()) // Update via ViewModel
+                    viewModel.setSelectedTags(emptyList())
                     showNewPostDialog = false
                 },
                 availableTags = availableTags,
                 selectedTags = selectedTags,
-                onTagsChanged = { viewModel.setSelectedTags(it) }, // Update via ViewModel
+                onTagsChanged = { viewModel.setSelectedTags(it) },
                 title = newPostTitle,
                 onTitleChanged = { newPostTitle = it },
                 body = newPostBody,
-                onBodyChanged = { newPostBody = it }
+                onBodyChanged = { newPostBody = it },
+                selectedImage = selectedImage,
+                onImageSelected = { viewModel.setSelectedImage(it) }
             )
         }
     }
@@ -333,7 +350,8 @@ private fun PostItem(
     onDeleteClick: (Post) -> Unit,
     profile: Profile?,
     currentUserId: String,
-    viewModel: PostsViewModel
+    viewModel: PostsViewModel,
+    onImageZoom: (Uri?) -> Unit
 ) {
     var menuExpanded by remember { mutableStateOf(false) }
     val context = LocalContext.current
@@ -355,6 +373,15 @@ private fun PostItem(
 
     val profileImageUri by viewModel.getProfileImageUri(profile?.id).collectAsState(initial = null)
 
+    val postImageUri by viewModel.getPostImageUri(post.image_url).collectAsState(initial = null)
+    var showZoomableImage by remember { mutableStateOf(false) }
+
+    if (showZoomableImage) {
+        ZoomableImageDialog(
+            imageUri = postImageUri,
+            onDismiss = { showZoomableImage = false }
+        )
+    }
     LaunchedEffect(post.id) {
         viewModel.getRandomReply(post.id).collect {
             randomReply = it
@@ -372,14 +399,12 @@ private fun PostItem(
                 .fillMaxWidth()
                 .padding(12.dp)
         ) {
-            // Header with profile info
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
                     .fillMaxWidth()
                     .clickable { showProfileDialog = true }
             ) {
-                // Optimized profile image loading
                 AsyncImage(
                     model = ImageRequest.Builder(context)
                         .data(profileImageUri)
@@ -487,7 +512,6 @@ private fun PostItem(
                 )
             }
 
-            // Tags
             post.tags?.takeIf { it.isNotEmpty() }?.let { tags ->
                 FlowRow(
                     modifier = Modifier.padding(bottom = 8.dp),
@@ -524,13 +548,30 @@ private fun PostItem(
                 )
             }
 
-            // Like and comment counters
+            postImageUri?.let { uri ->
+                Spacer(modifier = Modifier.height(8.dp))
+                AsyncImage(
+                    model = ImageRequest.Builder(context)
+                        .data(uri)
+                        .crossfade(true)
+                        .build(),
+                    contentDescription = "Post image",
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(200.dp)
+                        .clip(RoundedCornerShape(8.dp))
+                        .clickable { onImageZoom(uri) },  // Use the callback
+                    contentScale = ContentScale.Crop
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+            }
+
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(16.dp),
                 modifier = Modifier.padding(top = 4.dp)
             ) {
-                // Like button
+
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.clickable(
@@ -554,7 +595,6 @@ private fun PostItem(
                     )
                 }
 
-                // Comment count
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.clickable { onPostClick(post.id) }
@@ -574,7 +614,6 @@ private fun PostItem(
                 }
             }
 
-            // Reply button
             Text(
                 text = "Reply",
                 fontSize = 14.sp,
@@ -586,8 +625,7 @@ private fun PostItem(
                     .padding(top = 8.dp)
             )
 
-            // Random reply preview
-            Divider(
+            HorizontalDivider(
                 color = Brown1.copy(alpha = 0.2f),
                 thickness = 1.dp,
                 modifier = Modifier.padding(vertical = 8.dp)
@@ -879,44 +917,71 @@ private fun ProfileDialog(
     )
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun NewPostDialog(
+fun NewPostDialog(
     onDismiss: () -> Unit,
-    onPost: (String, String, List<String>) -> Unit,
+    onPost: (String, String, List<String>, Uri?) -> Unit,
     availableTags: List<String>,
     selectedTags: List<String>,
     onTagsChanged: (List<String>) -> Unit,
     title: String,
     onTitleChanged: (String) -> Unit,
     body: String,
-    onBodyChanged: (String) -> Unit
+    onBodyChanged: (String) -> Unit,
+    selectedImage: Uri?,
+    onImageSelected: (Uri?) -> Unit
 ) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text("Create New Post") },
-        text = {
-            Column {
-                TextField(
+    val imagePickerLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        onImageSelected(uri)
+    }
+
+    // Full screen dialog
+    Dialog(onDismissRequest = onDismiss) {
+        Surface(
+            shape = RoundedCornerShape(16.dp),
+            color = Beige1,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 16.dp, horizontal = rspDp(10.dp))
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.Top
+            ) {
+
+                // Title field
+                InputField(
                     value = title,
                     onValueChange = onTitleChanged,
-                    modifier = Modifier.fillMaxWidth(),
-                    label = { Text("Title") },
+                    label = {
+                        Text(
+                            text = "Title",
+                                style = TextStyle(
+                                    color = Brown1
+                                ),
+                            )
+                            },
+                    textStyle = TextStyle(
+                        color = Brown1
+                    ),
                     singleLine = true
                 )
                 Spacer(modifier = Modifier.height(8.dp))
 
-                Text("Tags:", modifier = Modifier.padding(bottom = 4.dp))
-                FlowRow(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                // Tags
+                Text("Tags:", modifier = Modifier.padding(bottom = 2.dp))
+                FlowRow(horizontalArrangement = Arrangement.spacedBy(2.dp)) {
                     availableTags.forEach { tag ->
                         val isSelected = selectedTags.contains(tag)
                         FilterChip(
                             selected = isSelected,
                             onClick = {
-                                onTagsChanged(if (isSelected) {
-                                    selectedTags - tag
-                                } else {
-                                    selectedTags + tag
-                                })
+                                onTagsChanged(if (isSelected) selectedTags - tag else selectedTags + tag)
                             },
                             label = { Text(tag) },
                             modifier = Modifier.padding(2.dp)
@@ -926,34 +991,88 @@ private fun NewPostDialog(
 
                 Spacer(modifier = Modifier.height(8.dp))
 
-                TextField(
+                // Body field
+                InputField(
                     value = body,
                     onValueChange = onBodyChanged,
-                    modifier = Modifier.fillMaxWidth(),
-                    label = { Text("Content") },
-                    maxLines = 5
+                    label = {
+                        Text(
+                            text = "Body",
+                            style = TextStyle(
+                                color = Brown1
+                            ),
+                        )
+                    },
+                    textStyle = TextStyle(
+                        color = Brown1
+                    ),
+                    maxLines = 5,
+                    singleLine = false
                 )
-            }
-        },
-        confirmButton = {
-            TextButton(
-                onClick = {
-                    if (title.isNotBlank() && body.isNotBlank()) {
-                        onPost(title, body, selectedTags)
+
+                Spacer(modifier = Modifier.height(16.dp))
+                // Image picker row
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.padding(bottom = 8.dp)
+                ) {
+                    Button(
+                        onClick = { imagePickerLauncher.launch("image/*") },
+                        colors = ButtonDefaults.buttonColors(containerColor = Brown1)
+                    ) {
+                        Icon(Icons.Default.Add, contentDescription = "Add image")
+                    }
+
+                    selectedImage?.let { uri ->
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Image(
+                            painter = rememberAsyncImagePainter(uri),
+                            contentDescription = "Selected image",
+                            modifier = Modifier
+                                .size(64.dp)
+                                .clip(RoundedCornerShape(8.dp)),
+                            contentScale = ContentScale.Crop
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        IconButton(
+                            onClick = { onImageSelected(null) }
+                        ) {
+                            Icon(Icons.Default.Close, contentDescription = "Remove image")
+                        }
                     }
                 }
-            ) {
-                Text("Post")
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text("Cancel")
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Buttons
+                Row(
+                    horizontalArrangement = Arrangement.End,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    TextButton(
+                        onClick = onDismiss,
+                        colors = ButtonDefaults.textButtonColors(contentColor = Brown1)
+                    ) {
+                        Text("Cancel")
+                    }
+
+                    Spacer(modifier = Modifier.width(8.dp))
+
+                    TextButton(
+                        onClick = {
+                            if (title.isNotBlank() && body.isNotBlank()) {
+                                onPost(title, body, selectedTags, selectedImage)
+                            }
+                        },
+                        colors = ButtonDefaults.textButtonColors(contentColor = Brown1)
+                    ) {
+                        Text("Post")
+                    }
+                }
             }
         }
-    )
+    }
 }
-
 @Composable
 private fun DeletePostDialog(
     onDismiss: () -> Unit,

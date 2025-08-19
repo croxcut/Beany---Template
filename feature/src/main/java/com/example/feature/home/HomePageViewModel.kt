@@ -21,6 +21,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
@@ -37,7 +38,6 @@ class HomePageViewModel @Inject constructor(
     private val context: Context
 ): ViewModel() {
 
-
     private val _isOnline = MutableStateFlow(NetworkUtils.isInternetAvailable(context))
     val isOnline: StateFlow<Boolean> = _isOnline.asStateFlow()
 
@@ -47,7 +47,6 @@ class HomePageViewModel @Inject constructor(
     private val _session = MutableStateFlow<UserSession?>(null)
     val session: StateFlow<UserSession?> = _session.asStateFlow()
 
-    // Changed to use stateIn for better flow handling
     val isSignedUp: StateFlow<Boolean> = authRepository.isLoggedIn()
         .stateIn(
             scope = viewModelScope,
@@ -64,6 +63,29 @@ class HomePageViewModel @Inject constructor(
     init {
         checkConnectivity()
         initializeData()
+
+        // Set up reactive city matching
+        setupCityMatching()
+    }
+
+    private fun setupCityMatching() {
+        viewModelScope.launch {
+            // Combine both profile and cities state
+            combine(_profile, _state) { profile, state ->
+                profile to state.cities
+            }.collect { (profile, cities) ->
+                // Only match when both profile and cities are available
+                if (profile != null && cities.isNotEmpty() && _selectedCity.value == null) {
+                    val matchedCity = cities.find {
+                        it.name.equals(profile.province, ignoreCase = true)
+                    }
+
+                    Log.d("HomePageViewModel", "Profile province: '${profile.province}', Cities: ${cities.size}, Matched: ${matchedCity?.name}")
+
+                    matchedCity?.let { selectCity(it) }
+                }
+            }
+        }
     }
 
     fun initializeData() {
@@ -72,16 +94,12 @@ class HomePageViewModel @Inject constructor(
                 try {
                     _session.value = sessionRepository.getCurrentSession()
                     _profile.value = sessionRepository.getUserProfile()
+                    loadCities() // Load cities after profile
                 } catch (e: Exception) {
                     _state.value = _state.value.copy(
                         error = "Initialization failed: ${e.message}"
                     )
                 }
-            }
-        }
-        if(isOnline.value) {
-            viewModelScope.launch {
-                loadCities()
             }
         }
     }
@@ -100,20 +118,7 @@ class HomePageViewModel @Inject constructor(
     val activityList: StateFlow<List<String>> = _activityList
 
     fun dummyActivity() {
-//        val randomActivities = listOf(
-//            "Running",
-//            "Swimming",
-//            "Cycling",
-//            "Hiking",
-//            "Reading",
-//            "Cooking",
-//            "Painting",
-//            "Coding",
-//            "Gaming",
-//            "Yoga"
-//        )
-//
-//        _activityList.value = randomActivities
+        // Your activity code
     }
 
     fun selectCity(city: City) {
@@ -123,12 +128,19 @@ class HomePageViewModel @Inject constructor(
 
     private fun loadCities() {
         val cities = weatherRepository.getCities()
+
+        Log.d("HomePageViewModel", "=== CITIES LIST ===")
+        cities.forEachIndexed { index, city ->
+            Log.d("HomePageViewModel", "City $index: '${city.name}'")
+        }
+
         _state.value = _state.value.copy(cities = cities)
 
-        if (cities.isNotEmpty() && _selectedCity.value == null) {
-            val firstCity = cities.first()
-            _selectedCity.value = firstCity
-            loadWeather(firstCity.latitude, firstCity.longitude)
+        // Only set default city if no selection exists AND no profile match will happen
+        if (cities.isNotEmpty() && _selectedCity.value == null && _profile.value == null) {
+            val cityToSelect = cities.first()
+            _selectedCity.value = cityToSelect
+            loadWeather(cityToSelect.latitude, cityToSelect.longitude)
         }
     }
 
@@ -163,7 +175,6 @@ class HomePageViewModel @Inject constructor(
             }
         }
     }
-
 }
 
 data class WeatherState(

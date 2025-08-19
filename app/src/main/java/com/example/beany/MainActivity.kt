@@ -81,7 +81,23 @@ class MainActivity : ComponentActivity() {
 
     private lateinit var navController: NavHostController
 
-    @RequiresPermission(Manifest.permission.POST_NOTIFICATIONS)
+    // Permissions we want to request at runtime
+    private val requiredPermissions = arrayOf(
+        Manifest.permission.CAMERA,
+        Manifest.permission.POST_NOTIFICATIONS // Only needed for Android 13+
+    )
+
+    private val requestPermissionsLauncher =
+        registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissions ->
+            permissions.entries.forEach { (permission, isGranted) ->
+                if (isGranted) {
+                    Log.d("Permissions", "$permission granted")
+                } else {
+                    Log.d("Permissions", "$permission denied")
+                }
+            }
+        }
+
     @OptIn(SupabaseExperimental::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -102,6 +118,9 @@ class MainActivity : ComponentActivity() {
             }
         }
 
+        // Request runtime permissions
+        requestNecessaryPermissions()
+
         // Handle notification deep link immediately
         handleIntent(intent)
     }
@@ -119,6 +138,15 @@ class MainActivity : ComponentActivity() {
             navController.navigate("notification_screen/$message") {
                 launchSingleTop = true
             }
+        }
+    }
+
+    private fun requestNecessaryPermissions() {
+        val permissionsToRequest = requiredPermissions.filter { permission ->
+            ContextCompat.checkSelfPermission(this, permission) != PackageManager.PERMISSION_GRANTED
+        }
+        if (permissionsToRequest.isNotEmpty()) {
+            requestPermissionsLauncher.launch(permissionsToRequest.toTypedArray())
         }
     }
 }

@@ -74,10 +74,13 @@ class PostsViewModel @Inject constructor(
     private val _selectedTags = MutableStateFlow<List<String>>(emptyList())
     val selectedTags: StateFlow<List<String>> = _selectedTags.asStateFlow()
 
+    private val _refreshTrigger = MutableStateFlow(0)
+
     val postsPagingFlow: Flow<PagingData<Post>> = combine(
         searchQuery,
-        selectedTags
-    ) { query, tags ->
+        selectedTags,
+        _refreshTrigger
+    ) { query, tags, _ ->
         Pair(query, tags)
     }.flatMapLatest { (query, tags) ->
         Pager(
@@ -91,6 +94,10 @@ class PostsViewModel @Inject constructor(
             }
         ).flow
     }.cachedIn(viewModelScope)
+
+    fun refreshPosts() {
+        _refreshTrigger.value++
+    }
 
     fun setSearchQuery(query: String) {
         _searchQuery.value = query
@@ -128,7 +135,6 @@ class PostsViewModel @Inject constructor(
                 }
                 flow.value = _profileImageUris[userId]
             } catch (e: Exception) {
-                // If image doesn't exist or error occurs, return null
                 flow.value = null
             }
         }
@@ -143,7 +149,6 @@ class PostsViewModel @Inject constructor(
                 val loadedPosts = postRepository.getPosts()
                 _posts.addAll(loadedPosts)
 
-                // Load comment counts for all posts
                 loadedPosts.forEach { post ->
                     loadReplyCount(post.id)
                 }
@@ -181,6 +186,7 @@ class PostsViewModel @Inject constructor(
             try {
                 postRepository.deletePost(postId)
                 _posts.removeIf { it.id == postId }
+                refreshPosts()
             } catch (e: Exception) {
                 println("Error deleting post: ${e.message}")
             } finally {
@@ -192,25 +198,20 @@ class PostsViewModel @Inject constructor(
     fun toggleLike(postId: Long, userId: String) {
         viewModelScope.launch {
             try {
-                // Get current likes from state or post
                 val currentLikes = _postLikes[postId]?.toMutableList() ?:
                 postRepository.getPostById(postId)?.likes?.toMutableList() ?: mutableListOf()
 
-                // Toggle like
                 if (currentLikes.contains(userId)) {
                     currentLikes.remove(userId)
                 } else {
                     currentLikes.add(userId)
                 }
 
-                // Update local state
                 _postLikes[postId] = currentLikes
 
-                // Update backend
                 postRepository.updatePostLikes(postId, currentLikes)
             } catch (e: Exception) {
                 println("Error toggling like: ${e.message}")
-                // Optionally revert the UI state here if the update failed
             }
         }
     }
@@ -249,7 +250,7 @@ class PostsViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 replyRepository.toggleReplyLike(replyId, userId)
-                // Refresh the top reply after liking
+
                 val postId = _topReplies.entries.find { it.value?.id == replyId }?.key
                 postId?.let { getTopReply(it).collect() }
             } catch (e: Exception) {
@@ -270,6 +271,83 @@ class PostsViewModel @Inject constructor(
                 emit(null)
             }
         }
+    }
+
+    private val _selectedImageUri = mutableStateOf<Uri?>(null)
+    val selectedImageUri: State<Uri?> = _selectedImageUri
+
+    suspend fun uploadPostImage(uri: Uri): String? {
+        return try {
+            val bytes = context.contentResolver.openInputStream(uri)?.use { it.readBytes() }
+                ?: return null
+
+            val filename = "post_${System.currentTimeMillis()}.jpg"
+            val remotePath = "posts/$filename"
+
+            bucketRepository.upload(remotePath, bytes)
+            filename
+        } catch (e: Exception) {
+            println("Error uploading post image: ${e.message}")
+            null
+        }
+    }
+
+    fun setSelectedImage(uri: Uri?) {
+        _selectedImageUri.value = uri
+    }
+
+    fun clearSelectedImage() {
+        _selectedImageUri.value = null
+    }
+
+    fun createPost(title: String, body: String, tags: List<String> = emptyList(), imageUri: Uri? = null) {
+        if (title.isNotBlank() && body.isNotBlank()) {
+            viewModelScope.launch {
+                try {
+                    var imageFilename: String? = null
+
+                    imageUri?.let { uri ->
+                        imageFilename = uploadPostImage(uri)
+                    }
+
+                    val newPost = NewPost(
+                        sender = profile.value?.id.toString(),
+                        post_title = title,
+                        post_body = body,
+                        image_url = imageFilename,
+                        tags = tags.takeIf { it.isNotEmpty() }
+                    )
+
+                    postRepository.createPost(newPost)
+                    clearSelectedImage()
+
+                    refreshPosts()
+
+                } catch (e: Exception) {
+                    println("Error creating post: ${e.message}")
+                }
+            }
+        }
+    }
+
+    fun getPostImageUri(imageUrl: String?): StateFlow<Uri?> {
+        val flow = MutableStateFlow<Uri?>(null)
+
+        if (imageUrl == null) return flow.asStateFlow()
+
+        viewModelScope.launch {
+            try {
+                val remotePath = "posts/$imageUrl"
+                val imageBytes = bucketRepository.getImage(remotePath)
+                val tempFile = File(context.cacheDir, "post_$imageUrl")
+                tempFile.writeBytes(imageBytes)
+                flow.value = tempFile.toUri()
+            } catch (e: Exception) {
+                flow.value = null
+            }
+        }
+
+        return flow.asStateFlow()
     }
 
 }

@@ -5,11 +5,13 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.lazy.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Send
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.outlined.FavoriteBorder
@@ -41,12 +43,15 @@ import com.example.feature.R
 import com.example.feature.community.misc.ParentReplyInThread
 import com.example.feature.community.misc.ParentReplyPreview
 import com.example.feature.community.misc.ProfileDialog
+import com.example.feature.community.misc.ZoomableImageDialog
+import com.example.feature.community.misc.ZoomableImageState
 import com.example.feature.community.misc.formatUserRole
 
 @Composable
 fun PostDetailPage(
     postId: Long,
-    viewModel: PostDetailViewModel = hiltViewModel()
+    viewModel: PostDetailViewModel = hiltViewModel(),
+    onBackClick: () -> Unit
 ) {
     val post by viewModel.post
     val replies by remember { derivedStateOf { viewModel.replies } }
@@ -58,6 +63,9 @@ fun PostDetailPage(
     var showProfileDialog by remember { mutableStateOf(false) }
     var selectedProfile by remember { mutableStateOf<Profile?>(null) }
     var selectedProfileImageUri by remember { mutableStateOf<Uri?>(null) }
+
+    // Zoomable image state
+    var zoomState by remember { mutableStateOf(ZoomableImageState()) }
 
     // Load profile image when profile is selected
     LaunchedEffect(selectedProfile) {
@@ -75,60 +83,99 @@ fun PostDetailPage(
         viewModel.loadReplies(postId)
     }
 
-    Column(
+    Box(
         modifier = Modifier
             .fillMaxSize()
             .background(color = Brown1)
             .statusBarsPadding()
             .navigationBarsPadding()
     ) {
-        LazyColumn(
-            modifier = Modifier
-                .weight(1f)
-                .fillMaxWidth()
-                .padding(8.dp),
-            verticalArrangement = Arrangement.spacedBy(6.dp)
-        ) {
-            item {
-                post?.let { postItem ->
-                    PostCard(
-                        post = postItem,
-                        replies = replies,
-                        onReplyClick = viewModel::setParentReplyId,
-                        onUnsendReply = viewModel::unsendReply,
-                        onToggleLike = viewModel::toggleReplyLike,
-                        profiles = profiles,
-                        sessionId = session?.id.toString(),
-                        viewModel = viewModel,
-                        onProfileClick = { profile ->
-                            selectedProfile = profile
-                            showProfileDialog = true
-                        }
-                    )
-                }
-            }
-        }
-
-        ReplyInput(
-            parentReplyId = viewModel.parentReplyId.value,
-            replies = replies,
-            profiles = profiles,
-            newReply = newReply,
-            onNewReplyChange = { newReply = it },
-            onSendReply = {
-                viewModel.createReply(postId, newReply)
-                newReply = ""
-            },
-            onClearParent = { viewModel.clearParentReply() }
+        // Zoomable image dialog
+        ZoomableImageDialog(
+            imageUri = zoomState.imageUri,
+            onDismiss = { zoomState = ZoomableImageState() }
         )
 
-        // Profile Dialog
-        if (showProfileDialog && selectedProfile != null) {
-            ProfileDialog(
-                profile = selectedProfile!!,
-                imageUri = selectedProfileImageUri,
-                onDismiss = { showProfileDialog = false }
+        Column(
+            modifier = Modifier.fillMaxSize()
+        ) {
+            // Header with back button
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp)
+            ) {
+                IconButton(
+                    onClick = onBackClick,
+                    modifier = Modifier.size(24.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.ArrowBack,
+                        contentDescription = "Back",
+                        tint = White
+                    )
+                }
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = "Post Details",
+                    color = White,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 18.sp
+                )
+            }
+
+            LazyColumn(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxWidth()
+                    .padding(horizontal = 8.dp),
+                verticalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
+                item {
+                    post?.let { postItem ->
+                        PostCard(
+                            post = postItem,
+                            replies = replies,
+                            onReplyClick = viewModel::setParentReplyId,
+                            onUnsendReply = viewModel::unsendReply,
+                            onToggleLike = viewModel::toggleReplyLike,
+                            profiles = profiles,
+                            sessionId = session?.id.toString(),
+                            viewModel = viewModel,
+                            onProfileClick = { profile ->
+                                selectedProfile = profile
+                                showProfileDialog = true
+                            },
+                            onImageZoom = { uri ->
+                                zoomState = ZoomableImageState(isVisible = true, imageUri = uri)
+                            }
+                        )
+                    }
+                }
+            }
+
+            ReplyInput(
+                parentReplyId = viewModel.parentReplyId.value,
+                replies = replies,
+                profiles = profiles,
+                newReply = newReply,
+                onNewReplyChange = { newReply = it },
+                onSendReply = {
+                    viewModel.createReply(postId, newReply)
+                    newReply = ""
+                },
+                onClearParent = { viewModel.clearParentReply() }
             )
+
+            // Profile Dialog
+            if (showProfileDialog && selectedProfile != null) {
+                ProfileDialog(
+                    profile = selectedProfile!!,
+                    imageUri = selectedProfileImageUri,
+                    onDismiss = { showProfileDialog = false }
+                )
+            }
         }
     }
 }
@@ -143,10 +190,14 @@ private fun PostCard(
     profiles: List<Profile>,
     sessionId: String,
     viewModel: PostDetailViewModel,
-    onProfileClick: (Profile) -> Unit
+    onProfileClick: (Profile) -> Unit,
+    onImageZoom: (Uri?) -> Unit // Add this parameter
 ) {
     val postProfile = profiles.find { it.id == post.sender }
     val context = LocalContext.current
+
+    // Get post image URI
+    val postImageUri by viewModel.getPostImageUri(post.image_url).collectAsState(initial = null)
 
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -215,17 +266,40 @@ private fun PostCard(
             Text(post.post_body ?: "")
             Spacer(Modifier.height(8.dp))
 
-            // Reply button for the post
+            // Display post image if available
+            postImageUri?.let { uri ->
+                Spacer(modifier = Modifier.height(8.dp))
+                AsyncImage(
+                    model = ImageRequest.Builder(context)
+                        .data(uri)
+                        .crossfade(true)
+                        .build(),
+                    contentDescription = "Post image",
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(200.dp)
+                        .clip(RoundedCornerShape(8.dp))
+                        .clickable { onImageZoom(uri) },
+                    contentScale = ContentScale.Crop
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+            }
+
+            HorizontalDivider(
+                color = Brown1.copy(alpha = 0.2f),
+                thickness = 2.dp,
+                modifier = Modifier.padding(vertical = 8.dp)
+            )
+
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.End
+                horizontalArrangement = Arrangement.Start
             ) {
                 Text(
-                    text = "Reply",
+                    text = "Replies",
                     color = Brown1,
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier
-                        .clickable { onReplyClick(-1) } // Use -1 or null to indicate replying to post
                         .padding(top = 8.dp)
                 )
             }
@@ -408,6 +482,12 @@ private fun ReplyThread(
                 }
             }
         }
+
+        HorizontalDivider(
+            color = Brown1.copy(alpha = 0.2f),
+            thickness = 2.dp,
+            modifier = Modifier.padding(vertical = 8.dp)
+        )
 
         // Show "View replies" button if there are nested replies
         if (nestedReplies.isNotEmpty() && !showNestedReplies) {

@@ -29,7 +29,9 @@ class DetectionViewModel @Inject constructor(
     private val _inferenceTime = MutableStateFlow(0L)
     val inferenceTime: StateFlow<Long> get() = _inferenceTime
 
+    var latestBitmap: Bitmap? = null
     fun detect(bitmap: Bitmap) {
+        latestBitmap = bitmap
         viewModelScope.launch {
             repository.detect(bitmap) { boundingBoxes, time ->
                 _boxes.value = boundingBoxes

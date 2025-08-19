@@ -173,7 +173,8 @@ fun OnboardingPage(
                             text = "Get Started",
                             style = TextStyle(
                                 fontFamily = GlacialIndifferenceBold,
-                                fontSize = rspSp(15.sp)
+                                fontSize = rspSp(15.sp),
+                                color = White
                             )
                         )
                     }

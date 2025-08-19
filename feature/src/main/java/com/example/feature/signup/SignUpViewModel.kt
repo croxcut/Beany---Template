@@ -94,8 +94,6 @@ class SignUpViewModel @Inject constructor(
         return listOf(
             "Farmer",
             "Expert",
-            "Pathologist",
-            "Administrator"
         )
     }
 

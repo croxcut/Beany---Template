@@ -24,6 +24,7 @@ import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -33,7 +34,14 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.sp
+import com.example.core.ui.theme.Beige1
+import com.example.core.ui.theme.Black
+import com.example.core.ui.theme.GlacialIndifference
+import com.example.core.ui.theme.GlacialIndifferenceBold
+import com.example.core.utils.rspSp
 import com.example.data.model.Diagnosis
 import com.example.feature.detection.misc.DetectionOverlay
 import java.util.Date
@@ -54,7 +62,10 @@ fun DiagnosisListItem(
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable(onClick = onClick)
+            .clickable(onClick = onClick),
+        colors = CardDefaults.cardColors(
+            containerColor = Beige1
+        )
     ) {
         Row(
             modifier = Modifier
@@ -68,14 +79,22 @@ fun DiagnosisListItem(
             ) {
                     Text(
                         text = "Diagnosis",
-                        style = MaterialTheme.typography.titleMedium
+                        style = TextStyle(
+                            color = Black,
+                            fontFamily = GlacialIndifferenceBold,
+                            fontSize = rspSp(17.sp)
+                        )
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
                         text = classNames,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
-                        style = MaterialTheme.typography.bodyMedium
+                        style = TextStyle(
+                            color = Black,
+                            fontFamily = GlacialIndifference,
+                            fontSize = rspSp(14.sp)
+                        )
                     )
                 }
             Column (
@@ -83,12 +102,20 @@ fun DiagnosisListItem(
             ) {
                     Text(
                         text = formattedDate,
-                        style = MaterialTheme.typography.titleMedium
+                        style = TextStyle(
+                            color = Black,
+                            fontFamily = GlacialIndifferenceBold,
+                            fontSize = rspSp(15.sp)
+                        )
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
                         text = "$boxCount detected",
-                        style = MaterialTheme.typography.bodyMedium
+                        style = TextStyle(
+                            color = Black,
+                            fontFamily = GlacialIndifferenceBold,
+                            fontSize = rspSp(15.sp)
+                        )
                     )
             }
         }

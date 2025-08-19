@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
@@ -39,41 +40,23 @@ import com.example.feature.R
 fun NavigationBar(
     currentRoute: String?,
     onTabSelected: (String) -> Unit,
+    isLoading: Boolean = false // Add this flag
 ) {
     val items = listOf(
-        NavBarItem(
-            route = Route.HomePage.route,
-            label = "Home",
-            icon = R.drawable.home_icon
-        ),
-        NavBarItem(
-            route = Route.DetectionHistoryPage.route,
-            label = "History",
-            icon = R.drawable.history_icon
-        ),
-        NavBarItem(
-            route = Route.FeatureSelectionPage.route,
-            label = "Feature",
-            icon = R.drawable.camera_icon
-        ),
-        NavBarItem(
-            route = Route.NotificationPage.route,
-            label = "Notification",
-            icon = R.drawable.notification_icon
-        ),
-        NavBarItem(
-            route = Route.UserProfilePage.route,
-            label = "Profile",
-            icon = R.drawable.profile_icon
-        ),
+        NavBarItem(Route.HomePage.route, "Home", R.drawable.home_icon),
+        NavBarItem(Route.DetectionHistoryPage.route, "History", R.drawable.history_icon),
+        NavBarItem(Route.FeatureSelectionPage.route, "Feature", R.drawable.camera_icon),
+        NavBarItem(Route.NotificationPage.route, "Notification", R.drawable.notification_icon),
+        NavBarItem(Route.UserProfilePage.route, "Profile", R.drawable.profile_icon),
     )
 
     Box(
         modifier = Modifier
             .fillMaxWidth()
             .height(rspDp(80.dp))
-            .windowInsetsPadding(WindowInsets.navigationBars)  // Changed here
+            .windowInsetsPadding(WindowInsets.navigationBars)
     ) {
+        // Bottom bar background
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -83,6 +66,7 @@ fun NavigationBar(
                 .pointerInput(Unit) {}
         )
 
+        // Navigation items
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -99,38 +83,14 @@ fun NavigationBar(
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     modifier = Modifier
-                        .clickable {
-                            onTabSelected(item.route)
-                        }
-//                        .then(
-//                            if (isSelected)
-//                                Modifier
-//                                    .border(
-//                                        width = 3.dp,
-//                                        color = Brown1,
-//                                        shape = CircleShape
-//                                    ).then(
-//                                        if(isFeature)
-//                                            Modifier
-//                                                .border(
-//                                                    color = White,
-//                                                    width = 6.dp,
-//                                                    shape = CircleShape
-//                                                )
-//                                        else Modifier
-//                                    )
-//                            else Modifier
-//                        )
+                        .clickable { onTabSelected(item.route) }
                         .padding(6.dp)
                 ) {
                     Image(
                         painter = painterResource(item.icon),
                         contentDescription = "Icon",
                         modifier = if (isFeature) Modifier
-                            .background(
-                                color = Brown1,
-                                shape = CircleShape
-                            )
+                            .background(Brown1, CircleShape)
                             .border(
                                 color = Brown1,
                                 width = 3.dp,
@@ -144,16 +104,25 @@ fun NavigationBar(
 
                     HorizontalDivider(
                         thickness = rspDp(2.dp),
-                        modifier = if(isFeature) Modifier
-                            .width(
-                                rspDp(50.dp)
-                            )
-                        else Modifier
-                            .width(rspDp(25.dp)),
-                        color = if(isSelected) Brown1 else Color.Transparent
+                        modifier = if (isFeature) Modifier.width(rspDp(50.dp)) else Modifier.width(rspDp(25.dp)),
+                        color = if (isSelected) Brown1 else Color.Transparent
                     )
-
                 }
+            }
+        }
+
+        // Full-screen loading indicator
+        if (isLoading) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color(0x88000000)) // semi-transparent overlay
+                    .align(Alignment.Center)
+            ) {
+                androidx.compose.material3.CircularProgressIndicator(
+                    modifier = Modifier.align(Alignment.Center),
+                    color = Brown1
+                )
             }
         }
     }

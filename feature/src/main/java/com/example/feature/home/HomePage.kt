@@ -2,6 +2,9 @@ package com.example.feature.home
 
 import android.content.Context
 import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -35,6 +38,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MenuDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
@@ -58,6 +62,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 import com.example.core.composables.Footer
 import com.example.core.ui.theme.Beige1
 import com.example.core.ui.theme.Brown1
@@ -287,17 +292,33 @@ private fun HomeContent(
 
                                 ExposedDropdownMenu(
                                     expanded = expanded,
-                                    onDismissRequest = { expanded = false }
+                                    onDismissRequest = { expanded = false },
+                                    containerColor = Brown1,
+                                    border = BorderStroke(
+                                        width = rspDp(2.dp),
+                                        color = Beige1
+                                    ),
+                                    shape = RoundedCornerShape(rspDp(10.dp))
                                 ) {
                                     state.cities.forEach { city ->
                                         DropdownMenuItem(
-                                            text = { Text(city.name) },
+                                            text = { Text(
+                                                text = city.name,
+                                                style = TextStyle(
+                                                    fontSize = rspSp(12.sp),
+                                                    fontFamily = Etna,
+                                                    color = White
+                                                )
+                                            ) },
                                             onClick = {
                                                 if (isOnline) {
                                                     viewModel.selectCity(city)
                                                 }
                                                 expanded = false
-                                            }
+                                            },
+                                            colors = MenuDefaults.itemColors(
+                                                trailingIconColor = Color.Transparent
+                                            )
                                         )
                                     }
                                 }
@@ -360,7 +381,6 @@ private fun HomeContent(
                 }
             }
 
-            // Forecast Section
             Text(
                 text = "Forecast this week",
                 style = TextStyle(
@@ -406,7 +426,7 @@ private fun HomeContent(
                     modifier = Modifier
                         .weight(1f)
                         .optionsContainerConfig()
-                        .clickable { navController.navigate("Realtime") }
+                        .clickable { navController.navigate(Route.SingleImageDetectionPage.route) }
                 ) {
                     Image(
                         painter = painterResource(R.drawable.camera),
@@ -418,14 +438,14 @@ private fun HomeContent(
 
                     Column(modifier = Modifier.padding(all = rspDp(10.dp))) {
                         Text(
-                            text = "Video",
+                            text = "Camera",
                             style = TextStyle(
                                 fontFamily = Etna,
                                 color = Brown1,
                                 fontSize = rspSp(20.sp))
                         )
                         Text(
-                            text = "Realtime Detection",
+                            text = "Single Image Capture",
                             style = TextStyle(
                                 fontFamily = GlacialIndifference,
                                 color = Brown1),
@@ -434,12 +454,28 @@ private fun HomeContent(
                     }
                 }
 
+                val context = LocalContext.current
+
+                val launcher = rememberLauncherForActivityResult(
+                    contract = ActivityResultContracts.GetMultipleContents(),
+                    onResult = { uris ->
+                        if (uris.isNotEmpty()) {
+                            navController.currentBackStackEntry?.savedStateHandle?.set("images", uris)
+                            navController.navigate(Route.PaginatedDetectionPage.route)
+                        } else {
+                            Toast.makeText(context, "No images selected", Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                )
+
                 // Upload Image
                 Box(
                     modifier = Modifier
                         .weight(1f)
                         .optionsContainerConfig()
-                        .clickable { navController.navigate("UploadImage") }
+                        .clickable {
+                            launcher.launch("image/*")
+                        }
                 ) {
                     Image(
                         painter = painterResource(R.drawable.upload),
@@ -455,13 +491,15 @@ private fun HomeContent(
                             style = TextStyle(
                                 fontFamily = Etna,
                                 color = Brown1,
-                                fontSize = rspSp(20.sp))
+                                fontSize = rspSp(20.sp)
+                            )
                         )
                         Text(
                             text = "Upload Image for diagnosis",
                             style = TextStyle(
                                 fontFamily = GlacialIndifference,
-                                color = Brown1),
+                                color = Brown1
+                            ),
                             modifier = Modifier.fillMaxWidth(0.5f)
                         )
                     }
@@ -528,7 +566,7 @@ private fun HomeContent(
 
                     Column(modifier = Modifier.padding(all = rspDp(10.dp))) {
                         Text(
-                            text = "Chat",
+                            text = "Community",
                             style = TextStyle(
                                 fontFamily = Etna,
                                 color = Brown1,
@@ -622,8 +660,6 @@ private fun HomeContent(
         }
     }
 }
-
-// Rest of your composables (WeatherForecastList, DailyForecastItem) remain the same
 
 @Composable
 fun WeatherForecastList(forecast: WeatherForecast) {
