@@ -1,5 +1,6 @@
 package com.example.feature.community.pages
 
+import android.net.Uri
 import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -317,6 +318,8 @@ private fun PostItem(
     var menuExpanded by remember { mutableStateOf(false) }
     val context = LocalContext.current
 
+    var showProfileDialog by remember { mutableStateOf(false) }
+
     val postLikes by remember(post.id) { derivedStateOf {
         viewModel.postLikes[post.id] ?: post.likes ?: emptyList()
     }}
@@ -352,7 +355,9 @@ private fun PostItem(
             // Header with profile info
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { showProfileDialog = true }
             ) {
                 // Optimized profile image loading
                 AsyncImage(
@@ -586,6 +591,15 @@ private fun PostItem(
                     modifier = Modifier.padding(vertical = 8.dp)
                 )
             }
+
+            if (showProfileDialog && profile != null) {
+                ProfileDialog(
+                    profile = profile,
+                    imageUri = profileImageUri,
+                    onDismiss = { showProfileDialog = false }
+                )
+            }
+
         }
     }
 }
@@ -690,6 +704,159 @@ private fun RandomReplyItem(
             )
         }
     }
+}
+
+@Composable
+private fun ProfileDialog(
+    profile: Profile,
+    imageUri: Uri?,
+    onDismiss: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = {
+            Text(
+                text = "Profile Info",
+                style = TextStyle(
+                    fontFamily = Etna,
+                    fontSize = rspSp(20.sp),
+                    color = Brown1
+                )
+            )
+        },
+        text = {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                AsyncImage(
+                    model = imageUri,
+                    contentDescription = "Profile Picture",
+                    placeholder = painterResource(R.drawable.plchldr),
+                    error = painterResource(R.drawable.plchldr),
+                    modifier = Modifier
+                        .size(120.dp)
+                        .clip(CircleShape)
+                        .border(2.dp, Brown1, CircleShape),
+                    contentScale = ContentScale.Crop
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Row {
+                    Text(
+                        text = "Username: ",
+                        style = TextStyle(
+                            fontFamily = GlacialIndifferenceBold,
+                            fontSize = rspSp(18.sp),
+                            color = Brown1
+                        )
+                    )
+                    Spacer(modifier = Modifier.weight(1f))
+                    profile.username?.let {
+                        Text(
+                            text = it,
+                            style = TextStyle(
+                                fontFamily = GlacialIndifferenceBold,
+                                fontSize = rspSp(18.sp),
+                                color = Brown1
+                            )
+                        )
+                    }
+                }
+
+                Row {
+                    Text(
+                        text = "Name: ",
+                        style = TextStyle(
+                            fontFamily = GlacialIndifferenceBold,
+                            fontSize = rspSp(18.sp),
+                            color = Brown1
+                        )
+                    )
+                    Spacer(modifier = Modifier.weight(1f))
+                    profile.fullName?.let {
+                        Text(
+                            text = it,
+                            style = TextStyle(
+                                fontFamily = GlacialIndifferenceBold,
+                                fontSize = rspSp(18.sp),
+                                color = Brown1
+                            )
+                        )
+                    }
+                }
+
+                Row {
+                    Text(
+                        text = "Registered: ",
+                        style = TextStyle(
+                            fontFamily = GlacialIndifferenceBold,
+                            fontSize = rspSp(18.sp),
+                            color = Brown1
+                        )
+                    )
+                    Spacer(modifier = Modifier.weight(1f))
+                    profile.registeredAs?.let { registeredAs ->
+                        val status = if (registeredAs == "Administrator") {
+                            ""
+                        } else {
+                            if (profile.verified == true) "[verified]" else "[pending]"
+                        }
+                        Text(
+                            text = "$registeredAs$status",
+                            style = TextStyle(
+                                fontSize = rspSp(18.sp),
+                                color = when {
+                                    profile.verified != true -> Color.Gray
+                                    registeredAs == "Administrator" -> Color.Red
+                                    registeredAs == "Expert" -> Color.Blue
+                                    else -> Color.Gray
+                                },
+                                fontFamily = GlacialIndifferenceBold
+                            )
+                        )
+                    }
+                }
+
+
+                profile.province?.takeIf { profile.registeredAs != "Administrator" }?.let { province ->
+                    Row {
+                        Text(
+                            text = "Province: ",
+                            style = TextStyle(
+                                fontFamily = GlacialIndifferenceBold,
+                                fontSize = rspSp(18.sp),
+                                color = Brown1
+                            )
+                        )
+                        Spacer(modifier = Modifier.weight(1f))
+                        Text(
+                            text = province,
+                            style = TextStyle(
+                                fontFamily = GlacialIndifferenceBold,
+                                fontSize = rspSp(18.sp),
+                                color = Brown1
+                            )
+                        )
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onDismiss) {
+                Text(
+                    text = "Close",
+                    style = TextStyle(
+                        fontFamily = Etna,
+                        fontSize = rspSp(18.sp),
+                        color = Brown1
+                    )
+                )
+            }
+        },
+        containerColor = Beige1
+    )
 }
 
 @Composable
