@@ -42,13 +42,17 @@
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data android:scheme="beanyapp" android:host="password-reset" />
             </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="beanyapp" android:host="notification_screen" />
+            </intent-filter>
         </activity>
-
         <!-- Add this for CanHub Cropper -->
         <activity
             android:name="com.canhub.cropper.CropImageActivity"
             android:theme="@style/Theme.MaterialComponents.DayNight.DarkActionBar" />
-
 
     </application>
 </manifest>

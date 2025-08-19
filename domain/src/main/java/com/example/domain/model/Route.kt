@@ -29,11 +29,18 @@ sealed class Route(
         fun createRoute(postId: Long) = "PostDetail/$postId"
     }
 
+    object DiagnosisListPage: Route(route = "DiagnosisList")
+    object DiagnosisDetailPage: Route(route = "DiagnosisDetail/{diagnosisId}") {
+        fun createRoute(diagnosisId: Long) = "DiagnosisDetail/$diagnosisId"
+    }
+
     object PaginatedDetectionPage: Route(route = "PaginatedDetection")
 
     object UpdateProfilePage: Route(route = "UpdateProfile")
 
     object DiagnosisPage: Route(route = "DiagnosisPage")
+
+    object TestPage: Route(route = "TestPage")
 
     companion object {
         val navRoutes: List<String> by lazy {

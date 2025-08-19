@@ -5,6 +5,7 @@ import androidx.room.PrimaryKey
 import androidx.room.TypeConverters
 import com.example.data.local.misc.Converters
 import com.example.domain.model.AABB
+import com.example.domain.model.Note
 import java.util.Date
 
 @Entity
@@ -15,5 +16,6 @@ data class Diagnosis(
     var boxes: List<AABB> = emptyList(),
     var lat: Double? = null,
     var long: Double? = null,
-    var diagnosedAt: Date = Date() // <--- added field
+    var diagnosedAt: Date = Date(),
+    var notes: List<Note> = emptyList()
 )

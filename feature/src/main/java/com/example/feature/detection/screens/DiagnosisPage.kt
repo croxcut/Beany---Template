@@ -16,6 +16,7 @@ import com.example.feature.detection.viewModel.DiagnosisViewModel
 import android.graphics.BitmapFactory
 import androidx.compose.foundation.background
 import androidx.compose.material3.Button
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.graphics.Color
 import com.example.feature.detection.misc.DetectionOverlay
 import java.util.Date
@@ -80,6 +81,35 @@ fun DiagnosisPage(
                 } ?: "N/A"
 
                 Text("Date: $formattedDate")
+
+                // Display notes section
+                Spacer(modifier = Modifier.height(8.dp))
+                Text("Notes:", style = MaterialTheme.typography.titleSmall)
+                if (diagnosis.notes.isEmpty()) {
+                    Text("No notes available", style = MaterialTheme.typography.bodySmall)
+                } else {
+                    Column {
+                        diagnosis.notes.forEachIndexed { index, note ->
+                            val noteDate = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault())
+                                .format(note.createdAt)
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 4.dp)
+                            ) {
+                                Text(
+                                    text = "Note ${index + 1} ($noteDate):",
+                                    style = MaterialTheme.typography.labelMedium
+                                )
+                                Text(
+                                    text = note.content,
+                                    style = MaterialTheme.typography.bodySmall,
+                                    modifier = Modifier.padding(start = 8.dp)
+                                )
+                            }
+                        }
+                    }
+                }
 
                 Button(
                     onClick = { viewModel.deleteDiagnosis(diagnosis) },

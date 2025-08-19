@@ -475,7 +475,7 @@ private fun HomeContent(
                     modifier = Modifier
                         .weight(1f)
                         .optionsContainerConfig()
-                        .clickable { navController.navigate(Route.DiagnosisPage.route) }
+                        .clickable { navController.navigate(Route.DiagnosisListPage.route) }
                 ) {
                     Image(
                         painter = painterResource(R.drawable.diagnosis),

@@ -6,9 +6,15 @@ import android.provider.MediaStore
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -16,14 +22,26 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.example.feature.detection.misc.DetectionOverlay
 import com.example.feature.detection.viewModel.DetectionViewModel
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.core.composables.InputField
 import com.example.core.ui.theme.Brown1
+import com.example.core.ui.theme.GlacialIndifference
+import com.example.core.ui.theme.GlacialIndifferenceBold
+import com.example.core.ui.theme.White
+import com.example.core.utils.rspDp
+import com.example.core.utils.rspSp
 import com.example.data.model.Diagnosis
 import com.example.domain.model.AABB
+import com.example.domain.model.Note
+import com.example.feature.detection.misc.TiltedImage
 import com.example.feature.detection.misc.saveBitmapAndGetPath
 import com.example.feature.detection.misc.saveBitmapWithBoxes
 import kotlinx.coroutines.Dispatchers
@@ -46,6 +64,7 @@ fun PaginatedDetectionPage(
 
     val coroutineScope = rememberCoroutineScope()
 
+
     // Load first image
     LaunchedEffect(imageUris) {
         if (imageUris.isNotEmpty()) {
@@ -62,7 +81,13 @@ fun PaginatedDetectionPage(
     }
 
     // Compute diagnosis info directly on each recomposition
-    val currentDiagnosis = overlayBoxes.maxByOrNull { it.cnf }?.clsName ?: "No diagnosis"
+    var noteText by remember { mutableStateOf("") }
+    val currentDiagnosis by remember(currentIndex, overlayBoxes) {
+        derivedStateOf {
+            overlayBoxes.maxByOrNull { it.cnf }?.clsName ?: "No diagnosis"
+        }
+    }
+
     val diagnosisInfo = when (currentDiagnosis) {
         "healthy" -> mapOf(
             "Risk Level" to "Low",
@@ -114,95 +139,360 @@ fun PaginatedDetectionPage(
             verticalArrangement = Arrangement.Center
         ) {
             currentBitmap?.let { bitmap ->
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .fillMaxHeight(0.4f),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
                     TiltedImage(bitmap = bitmap, overlayBoxes = overlayBoxes)
-                    Text(
-                        text = "Inference: ${inferenceTime}ms",
-                        color = Color.White,
-                        modifier = Modifier
-                            .padding(16.dp)
-                            .background(Color.Black.copy(alpha = 0.5f))
-                    )
                 }
             }
 
             Column(
                 modifier = Modifier
-                    .padding(16.dp)
-                    .align(Alignment.CenterHorizontally)
-                    .background(Color.Black.copy(alpha = 0.5f))
+                    .verticalScroll(state = rememberScrollState())
             ) {
-                Text(text = "Diagnosis: $currentDiagnosis", color = Color.White, modifier = Modifier.padding(bottom = 8.dp))
-                Text(text = "Risk Level: ${diagnosisInfo["Risk Level"]}", color = Color.White, modifier = Modifier.padding(bottom = 4.dp))
-                Text(text = "Signs And Symptoms: ${diagnosisInfo["Signs And Symptoms"]}", color = Color.White, modifier = Modifier.padding(bottom = 4.dp))
-                Text(text = "Daily Care Guide: ${diagnosisInfo["Daily Care Guide"]}", color = Color.White)
-            }
+                Column(
+                    modifier = Modifier
+                        .align(Alignment.CenterHorizontally)
+                        .background(White)
+                        .padding(10.dp)
+                        .border(
+                            width = rspDp(2.dp),
+                            color = Color.Gray.copy(0.8f),
+                            shape = RoundedCornerShape(rspDp(15.dp))
+                        )
+                        .padding(20.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
 
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                horizontalArrangement = Arrangement.SpaceEvenly
-            ) {
-                // Previous Image Button
-                Button(
-                    onClick = {
-                        if (currentIndex > 0) {
-                            coroutineScope.launch {
-                                isLoading = true
-                                val found = loadPreviousDetectedImage(context, imageUris, viewModel, currentIndex - 1) { bitmap, index ->
-                                    currentBitmap = bitmap
-                                    currentIndex = index
-                                }
-                                if (found == null) {
-                                    Toast.makeText(context, "No previous images with detections", Toast.LENGTH_SHORT).show()
-                                }
-                                isLoading = false
-                            }
-                        }
-                    },
-                    enabled = !isLoading
-                ) { Text("Previous") }
+                    Text(
+                        text = "Results",
+                        style = TextStyle(
+                            color = Brown1,
+                            fontFamily = GlacialIndifferenceBold,
+                            fontSize = rspSp(18.sp)
+                        ),
+                    )
 
-                // Next Image Button
-                Button(
-                    onClick = {
-                        coroutineScope.launch {
-                            isLoading = true
-                            val found = loadNextDetectedImage(context, imageUris, viewModel, currentIndex + 1) { bitmap, index ->
-                                currentBitmap = bitmap
-                                currentIndex = index
-                            }
-                            if (found == null) {
-                                Toast.makeText(context, "No more images with detections", Toast.LENGTH_SHORT).show()
-                            }
-                            isLoading = false
-                        }
-                    },
-                    enabled = !isLoading
-                ) { Text("Next") }
+                    Spacer(modifier = Modifier.padding(vertical = rspDp(20.dp)))
 
-                // Save Image Button
-                Button(
-                    onClick = {
-                        coroutineScope.launch {
-                            isLoading = true
-                            currentBitmap?.let { bitmap ->
-                                val savedPath = saveBitmapAndGetPath(context, bitmap)
-                                val diagnosis = Diagnosis(
-                                    imageUri = savedPath,
-                                    boxes = overlayBoxes,
-                                    lat = null,
-                                    long = null
+                    Row {
+                        Text(
+                            text = "Diagnosis:",
+                            style = TextStyle(
+                                color = Brown1,
+                                fontFamily = GlacialIndifferenceBold,
+                                fontSize = rspSp(15.sp)
+                            ),
+                        )
+
+                        Spacer(modifier = Modifier.weight(1f))
+
+                        Text(
+                            text = currentDiagnosis,
+                            style = TextStyle(
+                                color = if(currentDiagnosis != "Healthy") Color.Red else Color.Green,
+                                fontFamily = GlacialIndifferenceBold,
+                                fontSize = rspSp(15.sp)
+                            ),
+                        )
+                    }
+
+                    HorizontalDivider(
+                        thickness = rspDp(2.dp),
+                        color = Brown1.copy(alpha = 0.5f),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = rspDp(40.dp), vertical = rspDp(10.dp))
+                    )
+
+                    Column {
+                        Row {
+                            Text(
+                                text = "Risk Level:",
+                                style = TextStyle(
+                                    color = Brown1,
+                                    fontFamily = GlacialIndifferenceBold,
+                                    fontSize = rspSp(15.sp)
                                 )
-                                viewModel.saveDiagnosis(diagnosis)
-                            }
-                            isLoading = false
+                            )
+
+                            Spacer(modifier = Modifier.weight(1f))
                         }
-                    },
-                    enabled = !isLoading
-                ) { Text("↓") }
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Spacer(modifier = Modifier.weight(1f))
+                            Text(
+                                text = "${diagnosisInfo["Risk Level"]}",
+                                style = TextStyle(
+                                    color = Brown1,
+                                    fontFamily = GlacialIndifference,
+                                    fontSize = rspSp(15.sp)
+                                ),
+                                modifier = Modifier.fillMaxWidth(.85f)
+                            )
+                        }
+                    }
+
+                    HorizontalDivider(
+                        thickness = rspDp(2.dp),
+                        color = Brown1.copy(alpha = 0.5f),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = rspDp(40.dp), vertical = rspDp(10.dp))
+                    )
+
+                    Column {
+                        Row {
+                            Text(
+                                text = "Signs And Symptoms:",
+                                style = TextStyle(
+                                    color = Brown1,
+                                    fontFamily = GlacialIndifferenceBold,
+                                    fontSize = rspSp(15.sp)
+                                )
+                            )
+
+                            Spacer(modifier = Modifier.weight(1f))
+                        }
+
+                        Row(
+                           modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Spacer(modifier = Modifier.weight(1f))
+                            Text(
+                                text = "${diagnosisInfo["Signs And Symptoms"]}",
+                                style = TextStyle(
+                                    color = Brown1,
+                                    fontFamily = GlacialIndifference,
+                                    fontSize = rspSp(15.sp)
+                                ),
+                                modifier = Modifier.fillMaxWidth(.85f)
+                            )
+                        }
+                    }
+
+                    HorizontalDivider(
+                        thickness = rspDp(2.dp),
+                        color = Brown1.copy(alpha = 0.5f),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = rspDp(40.dp), vertical = rspDp(10.dp))
+                    )
+
+                    Column {
+                        Row {
+                            Text(
+                                text = "Daily Care Guide:",
+                                style = TextStyle(
+                                    color = Brown1,
+                                    fontFamily = GlacialIndifferenceBold,
+                                    fontSize = rspSp(15.sp)
+                                )
+                            )
+
+                            Spacer(modifier = Modifier.weight(1f))
+                        }
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Spacer(modifier = Modifier.weight(1f))
+                            Text(
+                                text = "${diagnosisInfo["Daily Care Guide"]}",
+                                style = TextStyle(
+                                    color = Brown1,
+                                    fontFamily = GlacialIndifference,
+                                    fontSize = rspSp(15.sp)
+                                ),
+                                modifier = Modifier.fillMaxWidth(.85f)
+                            )
+                        }
+                    }
+
+                    HorizontalDivider(
+                        thickness = rspDp(2.dp),
+                        color = Brown1.copy(alpha = 0.5f),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = rspDp(40.dp), vertical = rspDp(10.dp))
+                    )
+
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Row{
+                            Text(
+                                text = "Notes: ",
+                                style = TextStyle(
+                                    color = Brown1,
+                                    fontFamily = GlacialIndifferenceBold,
+                                    fontSize = rspSp(15.sp)
+                                ),
+                            )
+                            Spacer(modifier = Modifier.weight(1f))
+                        }
+
+                        viewModel.currentDiagnosis.value?.notes?.forEach { note ->
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 4.dp)
+                            ) {
+                                Text(
+                                    text = note.content,
+                                    style = TextStyle(
+                                        color = Brown1,
+                                        fontFamily = GlacialIndifference,
+                                        fontSize = rspSp(14.sp)
+                                    )
+                                )
+                                Text(
+                                    text = note.createdAt.toString(),
+                                    style = TextStyle(
+                                        color = Brown1.copy(alpha = 0.7f),
+                                        fontFamily = GlacialIndifference,
+                                        fontSize = rspSp(12.sp)
+                                    )
+                                )
+                            }
+                        }
+
+                        HorizontalDivider(
+                            thickness = rspDp(2.dp),
+                            color = Brown1.copy(alpha = 0.5f),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = rspDp(40.dp), vertical = rspDp(10.dp))
+                        )
+
+                        // Add new note section
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Row {
+                                Text(
+                                    text = "Add New Notes",
+                                    style = TextStyle(
+                                        color = Brown1,
+                                        fontFamily = GlacialIndifferenceBold,
+                                        fontSize = rspSp(15.sp)
+                                    ),
+                                )
+                                Spacer(modifier = Modifier.weight(1f))
+                            }
+
+                            InputField(
+                                value = noteText,
+                                onValueChange = { noteText = it },
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                                singleLine = false,
+                                maxLines = 3
+                            )
+                        }
+                    }
+
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Row{
+                            Text(
+                                text = "Add New Notes",
+                                style = TextStyle(
+                                    color = Brown1,
+                                    fontFamily = GlacialIndifferenceBold,
+                                    fontSize = rspSp(15.sp)
+                                ),
+                            )
+                            Spacer(modifier = Modifier.weight(1f))
+                        }
+
+                    }
+
+
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        horizontalArrangement = Arrangement.SpaceEvenly
+                    ) {
+                        // Previous Image Button
+                        Button(
+                            onClick = {
+                                if (currentIndex > 0) {
+                                    coroutineScope.launch {
+                                        isLoading = true
+                                        val found = loadPreviousDetectedImage(context, imageUris, viewModel, currentIndex - 1) { bitmap, index ->
+                                            currentBitmap = bitmap
+                                            currentIndex = index
+                                        }
+                                        if (found == null) {
+                                            Toast.makeText(context, "No previous images with detections", Toast.LENGTH_SHORT).show()
+                                        }
+                                        isLoading = false
+                                    }
+                                }
+                            },
+                            enabled = !isLoading
+                        ) { Text("Previous") }
+
+                        // Next Image Button
+                        Button(
+                            onClick = {
+                                coroutineScope.launch {
+                                    isLoading = true
+                                    val found = loadNextDetectedImage(context, imageUris, viewModel, currentIndex + 1) { bitmap, index ->
+                                        currentBitmap = bitmap
+                                        currentIndex = index
+                                    }
+                                    if (found == null) {
+                                        Toast.makeText(context, "No more images with detections", Toast.LENGTH_SHORT).show()
+                                    }
+                                    isLoading = false
+                                }
+                            },
+                            enabled = !isLoading
+                        ) { Text("Next") }
+
+                        // Save Image Button
+                        Button(
+                            onClick = {
+                                coroutineScope.launch {
+                                    isLoading = true
+                                    currentBitmap?.let { bitmap ->
+                                        val savedPath = saveBitmapAndGetPath(context, bitmap)
+                                        // Create note if text exists
+                                        val notes = if (noteText.isNotBlank()) {
+                                            listOf(Note(content = noteText))
+                                        } else {
+                                            emptyList()
+                                        }
+                                        val diagnosis = Diagnosis(
+                                            imageUri = savedPath,
+                                            boxes = overlayBoxes,
+                                            lat = null,
+                                            long = null,
+                                            notes = notes
+                                        )
+                                        viewModel.saveDiagnosis(diagnosis)
+                                        // Clear note text after saving
+                                        noteText = ""
+                                    }
+                                    isLoading = false
+                                }
+                            },
+                            enabled = !isLoading
+                        ) { Text("↓") }
+                    }
+                }
             }
+
         }
 
         if (isLoading) {
@@ -268,32 +558,4 @@ private suspend fun loadPreviousDetectedImage(
     return null
 }
 
-
-@Composable
-fun TiltedImage(bitmap: Bitmap?, overlayBoxes: List<AABB>) {
-    var rotationAngle by remember { mutableStateOf(0f) }
-
-    LaunchedEffect(bitmap) {
-        rotationAngle = Random.nextFloat() * 30f - 15f
-    }
-
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .aspectRatio(
-                if (bitmap != null) bitmap.width.toFloat() / bitmap.height.toFloat() else 1f
-            )
-            .graphicsLayer { rotationZ = rotationAngle }
-            .background(Color.Red.copy(alpha = 0.2f))
-    ) {
-        bitmap?.let {
-            Image(
-                bitmap = it.asImageBitmap(),
-                contentDescription = null,
-                modifier = Modifier.fillMaxSize()
-            )
-        }
-        DetectionOverlay(overlayBoxes, Modifier.fillMaxSize())
-    }
-}
 

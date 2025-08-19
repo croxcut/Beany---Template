@@ -45,8 +45,8 @@ android {
 
 dependencies {
 
-    implementation(project(":data"))
-    implementation(project(":domain"))
+//    implementation(project(":data"))
+//    implementation(project(":domain"))
 
     // Hilt
     implementation(libs.hilt)
@@ -81,6 +81,7 @@ dependencies {
     implementation(libs.androidx.material3)
     implementation(libs.material.icons.extended)
     implementation(libs.androidx.security)
+    implementation(libs.androidx.worker)
 
     // CameraX
     implementation(libs.camera.core)

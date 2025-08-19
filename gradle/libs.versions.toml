@@ -66,6 +66,9 @@ google-id = "1.1.1"
 # Credential
 credential = "1.5.0"
 
+# Worker
+worker = "2.10.3"
+
 # Img Cropper
 cropper = "4.4.0"
 
@@ -95,7 +98,7 @@ androidx-credential = { module = "androidx.credentials:credentials", version.ref
 androidx-splash = {module =  "androidx.core:core-splashscreen", version.ref = "splash"}
 androidx-security = {module = "androidx.security:security-crypto", version.ref = "security"}
 androidx-concurrent-futures = { module = "androidx.concurrent:concurrent-futures-ktx", version.ref = "ktx"}
-
+androidx-worker = { module = "androidx.work:work-runtime-ktx", version.ref = "worker"}
 # Compose Icons
 material-icons-extended = { module = "androidx.compose.material:material-icons-extended" , version.ref = "icons" }
 
@@ -188,3 +191,4 @@ hilt = { id = "com.google.dagger.hilt.android", version.ref = "hilt" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "kspPlugin" }
 android-library = { id = "com.android.library", version.ref = "agp" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
+kotlin-parcelize = { id = "org.jetbrains.kotlin.plugin.parcelize", version.ref = "kotlin" }

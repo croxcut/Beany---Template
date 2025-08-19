@@ -110,6 +110,7 @@ dependencies {
     implementation(libs.androidx.material3)
     implementation(libs.androidx.security)
     implementation(libs.androidx.concurrent.futures)
+    implementation(libs.androidx.worker)
 
     // Guava
     implementation(libs.guava)

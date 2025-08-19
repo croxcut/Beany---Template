@@ -2,6 +2,7 @@ package com.example.data.local.misc
 
 import androidx.room.TypeConverter
 import com.example.domain.model.AABB
+import com.example.domain.model.Note
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import java.util.Date
@@ -10,17 +11,22 @@ import java.util.Date
 class Converters {
     private val gson = Gson()
 
-    // AABB list converters
     @TypeConverter
     fun fromAABBList(boxes: List<AABB>): String = gson.toJson(boxes)
 
     @TypeConverter
     fun toAABBList(data: String): List<AABB> {
-        val listType = object : TypeToken<List<AABB>>() {}.type
-        return gson.fromJson(data, listType)
+        return gson.fromJson(data, object : TypeToken<List<AABB>>() {}.type)
     }
 
-    // Date converters
+    @TypeConverter
+    fun fromNoteList(notes: List<Note>): String = gson.toJson(notes)
+
+    @TypeConverter
+    fun toNoteList(data: String): List<Note> {
+        return gson.fromJson(data, object : TypeToken<List<Note>>() {}.type)
+    }
+
     @TypeConverter
     fun fromDate(date: Date): Long = date.time
 

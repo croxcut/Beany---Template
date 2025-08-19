@@ -47,6 +47,7 @@ dependencies {
 
     // Domain
     implementation(project(":domain"))
+    implementation(project(":core"))
 
     // Gson
     implementation(libs.gson)
@@ -101,6 +102,7 @@ dependencies {
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
     implementation(libs.androidx.security)
+    implementation(libs.androidx.worker)
 
     // CameraX
     implementation(libs.camera.core)

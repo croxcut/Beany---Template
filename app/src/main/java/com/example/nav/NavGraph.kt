@@ -3,6 +3,7 @@ package com.example.nav
 import android.app.Activity
 import android.content.Intent
 import android.net.Uri
+import android.util.Log
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -16,9 +17,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.navArgument
 import androidx.navigation.navDeepLink
 import com.example.domain.model.Route
 import com.example.feature.aboutUs.AboutUsPage
@@ -30,6 +33,8 @@ import com.example.feature.detection.screens.DiagnosisPage
 import com.example.feature.detection.screens.PaginatedDetectionPage
 import com.example.feature.detection.screens.RealtimeDetectionPage
 import com.example.feature.detection.screens.UploadDetectionPage
+import com.example.feature.detection.screens.diagnosis.DiagnosisDetailScreen
+import com.example.feature.detection.screens.diagnosis.DiagnosisListScreen
 import com.example.feature.geomap.GeoMapPage
 import com.example.feature.geomap.GeoMapViewModel
 import com.example.feature.home.HomePage
@@ -43,6 +48,7 @@ import com.example.feature.login.forgotPass.ResetPasswordPage
 import com.example.feature.login.verify.VerifyUserPage
 import com.example.feature.navigation.NavigationBar
 import com.example.feature.notification.NotificationPage
+import com.example.feature.notification.NotificationScreen
 import com.example.feature.onboarding.OnboardingPage
 import com.example.feature.onboarding.OnboardingPageViewModel
 import com.example.feature.profile.UserProfilePage
@@ -75,7 +81,7 @@ fun NavGraph(
     ) {
         NavHost(
             navController = navController,
-            startDestination = Route.LaunchPage.route,
+            startDestination = Route.NotificationPage.route,
             modifier = Modifier
                 .matchParentSize()
                 .windowInsetsPadding(WindowInsets.navigationBars)
@@ -114,7 +120,6 @@ fun NavGraph(
             ) {
                 RealtimeDetectionPage()
             }
-            composable(Route.NotificationPage.route) { NotificationPage() }
             composable(Route.GeoMapPage.route) {
                 val viewModel: GeoMapViewModel = hiltViewModel()
                 GeoMapPage(viewModel)
@@ -185,6 +190,41 @@ fun NavGraph(
             ) {
                 DiagnosisPage()
             }
+
+            composable(Route.DiagnosisListPage.route) {
+                DiagnosisListScreen(
+                    onDiagnosisClick = { diagnosisId ->
+                        navController.navigate(Route.DiagnosisDetailPage.createRoute(diagnosisId))
+                    }
+                )
+            }
+
+            composable(Route.DiagnosisDetailPage.route) { backStackEntry ->
+                val diagnosisId = backStackEntry.arguments?.getString("diagnosisId")?.toLongOrNull()
+                if (diagnosisId != null) {
+                    DiagnosisDetailScreen(
+                        diagnosisId = diagnosisId,
+                        onBackClick = { navController.popBackStack() }
+                    )
+                }
+            }
+
+            composable(Route.NotificationPage.route) {
+                NotificationPage(navController = navController)
+            }
+
+            composable(
+                route = "notification_screen/{message}",
+                arguments = listOf(navArgument("message") { type = NavType.StringType }),
+            ) { backStackEntry ->
+                val diagnosisId = backStackEntry.arguments?.getString("message") ?: "No message"
+//                NotificationScreen(message)
+                DiagnosisDetailScreen(
+                    diagnosisId = diagnosisId.toLong(),
+                    onBackClick = { navController.popBackStack() }
+                )
+            }
+
         }
 
         if (currentRoute in navRoutes) {
@@ -192,7 +232,7 @@ fun NavGraph(
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
                     .fillMaxWidth()
-                    .windowInsetsPadding(WindowInsets.navigationBars) // Changed here
+                    .windowInsetsPadding(WindowInsets.navigationBars)
             ) {
                 NavigationBar(
                     currentRoute = currentRoute,
