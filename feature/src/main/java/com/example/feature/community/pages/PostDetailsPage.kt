@@ -38,6 +38,10 @@ import com.example.domain.model.Profile
 import com.example.domain.model.Reply
 import com.example.feature.community.viewModels.PostDetailViewModel
 import com.example.feature.R
+import com.example.feature.community.misc.ParentReplyInThread
+import com.example.feature.community.misc.ParentReplyPreview
+import com.example.feature.community.misc.ProfileDialog
+import com.example.feature.community.misc.formatUserRole
 
 @Composable
 fun PostDetailPage(
@@ -456,46 +460,6 @@ private fun ReplyThread(
 }
 
 @Composable
-private fun ParentReplyInThread(
-    parent: Reply,
-    profile: Profile?,
-    modifier: Modifier = Modifier
-) {
-    Card(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(horizontal = 8.dp),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFFF5F5F5))
-    ) {
-        Column(modifier = Modifier.padding(8.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(
-                    text = profile?.username ?: "Unknown",
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 12.sp
-                )
-                Spacer(modifier = Modifier.width(4.dp))
-                Text(
-                    text = formatUserRole(profile),
-                    fontSize = 10.sp,
-                    color = when {
-                        profile?.verified != true -> Color.Gray
-                        profile?.registeredAs == "Administrator" -> Color.Red
-                        profile?.registeredAs == "Expert" -> Color.Blue
-                        else -> Color.Gray
-                    }
-                )
-            }
-            Text(
-                text = parent.reply_body ?: "",
-                fontSize = 12.sp,
-                color = Color.Gray
-            )
-        }
-    }
-}
-
-@Composable
 private fun ReplyInput(
     parentReplyId: Long?,
     replies: List<Reply>,
@@ -549,150 +513,6 @@ private fun ReplyInput(
     }
 }
 
-@Composable
-private fun ParentReplyPreview(
-    parent: Reply,
-    profile: Profile?,
-    onClose: () -> Unit // Add close handler
-) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 8.dp, vertical = 4.dp),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFFE5E5EA))
-    ) {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-        ) {
-            Column(modifier = Modifier.padding(8.dp)) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    val displayName = profile?.username ?: "Unknown"
-                    val userRole = formatUserRole(profile)
 
-                    Text("$displayName:", fontWeight = FontWeight.Bold, fontSize = 12.sp)
-                    if (userRole.isNotEmpty()) {
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text(
-                            text = userRole,
-                            color = if (userRole == "[Administrator]") Color.Red else Color.Gray,
-                            fontSize = 10.sp
-                        )
-                    }
-                }
-                Text(parent.reply_body, fontSize = 14.sp)
-            }
 
-            // Close button
-            IconButton(
-                onClick = onClose,
-                modifier = Modifier
-                    .padding(rspDp(5.dp))
-                    .align(Alignment.TopEnd)
-                    .size(rspDp(20.dp))
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Close,
-                    contentDescription = "Close",
-                    tint = Color.Red
-                )
-            }
-        }
-    }
-}
-@Composable
-private fun ProfileDialog(
-    profile: Profile,
-    imageUri: Uri?,
-    onDismiss: () -> Unit
-) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = {
-            Text(
-                text = "Profile Info",
-                style = TextStyle(
-                    fontSize = 20.sp,
-                    color = Brown1
-                )
-            )
-        },
-        text = {
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                AsyncImage(
-                    model = imageUri,
-                    contentDescription = "Profile Picture",
-                    placeholder = painterResource(R.drawable.plchldr),
-                    error = painterResource(R.drawable.plchldr),
-                    modifier = Modifier
-                        .size(120.dp)
-                        .clip(CircleShape)
-                        .border(2.dp, Brown1, CircleShape),
-                    contentScale = ContentScale.Crop
-                )
 
-                Spacer(modifier = Modifier.height(8.dp))
-
-                Row {
-                    Text("Username: ", fontWeight = FontWeight.Bold)
-                    Spacer(modifier = Modifier.weight(1f))
-                    Text(profile.username ?: "Unknown", fontWeight = FontWeight.Bold)
-                }
-
-                Row {
-                    Text("Name: ", fontWeight = FontWeight.Bold)
-                    Spacer(modifier = Modifier.weight(1f))
-                    Text(profile.fullName ?: "Unknown", fontWeight = FontWeight.Bold)
-                }
-
-                Row {
-                    Text("Registered: ", fontWeight = FontWeight.Bold)
-                    Spacer(modifier = Modifier.weight(1f))
-                    profile.registeredAs?.let { registeredAs ->
-                        val status = if (registeredAs == "Administrator") {
-                            ""
-                        } else {
-                            if (profile.verified == true) "[verified]" else "[pending]"
-                        }
-                        Text(
-                            text = "$registeredAs$status",
-                            color = when {
-                                profile.verified != true -> Color.Gray
-                                registeredAs == "Administrator" -> Color.Red
-                                registeredAs == "Expert" -> Color.Blue
-                                else -> Color.Gray
-                            }
-                        )
-                    }
-                }
-
-                profile.province?.takeIf { profile.registeredAs != "Administrator" }?.let { province ->
-                    Row {
-                        Text("Province: ", fontWeight = FontWeight.Bold)
-                        Spacer(modifier = Modifier.weight(1f))
-                        Text(province)
-                    }
-                }
-            }
-        },
-        confirmButton = {
-            TextButton(onClick = onDismiss) {
-                Text("Close")
-            }
-        },
-        containerColor = Beige1
-    )
-}
-
-private fun formatUserRole(profile: Profile?): String {
-    return when {
-        profile == null -> ""
-        profile.registeredAs == "Administrator" -> "[Administrator]"
-        profile.registeredAs == "Expert" && profile.verified == true -> "[Expert]"
-        profile.registeredAs == "Farmer" -> "Farmer"
-        else -> ""
-    }
-}
