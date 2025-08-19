@@ -12,4 +12,7 @@ interface PostRepository {
     suspend fun getPostById(postId: Long): Post?
     suspend fun updatePostLikes(postId: Long, likes: List<String>)
     suspend fun getCommentCount(postId: Long): Int
+
+//    suspend fun searchPosts(query: String, page: Int, pageSize: Int): List<Post>
+    suspend fun searchPosts(query: String): List<Post>
 }

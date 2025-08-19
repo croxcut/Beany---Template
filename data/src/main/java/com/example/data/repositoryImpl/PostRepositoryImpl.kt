@@ -1,17 +1,21 @@
 package com.example.data.repositoryImpl
 
+import androidx.compose.ui.text.toLowerCase
 import com.example.domain.model.NewPost
 import com.example.domain.model.Post
 import com.example.domain.model.Reply
 import com.example.domain.repository.PostRepository
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.annotations.SupabaseExperimental
+import io.github.jan.supabase.postgrest.PropertyConversionMethod
 import io.github.jan.supabase.postgrest.from
 import io.github.jan.supabase.postgrest.query.Count
 import io.github.jan.supabase.postgrest.query.Order
 import io.github.jan.supabase.postgrest.query.filter.FilterOperation
 import io.github.jan.supabase.postgrest.query.filter.FilterOperator
+import io.github.jan.supabase.postgrest.query.filter.PostgrestFilterBuilder
 import io.github.jan.supabase.realtime.selectAsFlow
+import kotlinx.atomicfu.TraceBase.None.append
 import kotlinx.coroutines.flow.first
 import javax.inject.Inject
 
@@ -79,4 +83,35 @@ class PostRepositoryImpl @Inject constructor(
             0
         }
     }
+
+//    @OptIn(SupabaseExperimental::class)
+//    override suspend fun searchPosts(query: String, page: Int, pageSize: Int): List<Post> {
+//        val start = (page - 1) * pageSize
+//        val end = start + pageSize - 1
+//
+//        return supabaseClient.from("posts")
+//            .selectAsFlow(
+//                Post::id,
+//                filter = FilterOperation("post_title", FilterOperator.ILIKE, "%$query%")
+//            )
+//            .first()
+//            .let { posts ->
+//                // Manually apply pagination and sorting since we can't do it in the query
+//                posts.sortedByDescending { it.created_at }
+//                    .drop(start)
+//                    .take(pageSize)
+//            }
+//    }
+
+    @OptIn(SupabaseExperimental::class)
+    override suspend fun searchPosts(query: String): List<Post> {
+        return supabaseClient.from("posts")
+            .select {
+                filter {
+                    ilike("post_title", "%$query%")
+                }
+            }
+            .decodeList<Post>()
+    }
+
 }

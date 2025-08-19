@@ -30,6 +30,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.launch
 import java.io.File
@@ -52,20 +54,9 @@ class PostsViewModel @Inject constructor(
     private val _posts = mutableStateListOf<Post>()
     val posts: List<Post> get() = _posts
 
-    private val _searchQuery = mutableStateOf("")
-    val searchQuery: State<String> = _searchQuery
 
     private val _postToDelete = mutableStateOf<Post?>(null)
     val postToDelete: State<Post?> = _postToDelete
-
-    val postsPagingFlow: Flow<PagingData<Post>> = Pager(
-        config = PagingConfig(
-            pageSize = 10,
-            enablePlaceholders = false,
-            initialLoadSize = 20
-        ),
-        pagingSourceFactory = { PostsPagingSource(postRepository) }
-    ).flow.cachedIn(viewModelScope)
 
     private val _postLikes = mutableStateMapOf<Long, List<String>>()
     val postLikes: SnapshotStateMap<Long, List<String>> = _postLikes
@@ -77,8 +68,36 @@ class PostsViewModel @Inject constructor(
         loadProfiles()
     }
 
+    private val _searchQuery = MutableStateFlow("")
+    val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
+
+    private val _selectedTags = MutableStateFlow<List<String>>(emptyList())
+    val selectedTags: StateFlow<List<String>> = _selectedTags.asStateFlow()
+
+    val postsPagingFlow: Flow<PagingData<Post>> = combine(
+        searchQuery,
+        selectedTags
+    ) { query, tags ->
+        Pair(query, tags)
+    }.flatMapLatest { (query, tags) ->
+        Pager(
+            config = PagingConfig(pageSize = 10),
+            pagingSourceFactory = {
+                PostsPagingSource(
+                    postRepository = postRepository,
+                    searchQuery = query.takeIf { it.isNotBlank() },
+                    selectedTags = tags
+                )
+            }
+        ).flow
+    }.cachedIn(viewModelScope)
+
     fun setSearchQuery(query: String) {
         _searchQuery.value = query
+    }
+
+    fun setSelectedTags(tags: List<String>) {
+        _selectedTags.value = tags
     }
 
     fun loadProfiles() {

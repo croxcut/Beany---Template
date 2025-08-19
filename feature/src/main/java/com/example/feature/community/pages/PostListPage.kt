@@ -1,5 +1,6 @@
 package com.example.feature.community.pages
 
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -60,18 +61,22 @@ fun PostsListPage(
     var showNewPostDialog by remember { mutableStateOf(false) }
     var newPostTitle by remember { mutableStateOf("") }
     var newPostBody by remember { mutableStateOf("") }
-    var selectedTags by remember { mutableStateOf(emptyList<String>()) }
     val availableTags = remember { listOf("Disease", "Questions", "Tips") }
 
+    val searchQuery by viewModel.searchQuery.collectAsState()
+    val selectedTags by viewModel.selectedTags.collectAsState()
     val posts = viewModel.postsPagingFlow.collectAsLazyPagingItems()
     val profile by viewModel.profiles.collectAsState(initial = emptyList())
     val session by viewModel.profile.collectAsState()
 
+
+    var tagsDropdownExpanded by remember { mutableStateOf(false) }
+
     // Debounced search
-    var searchQuery by remember { mutableStateOf("") }
-    LaunchedEffect(searchQuery) {
+    var localSearchQuery by remember { mutableStateOf("") }
+    LaunchedEffect(localSearchQuery) {
         delay(300)
-        viewModel.setSearchQuery(searchQuery)
+        viewModel.setSearchQuery(localSearchQuery)
     }
 
     Box(
@@ -114,8 +119,8 @@ fun PostsListPage(
 
             // Search Bar
             TextField(
-                value = searchQuery,
-                onValueChange = { searchQuery = it },
+                value = localSearchQuery,
+                onValueChange = { localSearchQuery = it },
                 textStyle = TextStyle(
                     color = Brown1,
                     fontFamily = Etna,
@@ -141,41 +146,64 @@ fun PostsListPage(
             )
 
             // Tags Section
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 8.dp, vertical = 4.dp)
-            ) {
-                Text(
-                    text = "Sort By",
-                    style = TextStyle(
-                        fontFamily = GlacialIndifferenceBold,
-                        fontSize = rspSp(15.sp),
-                        color = White,
-                    )
-                )
-                FlowRow(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    modifier = Modifier.fillMaxWidth()
+            Box(modifier = Modifier.fillMaxWidth()) {
+                OutlinedButton(
+                    onClick = { tagsDropdownExpanded = true },
+                    modifier = Modifier.padding(8.dp)
+                ) {
+                    Text("Filter by Tags (${selectedTags.size})")
+                }
+
+                DropdownMenu(
+                    expanded = tagsDropdownExpanded,
+                    onDismissRequest = { tagsDropdownExpanded = false }
                 ) {
                     availableTags.forEach { tag ->
-                        val isSelected = selectedTags.contains(tag)
-                        FilterChip(
-                            selected = isSelected,
-                            onClick = {
-                                selectedTags = if (isSelected) {
-                                    selectedTags - tag
-                                } else {
-                                    selectedTags + tag
+                        DropdownMenuItem(
+                            text = {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Checkbox(
+                                        checked = selectedTags.contains(tag),
+                                        onCheckedChange = null
+                                    )
+                                    Text(tag)
                                 }
                             },
+                            onClick = {
+                                viewModel.setSelectedTags(
+                                    if (selectedTags.contains(tag)) {
+                                        selectedTags - tag
+                                    } else {
+                                        selectedTags + tag
+                                    }
+                                )
+                            }
+                        )
+                    }
+                }
+            }
+
+            if (selectedTags.isNotEmpty()) {
+                FlowRow(
+                    modifier = Modifier.padding(horizontal = 8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    selectedTags.forEach { tag ->
+                        FilterChip(
+                            selected = true,
+                            onClick = {
+                                viewModel.setSelectedTags(selectedTags - tag)
+                            },
                             label = { Text(tag) },
-                            modifier = Modifier.padding(2.dp),
+                            trailingIcon = {
+                                Icon(
+                                    Icons.Default.Close,
+                                    contentDescription = "Remove tag"
+                                )
+                            },
                             colors = FilterChipDefaults.filterChipColors(
                                 selectedContainerColor = Beige1,
-                                selectedLabelColor = Brown1,
-                                disabledContainerColor = White,
-                                disabledLabelColor = White
+                                selectedLabelColor = Brown1
                             )
                         )
                     }
@@ -193,37 +221,33 @@ fun PostsListPage(
                     val error = (posts.loadState.refresh as LoadState.Error).error
                     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                         Text("Error: ${error.localizedMessage}", color = Color.Red)
+                        Log.i("Posts-Page:" , "$error")
                     }
                 }
                 else -> {
-                    // ACTUAL PAGING IMPLEMENTATION
                     LazyColumn(
                         modifier = Modifier.weight(1f),
                         contentPadding = PaddingValues(8.dp)
                     ) {
-                        // Filter items based on tags
                         items(
-                            items = posts.itemSnapshotList.items
-                                .filter { post ->
-                                    selectedTags.isEmpty() ||
-                                            post.tags?.any { it in selectedTags } ?: false
-                                },
-                            key = { post -> post.id }
-                        ) { post ->
-                            val postProfile = remember(post.sender) {
-                                profile.find { it.id == post.sender }
+                            count = posts.itemCount,
+                            key = { index -> posts[index]?.id ?: index }
+                        ) { index ->
+                            posts[index]?.let { post ->
+                                val postProfile = remember(post.sender) {
+                                    profile.find { it.id == post.sender }
+                                }
+                                PostItem(
+                                    post = post,
+                                    onPostClick = onPostClick,
+                                    onDeleteClick = { viewModel.setPostToDelete(it) },
+                                    profile = postProfile,
+                                    currentUserId = session?.id.toString(),
+                                    viewModel = viewModel
+                                )
                             }
-                            PostItem(
-                                post = post,
-                                onPostClick = onPostClick,
-                                onDeleteClick = { viewModel.setPostToDelete(it) },
-                                profile = postProfile,
-                                currentUserId = session?.id.toString(),
-                                viewModel = viewModel
-                            )
                         }
 
-                        // Show loading at bottom when loading more
                         if (posts.loadState.append is LoadState.Loading) {
                             item {
                                 Box(
@@ -266,12 +290,12 @@ fun PostsListPage(
                     viewModel.createPost(title, body, tags)
                     newPostTitle = ""
                     newPostBody = ""
-                    selectedTags = emptyList()
+                    viewModel.setSelectedTags(emptyList()) // Update via ViewModel
                     showNewPostDialog = false
                 },
                 availableTags = availableTags,
                 selectedTags = selectedTags,
-                onTagsChanged = { selectedTags = it },
+                onTagsChanged = { viewModel.setSelectedTags(it) }, // Update via ViewModel
                 title = newPostTitle,
                 onTitleChanged = { newPostTitle = it },
                 body = newPostBody,
