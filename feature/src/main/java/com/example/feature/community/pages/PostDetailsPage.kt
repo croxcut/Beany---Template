@@ -9,6 +9,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -34,7 +36,7 @@ fun PostDetailPage(
     var newReply by remember { mutableStateOf("") }
 
     val profiles by viewModel.profiles.collectAsState()
-    val sesson by viewModel.profile.collectAsState()
+    val session by viewModel.profile.collectAsState()
 
     LaunchedEffect(postId) {
         viewModel.loadSession()
@@ -63,8 +65,9 @@ fun PostDetailPage(
                             replies = replies,
                             onReplyClick = viewModel::setParentReplyId,
                             onUnsendReply = viewModel::unsendReply,
+                            onToggleLike = viewModel::toggleReplyLike,
                             profiles = profiles,
-                            sessionId = sesson?.id.toString()
+                            sessionId = session?.id.toString(),
                         )
                     }
                 }
@@ -102,6 +105,7 @@ private fun PostCard(
     replies: List<Reply>,
     onReplyClick: (Long) -> Unit,
     onUnsendReply: (Long) -> Unit,
+    onToggleLike: (Long) -> Unit, // Add this parameter
     profiles: List<Profile>,
     sessionId: String
 ) {
@@ -138,6 +142,7 @@ private fun PostCard(
                     replies = replies,
                     onReplyClick = onReplyClick,
                     onUnsendReply = onUnsendReply,
+                    onToggleLike = onToggleLike, // Pass it down
                     indent = 1,
                     profiles = profiles,
                     currentUserId = sessionId
@@ -234,6 +239,7 @@ private fun ReplyThread(
     replies: List<Reply>,
     onReplyClick: (Long) -> Unit,
     onUnsendReply: (Long) -> Unit,
+    onToggleLike: (Long) -> Unit, // New parameter for handling likes
     indent: Int,
     profiles: List<Profile>,
     currentUserId: String
@@ -243,6 +249,8 @@ private fun ReplyThread(
     var showDialog by remember { mutableStateOf(false) }
 
     val canUnsend = reply.reply_body != "Unsent a message" && reply.sender == currentUserId
+    val isLiked = remember(reply.likes) { reply.likes?.contains(currentUserId) ?: false }
+    val likeCount = remember(reply.likes) { reply.likes?.size ?: 0 }
 
     val parentReply = reply.parent_reply_id?.let { parentId ->
         replies.find { it.id == parentId }
@@ -255,7 +263,6 @@ private fun ReplyThread(
         modifier = Modifier
             .fillMaxWidth()
             .padding(start = (actualIndent * 12).dp, end = 4.dp)
-            .clickable { onReplyClick(reply.id) }
     ) {
         parentReply?.let { parent ->
             val parentProfile = profiles.find { it.id == parent.sender }
@@ -283,37 +290,78 @@ private fun ReplyThread(
                 )
                 .padding(horizontal = 12.dp, vertical = 8.dp)
         ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Column(modifier = Modifier.weight(1f)) {
-                    val replyProfile = profiles.find { it.id == reply.sender }
-                    val userRole = formatUserRole(replyProfile)
+            Column {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        val replyProfile = profiles.find { it.id == reply.sender }
+                        val userRole = formatUserRole(replyProfile)
 
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(replyDisplayName, fontWeight = FontWeight.Bold, fontSize = 12.sp)
-                        if (userRole.isNotEmpty()) {
-                            Spacer(modifier = Modifier.width(4.dp))
-                            Text(
-                                text = userRole,
-                                color = when {
-                                    userRole == "[Administrator]" -> Color.Red
-                                    userRole == "[Expert]" -> Color(0xFF6200EE)
-                                    else -> Color.Gray
-                                },
-                                fontSize = 10.sp
-                            )
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(replyDisplayName, fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                            if (userRole.isNotEmpty()) {
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Text(
+                                    text = userRole,
+                                    color = when {
+                                        userRole == "[Administrator]" -> Color.Red
+                                        userRole == "[Expert]" -> Color(0xFF6200EE)
+                                        else -> Color.Gray
+                                    },
+                                    fontSize = 10.sp
+                                )
+                            }
                         }
+                        Text(reply.reply_body, fontSize = 14.sp)
                     }
-                    Text(reply.reply_body, fontSize = 14.sp)
+
+                    if (canUnsend) {
+                        Icon(
+                            imageVector = Icons.Default.Close,
+                            contentDescription = "Unsend Reply",
+                            modifier = Modifier
+                                .size(20.dp)
+                                .clickable { showDialog = true },
+                            tint = Color.Red
+                        )
+                    }
                 }
 
-                if (canUnsend) {
-                    Icon(
-                        imageVector = Icons.Default.Close,
-                        contentDescription = "Unsend Reply",
+                // Like and reply actions row
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 4.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    // Like button
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier
-                            .size(20.dp)
-                            .clickable { showDialog = true },
-                        tint = Color.Red
+                            .clickable { onToggleLike(reply.id) }
+                            .padding(4.dp)
+                    ) {
+                        Icon(
+                            imageVector = if (isLiked) Icons.Filled.Favorite else Icons.Outlined.FavoriteBorder,
+                            contentDescription = "Like",
+                            tint = if (isLiked) Color.Red else Color.Gray,
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(
+                            text = "$likeCount",
+                            fontSize = 12.sp,
+                            color = if (isLiked) Color.Red else Color.Gray
+                        )
+                    }
+
+                    // Reply button
+                    Text(
+                        text = "Reply",
+                        color = Color(0xFF6200EE),
+                        fontSize = 12.sp,
+                        modifier = Modifier
+                            .clickable { onReplyClick(reply.id) }
+                            .padding(4.dp)
                     )
                 }
             }
@@ -344,6 +392,7 @@ private fun ReplyThread(
                 replies = replies,
                 onReplyClick = onReplyClick,
                 onUnsendReply = onUnsendReply,
+                onToggleLike = onToggleLike,
                 indent = indent + 1,
                 profiles = profiles,
                 currentUserId = currentUserId

@@ -2,10 +2,13 @@ package com.example.data.repositoryImpl
 
 import com.example.domain.model.NewPost
 import com.example.domain.model.Post
+import com.example.domain.model.Reply
 import com.example.domain.repository.PostRepository
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.annotations.SupabaseExperimental
 import io.github.jan.supabase.postgrest.from
+import io.github.jan.supabase.postgrest.query.Count
+import io.github.jan.supabase.postgrest.query.Order
 import io.github.jan.supabase.postgrest.query.filter.FilterOperation
 import io.github.jan.supabase.postgrest.query.filter.FilterOperator
 import io.github.jan.supabase.realtime.selectAsFlow
@@ -19,6 +22,19 @@ class PostRepositoryImpl @Inject constructor(
     @OptIn(SupabaseExperimental::class)
     override suspend fun getPosts(): List<Post> {
         return supabaseClient.from("posts").selectAsFlow(Post::id).first()
+    }
+
+    @OptIn(SupabaseExperimental::class)
+    override suspend fun getPosts(page: Int, pageSize: Int): List<Post> {
+        val start = (page - 1) * pageSize
+        val end = start + pageSize - 1
+
+        return supabaseClient.from("posts")
+            .select {
+                order(column = "created_at", order = Order.DESCENDING)
+                range(start.toLong()..end.toLong())
+            }
+            .decodeList<Post>()
     }
 
     @OptIn(SupabaseExperimental::class)
@@ -37,5 +53,30 @@ class PostRepositoryImpl @Inject constructor(
             .selectAsFlow(Post::id, filter = FilterOperation("id", FilterOperator.EQ, postId))
             .first()
             .firstOrNull()
+    }
+
+    override suspend fun updatePostLikes(postId: Long, likes: List<String>) {
+        supabaseClient.from("posts")
+            .update({
+                set("likes", likes)
+            }) {
+                filter { eq("id", postId) }
+            }
+    }
+
+    @OptIn(SupabaseExperimental::class)
+    override suspend fun getCommentCount(postId: Long): Int {
+        return try {
+            supabaseClient.from("replies")
+                .selectAsFlow(
+                    Reply::id,
+                    filter = FilterOperation("post_id", FilterOperator.EQ, postId)
+                )
+                .first()
+                .count()
+        } catch (e: Exception) {
+            println("Error getting reply count: ${e.message}")
+            0
+        }
     }
 }

@@ -8,7 +8,8 @@ data class Reply(
     val post_id: Long,
     val sender: String,
     val reply_body: String,
-    val image_url: String? = null, // NEW
+    val image_url: String? = null,
     val created_at: String,
-    val parent_reply_id: Long? = null
+    val parent_reply_id: Long? = null,
+    val likes: List<String>? = emptyList() // Add this line
 )

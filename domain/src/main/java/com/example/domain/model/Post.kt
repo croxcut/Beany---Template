@@ -9,5 +9,7 @@ data class Post(
     val post_title: String,
     val post_body: String? = null,
     val image_url: String? = null,
-    val created_at: String
+    val created_at: String,
+    val tags: List<String>? = emptyList(),
+    val likes: List<String>? = emptyList()
 )

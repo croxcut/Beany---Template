@@ -23,6 +23,9 @@ supabase = "3.2.2"
 ktor = "3.2.3"
 go-true = "2.6.1"
 
+# Paging
+paging = "3.3.6"
+
 # CameraX
 camera = "1.4.2"
 
@@ -120,6 +123,10 @@ coil-svg = {module = "io.coil-kt:coil-svg", version.ref = "coil"}
 # Tensorflow
 tensorflow = { module = "org.tensorflow:tensorflow-lite", version.ref = "tflite"}
 tensorflow-support = { module = "org.tensorflow:tensorflow-lite-support", version.ref = "tflite-support"}
+
+# Paging
+paging-runtime = { module = "androidx.paging:paging-runtime", version.ref = "paging" }
+paging-compose = { module = "androidx.paging:paging-compose", version.ref = "paging" }
 
 # Guava
 guava = { module = "com.google.guava:guava", version.ref = "guava"}

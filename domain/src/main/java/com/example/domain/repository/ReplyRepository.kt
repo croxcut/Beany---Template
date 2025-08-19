@@ -9,4 +9,5 @@ interface ReplyRepository {
     fun getRepliesFlow(postId: Long): Flow<List<Reply>>
     suspend fun createReply(reply: NewReply)
     suspend fun unsendReply(replyId: Long)
+    suspend fun toggleReplyLike(replyId: Long, userId: String)
 }

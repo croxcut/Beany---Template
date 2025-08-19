@@ -69,6 +69,9 @@ dependencies {
     implementation(libs.hilt.navigation.compose)
     kapt(libs.hilt.compiler)
 
+    implementation(libs.paging.runtime)
+    implementation(libs.paging.compose)
+
     // Gson
     implementation(libs.gson)
 

@@ -81,6 +81,19 @@ class PostDetailViewModel @Inject constructor(
         }
     }
 
+    fun toggleReplyLike(replyId: Long) {
+        viewModelScope.launch {
+            try {
+                profile.value?.id?.let { userId ->
+                    replyRepository.toggleReplyLike(replyId, userId)
+                    // This will automatically refresh the replies through the flow
+                }
+            } catch (e: Exception) {
+                println("Error toggling reply like: ${e.message}")
+            }
+        }
+    }
+
     fun createReply(postId: Long, body: String) {
         if (body.isNotBlank()) {
             viewModelScope.launch {
