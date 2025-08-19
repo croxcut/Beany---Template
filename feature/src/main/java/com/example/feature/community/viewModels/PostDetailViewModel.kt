@@ -1,14 +1,19 @@
 package com.example.feature.community.viewModels
 
+import android.content.Context
+import android.net.Uri
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.core.net.toUri
 import com.example.domain.model.NewReply
 import com.example.domain.model.Post
 import com.example.domain.model.Profile
 import com.example.domain.model.Reply
+import com.example.domain.repository.BucketRepository
 import com.example.domain.repository.PostRepository
 import com.example.domain.repository.ReplyRepository
 import com.example.domain.repository.SessionRepository
@@ -18,7 +23,9 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
+import java.io.File
 import javax.inject.Inject
 
 @HiltViewModel
@@ -26,7 +33,9 @@ class PostDetailViewModel @Inject constructor(
     private val postRepository: PostRepository,
     private val replyRepository: ReplyRepository,
     private val userRepository: UsersRepository,
-    private val sessionRepository: SessionRepository
+    private val sessionRepository: SessionRepository,
+    private val bucketRepository: BucketRepository,
+    private val context: Context
 ) : ViewModel() {
     private val _profile = MutableStateFlow<Profile?>(null)
     val profile: StateFlow<Profile?> = _profile.asStateFlow()
@@ -42,6 +51,7 @@ class PostDetailViewModel @Inject constructor(
     private val _parentReplyId = mutableStateOf<Long?>(null)
     val parentReplyId: State<Long?> = _parentReplyId
 
+    private val _profileImageUris = mutableStateMapOf<String, Uri?>()
     private var repliesJob: Job? = null
 
     fun loadPost(postId: Long) {
@@ -59,6 +69,7 @@ class PostDetailViewModel @Inject constructor(
             _profiles.value = userRepository.getProfiles()
         }
     }
+
     fun loadSession() {
         viewModelScope.launch {
             _profile.value = sessionRepository.getUserProfile()
@@ -92,6 +103,10 @@ class PostDetailViewModel @Inject constructor(
                 println("Error toggling reply like: ${e.message}")
             }
         }
+    }
+
+    fun clearParentReply() {
+        _parentReplyId.value = null
     }
 
     fun createReply(postId: Long, body: String) {
@@ -130,5 +145,27 @@ class PostDetailViewModel @Inject constructor(
     override fun onCleared() {
         repliesJob?.cancel()
         super.onCleared()
+    }
+
+    fun getProfileImageUri(userId: String?): StateFlow<Uri?> {
+        val flow = MutableStateFlow<Uri?>(null)
+        if (userId == null) return flow.asStateFlow()
+
+        viewModelScope.launch {
+            try {
+                if (!_profileImageUris.containsKey(userId)) {
+                    val remotePath = "profiles/${userId}.jpg"
+                    val imageBytes = bucketRepository.getImage(remotePath)
+                    val tempFile = File(context.cacheDir, "profile_${userId}.jpg")
+                    tempFile.writeBytes(imageBytes)
+                    _profileImageUris[userId] = tempFile.toUri()
+                }
+                flow.value = _profileImageUris[userId]
+            } catch (e: Exception) {
+                flow.value = null
+            }
+        }
+
+        return flow.asStateFlow()
     }
 }

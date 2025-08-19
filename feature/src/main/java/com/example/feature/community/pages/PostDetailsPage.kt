@@ -1,6 +1,8 @@
 package com.example.feature.community.pages
 
+import android.net.Uri
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.*
@@ -15,16 +17,27 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
 import com.example.core.ui.theme.Beige1
+import com.example.core.ui.theme.Brown1
+import com.example.core.ui.theme.White
+import com.example.core.utils.rspDp
 import com.example.domain.model.Post
 import com.example.domain.model.Profile
 import com.example.domain.model.Reply
 import com.example.feature.community.viewModels.PostDetailViewModel
+import com.example.feature.R
 
 @Composable
 fun PostDetailPage(
@@ -34,9 +47,22 @@ fun PostDetailPage(
     val post by viewModel.post
     val replies by remember { derivedStateOf { viewModel.replies } }
     var newReply by remember { mutableStateOf("") }
-
     val profiles by viewModel.profiles.collectAsState()
     val session by viewModel.profile.collectAsState()
+
+    // Profile dialog state
+    var showProfileDialog by remember { mutableStateOf(false) }
+    var selectedProfile by remember { mutableStateOf<Profile?>(null) }
+    var selectedProfileImageUri by remember { mutableStateOf<Uri?>(null) }
+
+    // Load profile image when profile is selected
+    LaunchedEffect(selectedProfile) {
+        selectedProfile?.id?.let { profileId ->
+            viewModel.getProfileImageUri(profileId).collect { uri ->
+                selectedProfileImageUri = uri
+            }
+        }
+    }
 
     LaunchedEffect(postId) {
         viewModel.loadSession()
@@ -48,7 +74,9 @@ fun PostDetailPage(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFFF0F0F0))
+            .background(color = Brown1)
+            .statusBarsPadding()
+            .navigationBarsPadding()
     ) {
         LazyColumn(
             modifier = Modifier
@@ -59,17 +87,20 @@ fun PostDetailPage(
         ) {
             item {
                 post?.let { postItem ->
-                    profiles.let {
-                        PostCard(
-                            post = postItem,
-                            replies = replies,
-                            onReplyClick = viewModel::setParentReplyId,
-                            onUnsendReply = viewModel::unsendReply,
-                            onToggleLike = viewModel::toggleReplyLike,
-                            profiles = profiles,
-                            sessionId = session?.id.toString(),
-                        )
-                    }
+                    PostCard(
+                        post = postItem,
+                        replies = replies,
+                        onReplyClick = viewModel::setParentReplyId,
+                        onUnsendReply = viewModel::unsendReply,
+                        onToggleLike = viewModel::toggleReplyLike,
+                        profiles = profiles,
+                        sessionId = session?.id.toString(),
+                        viewModel = viewModel,
+                        onProfileClick = { profile ->
+                            selectedProfile = profile
+                            showProfileDialog = true
+                        }
+                    )
                 }
             }
         }
@@ -83,19 +114,18 @@ fun PostDetailPage(
             onSendReply = {
                 viewModel.createReply(postId, newReply)
                 newReply = ""
-            }
+            },
+            onClearParent = { viewModel.clearParentReply() }
         )
-    }
-}
 
-@Composable
-private fun formatUserRole(profile: Profile?): String {
-    return when {
-        profile == null -> ""
-        profile.registeredAs == "Administrator" -> "[Administrator]"
-        profile.registeredAs == "Expert" && profile.verified == true -> "[Expert]"
-        profile.registeredAs == "Farmer" -> "Farmer"
-        else -> ""
+        // Profile Dialog
+        if (showProfileDialog && selectedProfile != null) {
+            ProfileDialog(
+                profile = selectedProfile!!,
+                imageUri = selectedProfileImageUri,
+                onDismiss = { showProfileDialog = false }
+            )
+        }
     }
 }
 
@@ -105,27 +135,72 @@ private fun PostCard(
     replies: List<Reply>,
     onReplyClick: (Long) -> Unit,
     onUnsendReply: (Long) -> Unit,
-    onToggleLike: (Long) -> Unit, // Add this parameter
+    onToggleLike: (Long) -> Unit,
     profiles: List<Profile>,
-    sessionId: String
+    sessionId: String,
+    viewModel: PostDetailViewModel,
+    onProfileClick: (Profile) -> Unit
 ) {
+    val postProfile = profiles.find { it.id == post.sender }
+    val context = LocalContext.current
+
     Card(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = Color.White)
+        colors = CardDefaults.cardColors(containerColor = Color.Transparent)
     ) {
-        Column(modifier = Modifier.padding(12.dp)) {
-            val postProfile = profiles.find { it.id == post.sender }
-            val displayName = postProfile?.username ?: "Unknown"
-            val userRole = formatUserRole(postProfile)
+        Column(
+            modifier = Modifier
+                .padding(rspDp(5.dp))
+                .fillMaxWidth()
+                .background(
+                    color = White,
+                    shape = RoundedCornerShape(rspDp(10.dp))
+                )
+                .padding(rspDp(15.dp))
+        ) {
+            // Profile Header
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable {
+                        postProfile?.let { onProfileClick(it) }
+                    }
+            ) {
+                // Profile Image
+                val profileImageUri by viewModel.getProfileImageUri(postProfile?.id).collectAsState()
 
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(displayName, fontWeight = FontWeight.Bold)
-                if (userRole.isNotEmpty()) {
-                    Spacer(modifier = Modifier.width(4.dp))
+                AsyncImage(
+                    model = ImageRequest.Builder(context)
+                        .data(profileImageUri)
+                        .crossfade(true)
+                        .build(),
+                    contentDescription = "Profile Picture",
+                    placeholder = painterResource(R.drawable.plchldr),
+                    error = painterResource(R.drawable.plchldr),
+                    modifier = Modifier
+                        .size(40.dp)
+                        .clip(CircleShape)
+                        .border(2.dp, Brown1, CircleShape),
+                    contentScale = ContentScale.Crop
+                )
+
+                Spacer(modifier = Modifier.width(8.dp))
+
+                Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = userRole,
-                        color = if (userRole == "[Administrator]") Color.Red else Color.Gray,
-                        fontSize = 12.sp
+                        text = postProfile?.username ?: "Unknown",
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        text = formatUserRole(postProfile),
+                        fontSize = 12.sp,
+                        color = when {
+                            postProfile?.verified != true -> Color.Gray
+                            postProfile?.registeredAs == "Administrator" -> Color.Red
+                            postProfile?.registeredAs == "Expert" -> Color.Blue
+                            else -> Color.Gray
+                        }
                     )
                 }
             }
@@ -136,22 +211,289 @@ private fun PostCard(
             Text(post.post_body ?: "")
             Spacer(Modifier.height(8.dp))
 
+            // Reply button for the post
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.End
+            ) {
+                Text(
+                    text = "Reply",
+                    color = Brown1,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier
+                        .clickable { onReplyClick(-1) } // Use -1 or null to indicate replying to post
+                        .padding(top = 8.dp)
+                )
+            }
+
+            // Direct replies to post (no indentation)
             replies.filter { it.parent_reply_id == null }.forEach { reply ->
                 ReplyThread(
                     reply = reply,
                     replies = replies,
                     onReplyClick = onReplyClick,
                     onUnsendReply = onUnsendReply,
-                    onToggleLike = onToggleLike, // Pass it down
-                    indent = 1,
+                    onToggleLike = onToggleLike,
+                    indent = 0, // Start with 0 indentation for direct replies
                     profiles = profiles,
-                    currentUserId = sessionId
+                    currentUserId = sessionId,
+                    viewModel = viewModel,
+                    onProfileClick = onProfileClick
                 )
             }
         }
     }
 }
 
+@Composable
+private fun ReplyThread(
+    reply: Reply,
+    replies: List<Reply>,
+    onReplyClick: (Long) -> Unit,
+    onUnsendReply: (Long) -> Unit,
+    onToggleLike: (Long) -> Unit,
+    indent: Int,
+    profiles: List<Profile>,
+    currentUserId: String,
+    viewModel: PostDetailViewModel,
+    onProfileClick: (Profile) -> Unit
+) {
+    val maxVisualIndent = 3 // Hard cap for visual indentation
+    var showNestedReplies by remember { mutableStateOf(false) }
+    // Only indent up to maxVisualIndent levels
+    val actualIndent = if (indent > 0 && indent <= maxVisualIndent) 16.dp else 0.dp
+    var showDialog by remember { mutableStateOf(false) }
+    val canUnsend = reply.reply_body != "Unsent a message" && reply.sender == currentUserId
+    val isLiked = remember(reply.likes) { reply.likes?.contains(currentUserId) ?: false }
+    val likeCount = remember(reply.likes) { reply.likes?.size ?: 0 }
+    val replyProfile = profiles.find { it.id == reply.sender }
+    val context = LocalContext.current
+    val nestedReplies = replies.filter { it.parent_reply_id == reply.id }
+
+    // Get the parent reply being referenced if this is a reply to another reply
+    val parentReply = reply.parent_reply_id?.let { parentId ->
+        replies.find { it.id == parentId }
+    }
+    val parentProfile = parentReply?.let { reply ->
+        profiles.find { it.id == reply.sender }
+    }
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(start = actualIndent)
+    ) {
+        // Show parent reply preview if this is a reply to another reply
+        parentReply?.let { parent ->
+            ParentReplyInThread(
+                parent = parent,
+                profile = parentProfile,
+                modifier = Modifier.padding(bottom = 4.dp)
+            )
+        }
+
+        // Main reply content
+        Box(
+            modifier = Modifier
+                .background(
+                    color = if (indent == 0) Color(0xFFD8EAFB) else Color(0xFFF1F0F0),
+                    shape = RoundedCornerShape(10.dp)
+                )
+                .padding(horizontal = 8.dp, vertical = 8.dp)
+        ) {
+            Column {
+                // Profile row
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable {
+                            replyProfile?.let { onProfileClick(it) }
+                        }
+                ) {
+                    // Profile image
+                    val profileImageUri by viewModel.getProfileImageUri(replyProfile?.id).collectAsState()
+
+                    AsyncImage(
+                        model = ImageRequest.Builder(context)
+                            .data(profileImageUri)
+                            .crossfade(true)
+                            .build(),
+                        contentDescription = "Profile Picture",
+                        placeholder = painterResource(R.drawable.plchldr),
+                        error = painterResource(R.drawable.plchldr),
+                        modifier = Modifier
+                            .size(32.dp)
+                            .clip(CircleShape)
+                            .border(1.dp, Brown1, CircleShape),
+                        contentScale = ContentScale.Crop
+                    )
+
+                    Spacer(modifier = Modifier.width(8.dp))
+
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = replyProfile?.username ?: "Unknown",
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 12.sp
+                        )
+                        Text(
+                            text = formatUserRole(replyProfile),
+                            fontSize = 10.sp,
+                            color = when {
+                                replyProfile?.verified != true -> Color.Gray
+                                replyProfile?.registeredAs == "Administrator" -> Color.Red
+                                replyProfile?.registeredAs == "Expert" -> Color.Blue
+                                else -> Color.Gray
+                            }
+                        )
+                    }
+
+                    if (canUnsend) {
+                        Icon(
+                            imageVector = Icons.Default.Close,
+                            contentDescription = "Unsend Reply",
+                            modifier = Modifier
+                                .size(20.dp)
+                                .clickable { showDialog = true },
+                            tint = Color.Red
+                        )
+                    }
+                }
+
+                // Reply content
+                Text(reply.reply_body ?: "", fontSize = 14.sp)
+
+                // Like and reply actions
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 4.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    // Like button
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier
+                            .clickable { onToggleLike(reply.id) }
+                            .padding(4.dp)
+                    ) {
+                        Icon(
+                            imageVector = if (isLiked) Icons.Filled.Favorite else Icons.Outlined.FavoriteBorder,
+                            contentDescription = "Like",
+                            tint = if (isLiked) Color.Red else Color.Gray,
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(
+                            text = "$likeCount",
+                            fontSize = 12.sp,
+                            color = if (isLiked) Color.Red else Color.Gray
+                        )
+                    }
+
+                    // ALWAYS show reply button - no limit on reply depth
+                    Text(
+                        text = "Reply",
+                        color = Color(0xFF6200EE),
+                        fontSize = 12.sp,
+                        modifier = Modifier
+                            .clickable { onReplyClick(reply.id) }
+                            .padding(4.dp)
+                    )
+                }
+            }
+        }
+
+        // Show "View replies" button if there are nested replies
+        if (nestedReplies.isNotEmpty() && !showNestedReplies) {
+            Text(
+                text = "View ${nestedReplies.size} replies",
+                color = Brown1,
+                modifier = Modifier
+                    .clickable { showNestedReplies = true }
+                    .padding(start = 16.dp, top = 4.dp)
+            )
+        }
+
+        // Show nested replies when expanded
+        if (showNestedReplies) {
+            nestedReplies.forEach { childReply ->
+                ReplyThread(
+                    reply = childReply,
+                    replies = replies,
+                    onReplyClick = onReplyClick,
+                    onUnsendReply = onUnsendReply,
+                    onToggleLike = onToggleLike,
+                    indent = indent + 1, // Keep incrementing indent but we'll cap the visual effect
+                    profiles = profiles,
+                    currentUserId = currentUserId,
+                    viewModel = viewModel,
+                    onProfileClick = onProfileClick
+                )
+            }
+        }
+
+        if (showDialog) {
+            AlertDialog(
+                onDismissRequest = { showDialog = false },
+                title = { Text("Unsend Message") },
+                text = { Text("Do you want to unsend this message?") },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            onUnsendReply(reply.id)
+                            showDialog = false
+                        }
+                    ) { Text("Yes") }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showDialog = false }) { Text("No") }
+                }
+            )
+        }
+    }
+}
+
+@Composable
+private fun ParentReplyInThread(
+    parent: Reply,
+    profile: Profile?,
+    modifier: Modifier = Modifier
+) {
+    Card(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = 8.dp),
+        colors = CardDefaults.cardColors(containerColor = Color(0xFFF5F5F5))
+    ) {
+        Column(modifier = Modifier.padding(8.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    text = profile?.username ?: "Unknown",
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 12.sp
+                )
+                Spacer(modifier = Modifier.width(4.dp))
+                Text(
+                    text = formatUserRole(profile),
+                    fontSize = 10.sp,
+                    color = when {
+                        profile?.verified != true -> Color.Gray
+                        profile?.registeredAs == "Administrator" -> Color.Red
+                        profile?.registeredAs == "Expert" -> Color.Blue
+                        else -> Color.Gray
+                    }
+                )
+            }
+            Text(
+                text = parent.reply_body ?: "",
+                fontSize = 12.sp,
+                color = Color.Gray
+            )
+        }
+    }
+}
 
 @Composable
 private fun ReplyInput(
@@ -160,13 +502,18 @@ private fun ReplyInput(
     profiles: List<Profile>,
     newReply: String,
     onNewReplyChange: (String) -> Unit,
-    onSendReply: () -> Unit
+    onSendReply: () -> Unit,
+    onClearParent: () -> Unit // Add this parameter
 ) {
     Column {
         parentReplyId?.let { parentId ->
             replies.find { it.id == parentId }?.let { parent ->
                 val parentProfile = profiles.find { it.id == parent.sender }
-                ParentReplyPreview(parent = parent, profile = parentProfile)
+                ParentReplyPreview(
+                    parent = parent,
+                    profile = parentProfile,
+                    onClose = onClearParent // Pass the close handler
+                )
             }
         }
 
@@ -205,7 +552,8 @@ private fun ReplyInput(
 @Composable
 private fun ParentReplyPreview(
     parent: Reply,
-    profile: Profile?
+    profile: Profile?,
+    onClose: () -> Unit // Add close handler
 ) {
     Card(
         modifier = Modifier
@@ -213,190 +561,138 @@ private fun ParentReplyPreview(
             .padding(horizontal = 8.dp, vertical = 4.dp),
         colors = CardDefaults.cardColors(containerColor = Color(0xFFE5E5EA))
     ) {
-        Column(modifier = Modifier.padding(8.dp)) {
-            val displayName = profile?.username ?: "Unknown"
-            val userRole = formatUserRole(profile)
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+        ) {
+            Column(modifier = Modifier.padding(8.dp)) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    val displayName = profile?.username ?: "Unknown"
+                    val userRole = formatUserRole(profile)
 
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text("$displayName:", fontWeight = FontWeight.Bold, fontSize = 12.sp)
-                if (userRole.isNotEmpty()) {
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text(
-                        text = userRole,
-                        color = if (userRole == "[Administrator]") Color.Red else Color.Gray,
-                        fontSize = 10.sp
-                    )
+                    Text("$displayName:", fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                    if (userRole.isNotEmpty()) {
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(
+                            text = userRole,
+                            color = if (userRole == "[Administrator]") Color.Red else Color.Gray,
+                            fontSize = 10.sp
+                        )
+                    }
                 }
+                Text(parent.reply_body, fontSize = 14.sp)
             }
-            Text(parent.reply_body, fontSize = 14.sp)
+
+            // Close button
+            IconButton(
+                onClick = onClose,
+                modifier = Modifier
+                    .padding(rspDp(5.dp))
+                    .align(Alignment.TopEnd)
+                    .size(rspDp(20.dp))
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Close,
+                    contentDescription = "Close",
+                    tint = Color.Red
+                )
+            }
         }
     }
 }
-
 @Composable
-private fun ReplyThread(
-    reply: Reply,
-    replies: List<Reply>,
-    onReplyClick: (Long) -> Unit,
-    onUnsendReply: (Long) -> Unit,
-    onToggleLike: (Long) -> Unit, // New parameter for handling likes
-    indent: Int,
-    profiles: List<Profile>,
-    currentUserId: String
+private fun ProfileDialog(
+    profile: Profile,
+    imageUri: Uri?,
+    onDismiss: () -> Unit
 ) {
-    val maxIndent = 1
-    val actualIndent = minOf(indent, maxIndent)
-    var showDialog by remember { mutableStateOf(false) }
-
-    val canUnsend = reply.reply_body != "Unsent a message" && reply.sender == currentUserId
-    val isLiked = remember(reply.likes) { reply.likes?.contains(currentUserId) ?: false }
-    val likeCount = remember(reply.likes) { reply.likes?.size ?: 0 }
-
-    val parentReply = reply.parent_reply_id?.let { parentId ->
-        replies.find { it.id == parentId }
-    }
-
-    val replyProfile = profiles.find { it.id == reply.sender }
-    val replyDisplayName = replyProfile?.username ?: "Unknown"
-
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(start = (actualIndent * 12).dp, end = 4.dp)
-    ) {
-        parentReply?.let { parent ->
-            val parentProfile = profiles.find { it.id == parent.sender }
-            val parentDisplayName = parentProfile?.username ?: "Unknown"
-
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 4.dp)
-                    .offset(x = (-10).dp, y = 10.dp),
-                colors = CardDefaults.cardColors(containerColor = Beige1)
-            ) {
-                Column(modifier = Modifier.padding(8.dp)) {
-                    Text(parentDisplayName, fontWeight = FontWeight.Bold, fontSize = 12.sp)
-                    Text(parent.reply_body, fontSize = 12.sp, color = Color.Gray)
-                }
-            }
-        }
-
-        Box(
-            modifier = Modifier
-                .background(
-                    color = if (actualIndent == 0) Color(0xFFD8EAFB) else Color(0xFFF1F0F0),
-                    shape = RoundedCornerShape(16.dp)
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = {
+            Text(
+                text = "Profile Info",
+                style = TextStyle(
+                    fontSize = 20.sp,
+                    color = Brown1
                 )
-                .padding(horizontal = 12.dp, vertical = 8.dp)
-        ) {
-            Column {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Column(modifier = Modifier.weight(1f)) {
-                        val replyProfile = profiles.find { it.id == reply.sender }
-                        val userRole = formatUserRole(replyProfile)
+            )
+        },
+        text = {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                AsyncImage(
+                    model = imageUri,
+                    contentDescription = "Profile Picture",
+                    placeholder = painterResource(R.drawable.plchldr),
+                    error = painterResource(R.drawable.plchldr),
+                    modifier = Modifier
+                        .size(120.dp)
+                        .clip(CircleShape)
+                        .border(2.dp, Brown1, CircleShape),
+                    contentScale = ContentScale.Crop
+                )
 
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text(replyDisplayName, fontWeight = FontWeight.Bold, fontSize = 12.sp)
-                            if (userRole.isNotEmpty()) {
-                                Spacer(modifier = Modifier.width(4.dp))
-                                Text(
-                                    text = userRole,
-                                    color = when {
-                                        userRole == "[Administrator]" -> Color.Red
-                                        userRole == "[Expert]" -> Color(0xFF6200EE)
-                                        else -> Color.Gray
-                                    },
-                                    fontSize = 10.sp
-                                )
-                            }
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Row {
+                    Text("Username: ", fontWeight = FontWeight.Bold)
+                    Spacer(modifier = Modifier.weight(1f))
+                    Text(profile.username ?: "Unknown", fontWeight = FontWeight.Bold)
+                }
+
+                Row {
+                    Text("Name: ", fontWeight = FontWeight.Bold)
+                    Spacer(modifier = Modifier.weight(1f))
+                    Text(profile.fullName ?: "Unknown", fontWeight = FontWeight.Bold)
+                }
+
+                Row {
+                    Text("Registered: ", fontWeight = FontWeight.Bold)
+                    Spacer(modifier = Modifier.weight(1f))
+                    profile.registeredAs?.let { registeredAs ->
+                        val status = if (registeredAs == "Administrator") {
+                            ""
+                        } else {
+                            if (profile.verified == true) "[verified]" else "[pending]"
                         }
-                        Text(reply.reply_body, fontSize = 14.sp)
-                    }
-
-                    if (canUnsend) {
-                        Icon(
-                            imageVector = Icons.Default.Close,
-                            contentDescription = "Unsend Reply",
-                            modifier = Modifier
-                                .size(20.dp)
-                                .clickable { showDialog = true },
-                            tint = Color.Red
+                        Text(
+                            text = "$registeredAs$status",
+                            color = when {
+                                profile.verified != true -> Color.Gray
+                                registeredAs == "Administrator" -> Color.Red
+                                registeredAs == "Expert" -> Color.Blue
+                                else -> Color.Gray
+                            }
                         )
                     }
                 }
 
-                // Like and reply actions row
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 4.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    // Like button
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier
-                            .clickable { onToggleLike(reply.id) }
-                            .padding(4.dp)
-                    ) {
-                        Icon(
-                            imageVector = if (isLiked) Icons.Filled.Favorite else Icons.Outlined.FavoriteBorder,
-                            contentDescription = "Like",
-                            tint = if (isLiked) Color.Red else Color.Gray,
-                            modifier = Modifier.size(16.dp)
-                        )
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text(
-                            text = "$likeCount",
-                            fontSize = 12.sp,
-                            color = if (isLiked) Color.Red else Color.Gray
-                        )
+                profile.province?.takeIf { profile.registeredAs != "Administrator" }?.let { province ->
+                    Row {
+                        Text("Province: ", fontWeight = FontWeight.Bold)
+                        Spacer(modifier = Modifier.weight(1f))
+                        Text(province)
                     }
-
-                    // Reply button
-                    Text(
-                        text = "Reply",
-                        color = Color(0xFF6200EE),
-                        fontSize = 12.sp,
-                        modifier = Modifier
-                            .clickable { onReplyClick(reply.id) }
-                            .padding(4.dp)
-                    )
                 }
             }
-        }
+        },
+        confirmButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Close")
+            }
+        },
+        containerColor = Beige1
+    )
+}
 
-        if (showDialog) {
-            AlertDialog(
-                onDismissRequest = { showDialog = false },
-                title = { Text("Unsend Message") },
-                text = { Text("Do you want to unsend this message?") },
-                confirmButton = {
-                    TextButton(
-                        onClick = {
-                            onUnsendReply(reply.id)
-                            showDialog = false
-                        }
-                    ) { Text("Yes") }
-                },
-                dismissButton = {
-                    TextButton(onClick = { showDialog = false }) { Text("No") }
-                }
-            )
-        }
-
-        replies.filter { it.parent_reply_id == reply.id }.forEach { child ->
-            ReplyThread(
-                reply = child,
-                replies = replies,
-                onReplyClick = onReplyClick,
-                onUnsendReply = onUnsendReply,
-                onToggleLike = onToggleLike,
-                indent = indent + 1,
-                profiles = profiles,
-                currentUserId = currentUserId
-            )
-        }
+private fun formatUserRole(profile: Profile?): String {
+    return when {
+        profile == null -> ""
+        profile.registeredAs == "Administrator" -> "[Administrator]"
+        profile.registeredAs == "Expert" && profile.verified == true -> "[Expert]"
+        profile.registeredAs == "Farmer" -> "Farmer"
+        else -> ""
     }
 }

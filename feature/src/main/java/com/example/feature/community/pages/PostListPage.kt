@@ -2,6 +2,7 @@ package com.example.feature.community.pages
 
 import android.net.Uri
 import android.util.Log
+import android.view.Menu
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -148,40 +149,59 @@ fun PostsListPage(
 
             // Tags Section
             Box(modifier = Modifier.fillMaxWidth()) {
-                OutlinedButton(
+                Button(
                     onClick = { tagsDropdownExpanded = true },
-                    modifier = Modifier.padding(8.dp)
+                    modifier = Modifier
+                        .padding(8.dp)
+                        .background(
+                            color = Beige1,
+                            shape = RoundedCornerShape(rspDp(10.dp))
+                        ),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color.Transparent
+                    )
                 ) {
-                    Text("Filter by Tags (${selectedTags.size})")
-                }
+                    Text("Filter by Tags ${selectedTags.size}")
 
-                DropdownMenu(
-                    expanded = tagsDropdownExpanded,
-                    onDismissRequest = { tagsDropdownExpanded = false }
-                ) {
-                    availableTags.forEach { tag ->
-                        DropdownMenuItem(
-                            text = {
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Checkbox(
-                                        checked = selectedTags.contains(tag),
-                                        onCheckedChange = null
-                                    )
-                                    Text(tag)
-                                }
-                            },
-                            onClick = {
-                                viewModel.setSelectedTags(
-                                    if (selectedTags.contains(tag)) {
-                                        selectedTags - tag
-                                    } else {
-                                        selectedTags + tag
+                    DropdownMenu(
+                        expanded = tagsDropdownExpanded,
+                        onDismissRequest = { tagsDropdownExpanded = false },
+                        containerColor = Beige1
+                    ) {
+                        availableTags.forEach { tag ->
+                            DropdownMenuItem(
+                                text = {
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        Checkbox(
+                                            checked = selectedTags.contains(tag),
+                                            onCheckedChange = null,
+                                        )
+                                        Text(
+                                            text = tag,
+                                            style = TextStyle(
+                                                fontFamily = GlacialIndifferenceBold,
+                                                fontSize = rspSp(15.sp),
+                                                color = Brown1
+                                            )
+                                        )
                                     }
-                                )
-                            }
-                        )
+                                },
+                                onClick = {
+                                    viewModel.setSelectedTags(
+                                        if (selectedTags.contains(tag)) {
+                                            selectedTags - tag
+                                        } else {
+                                            selectedTags + tag
+                                        }
+                                    )
+                                },
+                                modifier = Modifier.background(Beige1),
+                            )
+                        }
                     }
                 }
+
+
             }
 
             if (selectedTags.isNotEmpty()) {

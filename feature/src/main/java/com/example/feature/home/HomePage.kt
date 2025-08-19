@@ -98,7 +98,7 @@ fun HomePage(
     LaunchedEffect(Unit) {
         viewModel.checkConnectivity()
         if (viewModel.isOnline.value) {
-            viewModel.initializeData() // Make this function public in ViewModel
+            viewModel.initializeData()
         }
     }
 
@@ -113,7 +113,6 @@ fun HomePage(
     }
 
     when {
-        // User not logged in - show basic UI
         !isLoggedIn -> {
             HomeContent(
                 navController = navController,
@@ -128,7 +127,6 @@ fun HomePage(
             )
         }
 
-        // User logged in but offline - show cached data if available
         isLoggedIn && !isOnline -> {
             HomeContent(
                 navController = navController,
@@ -155,7 +153,6 @@ fun HomePage(
             }
         }
 
-        // User logged in, online with data loaded
         isLoggedIn && isOnline && profile != null -> {
             HomeContent(
                 navController = navController,
@@ -210,7 +207,6 @@ private fun HomeContent(
             )
         }
 
-        // Main Content
         Column(
             modifier = Modifier
                 .height(rspDp(400.dp))
@@ -225,7 +221,6 @@ private fun HomeContent(
         ) {
             Spacer(modifier = Modifier.height(rspDp(20.dp)))
 
-            // Greeting Section
             Column(
                 modifier = Modifier.padding(horizontal = rspDp(30.dp))
             ) {
@@ -246,7 +241,6 @@ private fun HomeContent(
                 )
             }
 
-            // Weather Card
             Column(
                 modifier = Modifier
                     .padding(horizontal = rspDp(20.dp), vertical = rspDp(10.dp))
@@ -259,8 +253,8 @@ private fun HomeContent(
                         shape = RoundedCornerShape(rspDp(20.dp))
                     )
             ) {
+
                 Row(modifier = Modifier.fillMaxSize()) {
-                    // City and Temperature
                     Column(
                         modifier = Modifier.fillMaxWidth(.5f),
                         horizontalAlignment = Alignment.CenterHorizontally
@@ -336,7 +330,6 @@ private fun HomeContent(
                         }
                     }
 
-                    // Weather Icon
                     Column(
                         modifier = Modifier.fillMaxSize(),
                         horizontalAlignment = Alignment.CenterHorizontally,
@@ -391,7 +384,6 @@ private fun HomeContent(
             }
         }
 
-        // Action Buttons Section
         Text(
             text = "Get Started with Beany",
             style = TextStyle(
@@ -483,11 +475,11 @@ private fun HomeContent(
                     modifier = Modifier
                         .weight(1f)
                         .optionsContainerConfig()
-                        .clickable { navController.navigate("SingleImage") }
+                        .clickable { navController.navigate(Route.DiagnosisPage.route) }
                 ) {
                     Image(
                         painter = painterResource(R.drawable.diagnosis),
-                        contentDescription = "Camera",
+                        contentDescription = "Diagnosis",
                         modifier = Modifier
                             .size(rspDp(80.dp))
                             .offset(x = rspDp(80.dp), y = rspDp(18.dp))
@@ -495,7 +487,7 @@ private fun HomeContent(
 
                     Column(modifier = Modifier.padding(all = rspDp(10.dp))) {
                         Text(
-                            text = "Camera",
+                            text = "Diagnosis",
                             style = TextStyle(
                                 fontFamily = Etna,
                                 color = Brown1,
