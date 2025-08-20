@@ -643,8 +643,8 @@ fun UserProfilePage(
         ),
         ProfileItem(
             icon = R.drawable.chat_support_tile,
-            title = "Chat Support",
-            description = "Chat With Our Registered Experts!",
+            title = "Verify User Identity",
+            description = "Verify Registered Experds",
             contentDescription = "Chat Support Icon"
         )
     )
@@ -783,7 +783,7 @@ fun UserProfilePage(
                         }
                         "Notification" -> navController.navigate(Route.NotificationPage.route)
 //                        "Uploaded Photos" -> navController.navigate(Route.UploadedPhotosPage.route)
-                        "My Diagnosis" -> navController.navigate(Route.DiagnosisPage.route)
+                        "My Diagnosis" -> navController.navigate(Route.DiagnosisListPage.route)
                     }
                 }
 
@@ -799,8 +799,8 @@ fun UserProfilePage(
                     containerPadding = CONTAINER_PADDING
                 ) { item ->
                     when(item.title) {
-//                        "Camera" -> navController.navigate(Route.CameraPage.route)
-//                        "Scan History" -> navController.navigate(Route.ScanHistoryPage.route)
+                        "Camera" -> navController.navigate(Route.SingleImageDetectionPage.route)
+                        "Scan History" -> navController.navigate(Route.ScanHistoryPage.route)
                         "Community" -> {
                             if (isSignedUp) {
                                 navController.navigate(Route.PostsListPage.route)
@@ -808,7 +808,13 @@ fun UserProfilePage(
                                 Toast.makeText(context, "Please sign up to access Community", Toast.LENGTH_SHORT).show()
                             }
                         }
-//                        "Chat Support" -> navController.navigate(Route.ChatSupportPage.route)
+                        "Chat Support" -> {
+                            if(isSignedUp) {
+                                navController.navigate(Route.VerifyUserPage.route)
+                            } else {
+                                Toast.makeText(context, "Please sign up to access User Verification", Toast.LENGTH_SHORT).show()
+                            }
+                        }
                     }
                 }
 

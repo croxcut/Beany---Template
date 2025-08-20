@@ -60,7 +60,6 @@ fun ParentReplyPreview(
                 Text(parent.reply_body, fontSize = 14.sp)
             }
 
-            // Close button
             IconButton(
                 onClick = onClose,
                 modifier = Modifier

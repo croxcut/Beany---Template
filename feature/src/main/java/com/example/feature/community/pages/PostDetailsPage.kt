@@ -33,8 +33,10 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.example.core.ui.theme.Beige1
 import com.example.core.ui.theme.Brown1
+import com.example.core.ui.theme.GlacialIndifference
 import com.example.core.ui.theme.White
 import com.example.core.utils.rspDp
+import com.example.core.utils.rspSp
 import com.example.domain.model.Post
 import com.example.domain.model.Profile
 import com.example.domain.model.Reply
@@ -571,23 +573,52 @@ private fun ReplyInput(
             TextField(
                 value = newReply,
                 onValueChange = onNewReplyChange,
+                textStyle = TextStyle(
+                    fontSize = rspSp(15.sp),
+                    color = Brown1,
+                    fontFamily = GlacialIndifference
+                ),
                 modifier = Modifier
                     .weight(1f)
+                    .border(
+                        width = rspDp(2.dp),
+                        color = Brown1,
+                        shape = RoundedCornerShape(rspDp(50.dp))
+                    )
+                    .background(
+                        color = Beige1,
+                        shape = RoundedCornerShape(rspDp(50.dp))
+                    )
                     .padding(end = 8.dp),
-                placeholder = { Text("Write a reply...") },
+                placeholder = { Text(
+                    text = "Write a reply...",
+                    color = Brown1) },
                 shape = RoundedCornerShape(24.dp),
                 colors = TextFieldDefaults.colors(
+                    focusedContainerColor = Color.Transparent,
+                    unfocusedContainerColor = Color.Transparent,
+                    cursorColor = Brown1,
                     focusedIndicatorColor = Color.Transparent,
-                    unfocusedIndicatorColor = Color.Transparent
-                )
+                    unfocusedIndicatorColor = Color.Transparent,
+                    disabledIndicatorColor = Color.Transparent
+                ),
             )
+
+            Spacer(modifier = Modifier.width(5.dp))
+
             Button(
                 onClick = onSendReply,
                 shape = CircleShape,
                 modifier = Modifier.size(48.dp),
-                contentPadding = PaddingValues(0.dp)
+                contentPadding = PaddingValues(0.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Brown1
+                )
             ) {
-                Icon(Icons.AutoMirrored.Filled.Send, contentDescription = "Send Reply")
+                Icon(Icons.AutoMirrored.Filled.Send,
+                    contentDescription = "Send Reply",
+                    tint = White
+                )
             }
         }
     }

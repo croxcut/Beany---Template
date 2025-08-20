@@ -1,6 +1,7 @@
 package com.example.feature.home
 
 import android.content.Context
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -73,6 +74,7 @@ import com.example.core.ui.theme.Kare
 import com.example.core.ui.theme.White
 import com.example.core.utils.rspDp
 import com.example.core.utils.rspSp
+import com.example.data.model.ActivityEntity
 import com.example.domain.model.City
 import com.example.domain.model.DailyForecast
 import com.example.domain.model.Profile
@@ -93,7 +95,7 @@ fun HomePage(
     viewModel: HomePageViewModel = hiltViewModel()
 ) {
     val profile by viewModel.profile.collectAsState()
-    val activityList by viewModel.activityList.collectAsState()
+    val activityList by viewModel.activities.collectAsState()
     val state by viewModel.state.collectAsState()
     val selectedCity by viewModel.selectedCity.collectAsState()
     val isOnline by viewModel.isOnline.collectAsState()
@@ -105,6 +107,10 @@ fun HomePage(
         if (viewModel.isOnline.value) {
             viewModel.initializeData()
         }
+    }
+
+    LaunchedEffect(activityList) {
+        Log.d("ActivityBox", "Current activities: $activityList")
     }
 
     LaunchedEffect(Unit) {
@@ -179,7 +185,7 @@ fun HomePage(
 private fun HomeContent(
     navController: NavController,
     profile: Profile?,
-    activityList: List<String>,
+    activityList: List<ActivityEntity>,
     state: WeatherState,
     selectedCity: City?,
     isOnline: Boolean,
@@ -605,8 +611,24 @@ private fun HomeContent(
                         color = Brown1,
                         fontSize = rspSp(20.sp))
                 )
+
+                Spacer(modifier = Modifier.weight(1f))
+
+                Text(
+                    text = "Clear Activity",
+                    style = TextStyle(
+                        fontFamily = GlacialIndifference,
+                        color = Brown1,
+                        fontSize = rspSp(15.sp)),
+                    modifier = Modifier
+                        .clickable{
+                            viewModel.clearAll()
+                        }
+                )
             }
 
+            val formatter = SimpleDateFormat("MM-dd-yyyy", Locale.getDefault())
+            val activityList by viewModel.activities.collectAsState()
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -619,22 +641,52 @@ private fun HomeContent(
                     )
                     .padding(rspDp(10.dp))
             ) {
-                if (activityList.isEmpty()) {
-                    Text(
-                        text = if (isLoggedIn && !isOnline)
-                            "No activity data available offline"
-                        else
-                            "No activity yet :(",
-                        style = TextStyle(fontSize = rspSp(15.sp)),
-                        modifier = Modifier.align(Alignment.CenterHorizontally)
-                    )
-                } else {
-                    LazyColumn(modifier = Modifier.fillMaxSize()) {
-                        items(activityList) { activity ->
-                            Text(
-                                text = "Activity: $activity",
-                                style = TextStyle(fontSize = rspSp(15.sp))
-                            )
+                LazyColumn(modifier = Modifier.fillMaxSize()) {
+                    items(activityList) { activity ->
+                        Column{
+                            Row {
+                                Text(
+                                    text = "Activity:",
+                                    style = TextStyle(
+                                        fontSize = rspSp(15.sp),
+                                        color = Brown1,
+                                        fontFamily = GlacialIndifferenceBold
+                                    )
+                                )
+
+                                Spacer(modifier = Modifier.weight(1f))
+
+                                Text(
+                                    text = "Date",
+                                    style = TextStyle(
+                                        fontSize = rspSp(15.sp),
+                                        color = Brown1,
+                                        fontFamily = GlacialIndifferenceBold
+                                    )
+                                )
+                            }
+
+                            Row {
+                                Text(
+                                    text = activity.activity,
+                                    style = TextStyle(
+                                        fontSize = rspSp(15.sp),
+                                        color = Brown1,
+                                        fontFamily = GlacialIndifferenceBold
+                                    )
+                                )
+
+                                Spacer(modifier = Modifier.weight(1f))
+
+                                Text(
+                                    text = formatter.format(activity.date),
+                                    style = TextStyle(
+                                        fontSize = rspSp(15.sp),
+                                        color = Brown1,
+                                        fontFamily = GlacialIndifferenceBold
+                                    )
+                                )
+                            }
                         }
                     }
                 }

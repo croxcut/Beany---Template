@@ -32,4 +32,10 @@ class Converters {
 
     @TypeConverter
     fun toDate(timestamp: Long): Date = Date(timestamp)
+
+    @TypeConverter
+    fun fromTimestamp(value: Long?): Date? = value?.let { Date(it) }
+
+    @TypeConverter
+    fun dateToTimestamp(date: Date?): Long? = date?.time
 }

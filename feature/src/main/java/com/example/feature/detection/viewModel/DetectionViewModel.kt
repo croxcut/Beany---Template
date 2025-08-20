@@ -1,12 +1,14 @@
 package com.example.feature.detection.viewModel
 
 import android.graphics.Bitmap
+import android.util.Log
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.compose.runtime.State
 import com.example.data.local.repository.DiagnosisRepository
 import com.example.data.model.Diagnosis
+import com.example.data.repositoryImpl.local.ActivityRepository
 import com.example.domain.model.AABB
 import com.example.domain.model.Note
 import com.example.domain.repository.DetectionRepository
@@ -19,7 +21,8 @@ import javax.inject.Inject
 @HiltViewModel
 class DetectionViewModel @Inject constructor(
     private val repository: DetectionRepository,
-    private val diagnosisRepository: DiagnosisRepository
+    private val diagnosisRepository: DiagnosisRepository,
+    private val activityRepository: ActivityRepository,
 ) : ViewModel() {
     private val _currentDiagnosis = mutableStateOf<Diagnosis?>(null)
     val currentDiagnosis: State<Diagnosis?> = _currentDiagnosis
@@ -29,6 +32,10 @@ class DetectionViewModel @Inject constructor(
     private val _inferenceTime = MutableStateFlow(0L)
     val inferenceTime: StateFlow<Long> get() = _inferenceTime
 
+    fun addActivity(activity: String) = viewModelScope.launch {
+        Log.i("Saved-Activity:", "$activity")
+        activityRepository.insert(activity)
+    }
     var latestBitmap: Bitmap? = null
     fun detect(bitmap: Bitmap) {
         latestBitmap = bitmap

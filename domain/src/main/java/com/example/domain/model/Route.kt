@@ -42,6 +42,10 @@ sealed class Route(
 
     object TestPage: Route(route = "TestPage")
 
+    object VerifyUserPage: Route(route = "VerifyUserPage")
+
+    object ScanHistoryPage: Route(route = "ScanHistoryPage")
+
     companion object {
         val navRoutes: List<String> by lazy {
             Route::class.sealedSubclasses.mapNotNull { it.objectInstance?.route }

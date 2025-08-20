@@ -62,6 +62,7 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.sp
+import com.example.core.ui.theme.Beige1
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -271,7 +272,7 @@ fun DiagnosisDetailScreen(
         """.trimIndent()
         )
     }
-    
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -675,30 +676,101 @@ fun DiagnosisDetailScreen(
                         }
                     }
 
-                    Row {
+                    HorizontalDivider(
+                        thickness = rspDp(2.dp),
+                        color = Brown1.copy(alpha = 0.5f),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = rspDp(40.dp), vertical = rspDp(10.dp))
+                    )
+                    var showDeleteConfirmDialog by remember { mutableStateOf(false) }
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.Center
+                    ) {
                         Box(
                             modifier = Modifier
                                 .background(
                                     color = Color.Red,
                                     shape = CircleShape
                                 )
-                                .size(rspDp(30.dp)),
+                                .size(rspDp(40.dp))
+                                .clickable {
+                                    showDeleteConfirmDialog = true // Show confirmation dialog
+                                },
                             contentAlignment = Alignment.Center
                         ) {
                             Icon(
                                 imageVector = Icons.Default.Delete,
-                                contentDescription = null,
+                                contentDescription = "Delete Diagnosis",
                                 modifier = Modifier
                                     .fillMaxSize()
-                                    .padding(rspDp(5.dp))
-                                    .clickable{
-                                        viewModel.deleteDiagnosis(diagnosis)
-                                    },
+                                    .padding(rspDp(8.dp)),
                                 tint = White
                             )
                         }
                     }
 
+                    if (showDeleteConfirmDialog) {
+                        AlertDialog(
+                            onDismissRequest = { showDeleteConfirmDialog = false },
+                            confirmButton = {
+                                TextButton(
+                                    onClick = {
+                                        // Delete the diagnosis and navigate back
+                                        viewModel.deleteDiagnosis(diagnosis)
+                                        onBackClick()
+                                        showDeleteConfirmDialog = false
+                                    }
+                                ) {
+                                    Text(
+                                        text = "Delete",
+                                        style = TextStyle(
+                                            color = Brown1,
+                                            fontFamily = GlacialIndifferenceBold,
+                                            fontSize = rspSp(16.sp)
+                                        )
+                                    )
+                                }
+                            },
+                            dismissButton = {
+                                TextButton(
+                                    onClick = { showDeleteConfirmDialog = false }
+                                ) {
+                                    Text(
+                                        text = "Cancel",
+                                        style = TextStyle(
+                                            color = Brown1,
+                                            fontFamily = GlacialIndifferenceBold,
+                                            fontSize = rspSp(16.sp)
+                                        )
+                                    )
+                                }
+                            },
+                            title = {
+                                Text(
+                                    text = "Confirm Delete",
+                                    style = TextStyle(
+                                        color = Brown1,
+                                        fontFamily = GlacialIndifferenceBold,
+                                        fontSize = rspSp(18.sp)
+                                    )
+                                )
+                            },
+                            text = {
+                                Text(
+                                    text = "Are you sure you want to delete this diagnosis? This action cannot be undone.",
+                                    style = TextStyle(
+                                        color = Brown1,
+                                        fontFamily = GlacialIndifferenceBold,
+                                        fontSize = rspSp(15.sp)
+                                    )
+                                )
+                            },
+                            containerColor = Beige1,
+                            shape = RoundedCornerShape(16.dp)
+                        )
+                    }
                 }
             }
         }

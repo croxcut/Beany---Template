@@ -2,7 +2,9 @@ package com.example.data.di
 
 import android.content.Context
 import androidx.room.Room
+import com.example.data.local.dao.ActivityDao
 import com.example.data.local.dao.NotificationDao
+import com.example.data.local.db.ActivityDatabase
 import com.example.data.local.db.DiagnosisDatabase
 import com.example.data.local.db.NotificationDatabase
 import com.example.data.local.repository.DiagnosisRepository
@@ -18,7 +20,7 @@ import javax.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)
-class DatabaseModule {
+object DatabaseModule {
 
     @Provides
     @Singleton
@@ -51,5 +53,14 @@ class DatabaseModule {
         return NotificationRepositoryImpl(db.notificationDao())
     }
 
+
+    @Provides
+    @Singleton
+    fun provideActivityDatabase(@ApplicationContext app: Context): ActivityDatabase =
+        Room.databaseBuilder(app, ActivityDatabase::class.java, "app_db")
+            .build()
+
+    @Provides
+    fun provideActivityDao(db: ActivityDatabase): ActivityDao = db.activityDao()
 
 }

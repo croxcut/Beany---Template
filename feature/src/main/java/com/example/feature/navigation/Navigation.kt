@@ -44,7 +44,7 @@ fun NavigationBar(
 ) {
     val items = listOf(
         NavBarItem(Route.HomePage.route, "Home", R.drawable.home_icon),
-        NavBarItem(Route.DetectionHistoryPage.route, "History", R.drawable.history_icon),
+        NavBarItem(Route.GeoMapPage.route, "History", R.drawable.history_icon),
         NavBarItem(Route.FeatureSelectionPage.route, "Feature", R.drawable.camera_icon),
         NavBarItem(Route.NotificationPage.route, "Notification", R.drawable.notification_icon),
         NavBarItem(Route.UserProfilePage.route, "Profile", R.drawable.profile_icon),

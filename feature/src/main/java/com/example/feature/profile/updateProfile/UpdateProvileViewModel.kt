@@ -5,11 +5,13 @@ import android.net.Uri
 import androidx.core.net.toUri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.domain.model.City
 import com.example.domain.model.Profile
 import com.example.domain.repository.BucketRepository
 import com.example.domain.repository.SessionRepository
 import com.example.domain.repository.UpdateProfileRepository
 import com.example.domain.repository.UsersRepository
+import com.example.domain.repository.WeatherRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -22,8 +24,12 @@ class UpdateProfileViewModel @Inject constructor(
     private val updateProfileRepository: UpdateProfileRepository,
     private val sessionRepository: SessionRepository,
     private val bucketRepository: BucketRepository,
+    private val weatherRepository: WeatherRepository,
     private val context: Context
 ) : ViewModel() {
+
+    private val _cities = MutableStateFlow<List<City>>(emptyList())
+    val cities: StateFlow<List<City>> = _cities
 
     private val _userId = MutableStateFlow("")
     val userId: StateFlow<String> = _userId
@@ -43,6 +49,16 @@ class UpdateProfileViewModel @Inject constructor(
                 _userId.value = profile.id.orEmpty()
                 _uiState.value = _uiState.value.copy(profile = profile)
                 loadCredential(profile.id.orEmpty())
+                loadCities()
+            }
+        }
+    }
+
+    private fun loadCities() {
+        viewModelScope.launch {
+            try {
+                _cities.value = weatherRepository.getCities()
+            } catch (e: Exception) {
             }
         }
     }

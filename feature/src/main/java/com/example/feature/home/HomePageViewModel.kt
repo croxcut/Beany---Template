@@ -8,6 +8,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.core.network.NetworkUtils
 import com.example.data.repositoryImpl.AuthRepositoryImpl
+import com.example.data.repositoryImpl.local.ActivityRepository
 import com.example.domain.model.City
 import com.example.domain.model.Profile
 import com.example.domain.model.WeatherForecast
@@ -35,8 +36,20 @@ class HomePageViewModel @Inject constructor(
     private val sessionRepository: SessionRepository,
     private val weatherRepository: WeatherRepository,
     private val authRepository: AuthRepository,
+    private val activityRepository: ActivityRepository,
     private val context: Context
 ): ViewModel() {
+
+    val activities = activityRepository.getAll()
+        .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
+
+    fun addActivity(activity: String) = viewModelScope.launch {
+        activityRepository.insert(activity)
+    }
+
+    fun clearAll() = viewModelScope.launch {
+        activityRepository.clearAll()
+    }
 
     private val _isOnline = MutableStateFlow(NetworkUtils.isInternetAvailable(context))
     val isOnline: StateFlow<Boolean> = _isOnline.asStateFlow()
@@ -61,6 +74,12 @@ class HomePageViewModel @Inject constructor(
     val selectedCity: StateFlow<City?> = _selectedCity.asStateFlow()
 
     init {
+        viewModelScope.launch {
+            activities.collect { list ->
+                Log.d("ActivityViewModel", "Activities changed: $list")
+            }
+        }
+
         checkConnectivity()
         initializeData()
 
@@ -113,9 +132,6 @@ class HomePageViewModel @Inject constructor(
     fun checkConnectivity() {
         _isOnline.value = NetworkUtils.isInternetAvailable(context)
     }
-
-    private val _activityList = MutableStateFlow<List<String>>(emptyList())
-    val activityList: StateFlow<List<String>> = _activityList
 
     fun dummyActivity() {
         // Your activity code

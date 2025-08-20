@@ -3,6 +3,7 @@ package com.example.feature.profile.updateProfile
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -26,11 +27,17 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MenuDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -61,6 +68,7 @@ import com.example.core.ui.theme.GlacialIndifferenceBold
 import com.example.core.ui.theme.White
 import com.example.core.utils.rspDp
 import com.example.core.utils.rspSp
+import com.example.domain.model.City
 import com.example.domain.model.Profile
 import com.example.domain.model.Route
 import com.example.feature.signup.InputFieldUiParam
@@ -191,6 +199,9 @@ fun UpdateProfilePage(
                 )
             }
 
+            val cities by viewModel.cities.collectAsState()
+            val currentProfile by viewModel.uiState.collectAsState()
+
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -204,13 +215,16 @@ fun UpdateProfilePage(
                         fontSize = rspSp(15.sp)
                     )
                 )
-                InputField(
-                    value = uiState.profile.province ?: "",
-                    onValueChange = { viewModel.onProfileChange(uiState.profile.copy(province = it)) },
-                    textStyle = InputFieldUiParam.inputTextStyle(),
-                    singleLine = true,
+                CityDropdown(
+                    cities = cities,
+                    selectedCityName = currentProfile.profile.province,
+                    onCitySelected = { selectedCity ->
+                        viewModel.onProfileChange(
+                            currentProfile.profile.copy(province = selectedCity)
+                        )
+                    },
                     modifier = Modifier
-                        .height(height = rspDp(50.dp))
+                        .height(rspDp(50.dp))
                         .fillMaxWidth()
                         .background(
                             color = InputFieldUiParam.fillColor,
@@ -220,7 +234,7 @@ fun UpdateProfilePage(
                             width = InputFieldUiParam.borderWidth,
                             shape = InputFieldUiParam.clipShape(),
                             color = InputFieldUiParam.borderColor
-                        ),
+                        )
                 )
             }
 
@@ -560,6 +574,82 @@ fun CredentialSection(
                         else
                             "Tap to upload credential",
                         color = Brown1
+                    )
+                }
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun CityDropdown(
+    cities: List<City>,
+    selectedCityName: String?,
+    onCitySelected: (String) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    var expanded by remember { mutableStateOf(false) }
+
+    Box(modifier = modifier) {
+        ExposedDropdownMenuBox(
+            expanded = expanded,
+            onExpandedChange = { expanded = !expanded }
+        ) {
+            TextField(
+                modifier = Modifier
+                    .menuAnchor()
+                    .fillMaxWidth(),
+                readOnly = true,
+                value = selectedCityName ?: "Select a city",
+                onValueChange = {},
+                colors = ExposedDropdownMenuDefaults.textFieldColors(
+                    focusedContainerColor = Color.Transparent,
+                    unfocusedContainerColor = Color.Transparent,
+                    cursorColor = MaterialTheme.colorScheme.primary,
+                    focusedIndicatorColor = Color.Transparent,
+                    unfocusedIndicatorColor = Color.Transparent,
+                    disabledIndicatorColor = Color.Transparent
+                ),
+                textStyle = TextStyle(
+                    fontFamily = GlacialIndifferenceBold,
+                    color = Brown1,
+                    fontSize = rspSp(16.sp)
+                ),
+                trailingIcon = {
+                    ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
+                }
+            )
+
+            ExposedDropdownMenu(
+                expanded = expanded,
+                onDismissRequest = { expanded = false },
+                containerColor = Brown1,
+                border = BorderStroke(
+                    width = rspDp(2.dp),
+                    color = Beige1
+                ),
+                shape = RoundedCornerShape(rspDp(10.dp))
+            ) {
+                cities.forEach { city ->
+                    DropdownMenuItem(
+                        text = {
+                            Text(
+                                text = city.name,
+                                style = TextStyle(
+                                    fontSize = rspSp(12.sp),
+                                    fontFamily = Etna,
+                                    color = White
+                                )
+                            )
+                        },
+                        onClick = {
+                            onCitySelected(city.name)
+                            expanded = false
+                        },
+                        colors = MenuDefaults.itemColors(
+                            trailingIconColor = Color.Transparent
+                        )
                     )
                 }
             }

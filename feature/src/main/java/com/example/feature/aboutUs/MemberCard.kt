@@ -11,8 +11,10 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -75,17 +77,22 @@ fun MemberCard(
                 fontSize = 15.sp,
             )
 
-            Text(
-                text = member.bio,
-                color = Color.Black,
-                fontFamily = GlacialIndifference,
-                fontSize = 15.sp,
-                textAlign = TextAlign.Center,
-                fontWeight = FontWeight.Bold,
+            Box(
                 modifier = Modifier
                     .fillMaxWidth()
+                    .height(80.dp) // adjust height for bio
                     .padding(horizontal = 16.dp)
-            )
+                    .verticalScroll(rememberScrollState())
+            ) {
+                Text(
+                    text = member.bio,
+                    color = Color.Black,
+                    fontFamily = GlacialIndifference,
+                    fontSize = 15.sp,
+                    textAlign = TextAlign.Center,
+                    fontWeight = FontWeight.Bold,
+                )
+            }
 
         }
 

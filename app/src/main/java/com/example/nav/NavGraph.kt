@@ -237,6 +237,10 @@ fun NavGraph(
                 )
             }
 
+            composable(Route.VerifyUserPage.route) {
+                VerifyUserPage()
+            }
+
         }
 
         if (currentRoute in navRoutes) {

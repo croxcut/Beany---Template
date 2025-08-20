@@ -36,7 +36,7 @@ fun Footer(
                 style = footerGetTextStyle()
             )
             Text(
-                text = "Terms and Conditions",
+                text = "Beany ",
                 style = footerGetTextStyle()
             )
             Text(

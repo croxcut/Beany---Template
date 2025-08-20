@@ -107,7 +107,6 @@ fun SignUpPage(
             )
         }
 
-        // InputFields
         Column(
             modifier = Modifier
                 .fillMaxSize()
