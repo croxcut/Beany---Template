@@ -84,8 +84,21 @@ class MainActivity : ComponentActivity() {
     // Permissions we want to request at runtime
     private val requiredPermissions = arrayOf(
         Manifest.permission.CAMERA,
-        Manifest.permission.POST_NOTIFICATIONS // Only needed for Android 13+
+        Manifest.permission.POST_NOTIFICATIONS, // Only needed for Android 13+
+        Manifest.permission.WRITE_EXTERNAL_STORAGE // Add storage permission
     )
+
+    // For Android 10+ (API 29+), we need to use MediaStore instead of WRITE_EXTERNAL_STORAGE
+    private val storagePermissions = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+        // Android 10+ doesn't need WRITE_EXTERNAL_STORAGE for app-specific storage
+        // but we might need READ_EXTERNAL_STORAGE if accessing other apps' files
+        arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE)
+    } else {
+        arrayOf(
+            Manifest.permission.READ_EXTERNAL_STORAGE,
+            Manifest.permission.WRITE_EXTERNAL_STORAGE
+        )
+    }
 
     private val requestPermissionsLauncher =
         registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissions ->
@@ -142,9 +155,13 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun requestNecessaryPermissions() {
-        val permissionsToRequest = requiredPermissions.filter { permission ->
+        // Combine all required permissions
+        val allPermissions = requiredPermissions + storagePermissions
+
+        val permissionsToRequest = allPermissions.filter { permission ->
             ContextCompat.checkSelfPermission(this, permission) != PackageManager.PERMISSION_GRANTED
         }
+
         if (permissionsToRequest.isNotEmpty()) {
             requestPermissionsLauncher.launch(permissionsToRequest.toTypedArray())
         }

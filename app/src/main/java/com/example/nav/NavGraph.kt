@@ -82,7 +82,7 @@ fun NavGraph(
     ) {
         NavHost(
             navController = navController,
-            startDestination = Route.HomePage.route,
+            startDestination = Route.LaunchPage.route,
             modifier = Modifier
                 .matchParentSize()
                 .windowInsetsPadding(WindowInsets.navigationBars)

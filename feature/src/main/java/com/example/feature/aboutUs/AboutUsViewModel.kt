@@ -13,25 +13,25 @@ class AboutUsPageViewModel @Inject constructor(
         Member(
             name = "Faith Bianca Madarang",
             position = "Project Manager",
-            bio = "Tumatawid ng bundok papasok school T_T",
+            bio = "An idea isn't responsible for the people who believe in it.",
             imageRes = R.drawable.faith
         ),
         Member(
             name = "John Paul Valenzuela",
             position = "Integrated Systems Developer",
-            bio = "taong grasa ng bagong silang",
+            bio = "If two wrongs don't make a right, try three.",
             imageRes = R.drawable.john
         ),
         Member(
             name = "Julliah Nicole Paran",
             position = "Quality Assurance",
-            bio = "Mga taga bulacan talaga haaystt",
+            bio = "Better late than never, but never late is better",
             imageRes = R.drawable.paran
         ),
         Member(
             name = "ChristDale Esteban",
             position = "Technical Assistant",
-            bio = "heartthrob ng Commonwealth",
+            bio = "Behind every great man is a woman rolling her eyes.",
             imageRes = R.drawable.elad
         ),
     )
