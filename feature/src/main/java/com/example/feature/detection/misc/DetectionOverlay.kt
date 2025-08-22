@@ -9,7 +9,7 @@ import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.unit.dp
 import com.example.core.ui.theme.Brown1
 import com.example.core.utils.rspDp
-import com.example.domain.model.AABB
+import com.example.domain.model.ml.AABB
 import kotlin.collections.forEach
 
 @Composable

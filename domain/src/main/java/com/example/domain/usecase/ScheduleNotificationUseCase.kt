@@ -1,6 +1,6 @@
 package com.example.domain.usecase
 
-import com.example.domain.repository.NotificationRepository
+import com.example.domain.repository.local.NotificationRepository
 import java.util.Calendar
 import javax.inject.Inject
 

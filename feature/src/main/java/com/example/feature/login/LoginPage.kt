@@ -54,7 +54,7 @@ import com.example.core.ui.theme.Kare
 import com.example.core.ui.theme.White
 import com.example.core.utils.rspDp
 import com.example.core.utils.rspSp
-import com.example.domain.model.LoginCredential
+import com.example.domain.model.supabase.LoginCredential
 import com.example.domain.model.Route
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions

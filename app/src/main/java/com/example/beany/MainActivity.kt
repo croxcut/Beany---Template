@@ -10,6 +10,7 @@ import android.app.TimePickerDialog
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.location.Location
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -30,6 +31,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
@@ -53,6 +55,8 @@ import com.example.core.local.EasyNotification
 import com.example.core.local.createNotificationChannel
 import com.example.core.ui.theme.BeanyTheme
 import com.example.nav.NavGraph
+import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationServices
 import dagger.hilt.android.AndroidEntryPoint
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.annotations.SupabaseExperimental
@@ -76,22 +80,107 @@ import java.util.concurrent.TimeUnit
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.ExperimentalTime
 
+//@AndroidEntryPoint
+//class MainActivity : ComponentActivity() {
+//
+//    private lateinit var navController: NavHostController
+//
+//    private val requiredPermissions = arrayOf(
+//        Manifest.permission.CAMERA,
+//        Manifest.permission.POST_NOTIFICATIONS,
+//        Manifest.permission.WRITE_EXTERNAL_STORAGE
+//    )
+//
+//    private val storagePermissions = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+//        arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE)
+//    } else {
+//        arrayOf(
+//            Manifest.permission.READ_EXTERNAL_STORAGE,
+//            Manifest.permission.WRITE_EXTERNAL_STORAGE
+//        )
+//    }
+//
+//    private val requestPermissionsLauncher =
+//        registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissions ->
+//            permissions.entries.forEach { (permission, isGranted) ->
+//                if (isGranted) {
+//                    Log.d("Permissions", "$permission granted")
+//                } else {
+//                    Log.d("Permissions", "$permission denied")
+//                }
+//            }
+//        }
+//
+//    @OptIn(SupabaseExperimental::class)
+//    override fun onCreate(savedInstanceState: Bundle?) {
+//        super.onCreate(savedInstanceState)
+//        installSplashScreen()
+//        enableEdgeToEdge()
+//
+//        createNotificationChannel(this)
+//        EasyNotification.createNotificationChannel(
+//            context = this,
+//            channelId = "beany_channel",
+//            channelName = "Beany Notifications"
+//        )
+//
+//        setContent {
+//            BeanyTheme {
+//                navController = rememberNavController()
+//                NavGraph(navController = navController, activity = this)
+//            }
+//        }
+//
+//        requestNecessaryPermissions()
+//
+//        handleIntent(intent)
+//    }
+//
+//    override fun onNewIntent(intent: Intent) {
+//        super.onNewIntent(intent)
+//        setIntent(intent)
+//        handleIntent(intent)
+//    }
+//
+//    private fun handleIntent(intent: Intent?) {
+//        intent?.data?.let { uri ->
+//            Log.d("EasyNotification", "Notification tapped! URI = $uri")
+//            val message = uri.lastPathSegment?.let { Uri.decode(it) } ?: return
+//            navController.navigate("notification_screen/$message") {
+//                launchSingleTop = true
+//            }
+//        }
+//    }
+//
+//    private fun requestNecessaryPermissions() {
+//
+//        val allPermissions = requiredPermissions + storagePermissions
+//
+//        val permissionsToRequest = allPermissions.filter { permission ->
+//            ContextCompat.checkSelfPermission(this, permission) != PackageManager.PERMISSION_GRANTED
+//        }
+//
+//        if (permissionsToRequest.isNotEmpty()) {
+//            requestPermissionsLauncher.launch(permissionsToRequest.toTypedArray())
+//        }
+//    }
+//}
+
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
     private lateinit var navController: NavHostController
+    private lateinit var fusedLocationClient: FusedLocationProviderClient
 
-    // Permissions we want to request at runtime
     private val requiredPermissions = arrayOf(
         Manifest.permission.CAMERA,
-        Manifest.permission.POST_NOTIFICATIONS, // Only needed for Android 13+
-        Manifest.permission.WRITE_EXTERNAL_STORAGE // Add storage permission
+        Manifest.permission.POST_NOTIFICATIONS,
+        Manifest.permission.WRITE_EXTERNAL_STORAGE,
+        Manifest.permission.ACCESS_FINE_LOCATION, // ✅ Location permission
+        Manifest.permission.ACCESS_COARSE_LOCATION
     )
 
-    // For Android 10+ (API 29+), we need to use MediaStore instead of WRITE_EXTERNAL_STORAGE
     private val storagePermissions = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-        // Android 10+ doesn't need WRITE_EXTERNAL_STORAGE for app-specific storage
-        // but we might need READ_EXTERNAL_STORAGE if accessing other apps' files
         arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE)
     } else {
         arrayOf(
@@ -111,11 +200,14 @@ class MainActivity : ComponentActivity() {
             }
         }
 
+    @RequiresPermission(allOf = [android.Manifest.permission.ACCESS_FINE_LOCATION, android.Manifest.permission.ACCESS_COARSE_LOCATION])
     @OptIn(SupabaseExperimental::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         installSplashScreen()
         enableEdgeToEdge()
+
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
 
         createNotificationChannel(this)
         EasyNotification.createNotificationChannel(
@@ -123,25 +215,72 @@ class MainActivity : ComponentActivity() {
             channelId = "beany_channel",
             channelName = "Beany Notifications"
         )
-
         setContent {
             BeanyTheme {
                 navController = rememberNavController()
-                NavGraph(navController = navController, activity = this)
+
+                // ✅ Example UI to test location
+                var locationText by remember { mutableStateOf("Press button to get location") }
+
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Text(locationText)
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Button(onClick = { getCurrentLocation { lat, lon ->
+                        locationText = "Lat: $lat, Lon: $lon"
+                    } }) {
+                        Text("Get Location")
+                    }
+                }
+//
+//                // Your app navigation
+//                NavGraph(navController = navController, activity = this)
             }
         }
 
-        // Request runtime permissions
         requestNecessaryPermissions()
-
-        // Handle notification deep link immediately
         handleIntent(intent)
     }
 
-    override fun onNewIntent(intent: Intent) {
-        super.onNewIntent(intent)
-        setIntent(intent)
-        handleIntent(intent)
+    @RequiresPermission(anyOf = [Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION])
+    private fun getCurrentLocation(onLocationResult: (Double, Double) -> Unit) {
+        if (ActivityCompat.checkSelfPermission(
+                this,
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED &&
+            ActivityCompat.checkSelfPermission(
+                this,
+                Manifest.permission.ACCESS_COARSE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            Log.d("Location", "Permission not granted")
+            return
+        }
+
+        fusedLocationClient.lastLocation.addOnSuccessListener { location: Location? ->
+            location?.let {
+                onLocationResult(it.latitude, it.longitude)
+            } ?: run {
+                Log.d("Location", "Location is null")
+            }
+        }
+    }
+
+    private fun requestNecessaryPermissions() {
+        val allPermissions = requiredPermissions + storagePermissions
+
+        val permissionsToRequest = allPermissions.filter { permission ->
+            ContextCompat.checkSelfPermission(this, permission) != PackageManager.PERMISSION_GRANTED
+        }
+
+        if (permissionsToRequest.isNotEmpty()) {
+            requestPermissionsLauncher.launch(permissionsToRequest.toTypedArray())
+        }
     }
 
     private fun handleIntent(intent: Intent?) {
@@ -151,19 +290,6 @@ class MainActivity : ComponentActivity() {
             navController.navigate("notification_screen/$message") {
                 launchSingleTop = true
             }
-        }
-    }
-
-    private fun requestNecessaryPermissions() {
-        // Combine all required permissions
-        val allPermissions = requiredPermissions + storagePermissions
-
-        val permissionsToRequest = allPermissions.filter { permission ->
-            ContextCompat.checkSelfPermission(this, permission) != PackageManager.PERMISSION_GRANTED
-        }
-
-        if (permissionsToRequest.isNotEmpty()) {
-            requestPermissionsLauncher.launch(permissionsToRequest.toTypedArray())
         }
     }
 }

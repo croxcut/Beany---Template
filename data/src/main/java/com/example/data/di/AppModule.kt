@@ -1,8 +1,8 @@
 package com.example.data.di
 
 import android.content.Context
-import com.example.data.repositoryImpl.NotificationRepositoryImpl
-import com.example.domain.repository.NotificationRepository
+import com.example.data.repositoryImpl.local.notif.NotificationHandleRepositoryImpl
+import com.example.domain.repository.local.NotificationRepository
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -17,7 +17,7 @@ object AppModule {
     @Provides
     @Singleton
     fun provideNotificationRepository(@ApplicationContext context: Context): NotificationRepository {
-        return NotificationRepositoryImpl(context)
+        return NotificationHandleRepositoryImpl(context)
     }
 
 }

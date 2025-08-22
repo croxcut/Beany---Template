@@ -60,7 +60,7 @@ import com.example.core.ui.theme.White
 import com.example.core.utils.rspDp
 import com.example.core.utils.rspSp
 import com.example.domain.model.Route
-import com.example.domain.model.SignUpCredential
+import com.example.domain.model.supabase.SignUpCredential
 import com.example.domain.model.Terms
 
 @Composable

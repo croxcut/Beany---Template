@@ -3,14 +3,13 @@ package com.example.data.di
 import android.content.Context
 import androidx.room.Room
 import com.example.data.local.dao.ActivityDao
-import com.example.data.local.dao.NotificationDao
 import com.example.data.local.db.ActivityDatabase
 import com.example.data.local.db.DiagnosisDatabase
 import com.example.data.local.db.NotificationDatabase
 import com.example.data.local.repository.DiagnosisRepository
 import com.example.data.local.repository.NotificationRepository
-import com.example.data.repositoryImpl.DiagnosisRepositoryImpl
-import com.example.data.repositoryImpl.local.NotificationRepositoryImpl
+import com.example.data.repositoryImpl.local.ml.DiagnosisRepositoryImpl
+import com.example.data.repositoryImpl.local.notif.NotificationRepositoryImpl
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn

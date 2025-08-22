@@ -24,7 +24,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import com.example.domain.model.AABB
+import com.example.domain.model.ml.AABB
 import com.example.feature.detection.viewModel.DetectionViewModel
 import java.io.OutputStream
 import androidx.compose.ui.graphics.asImageBitmap

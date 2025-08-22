@@ -1,9 +1,9 @@
 package com.example.data.di
 
 import android.content.Context
-import com.example.data.repositoryImpl.DetectionRepositoryImpl
+import com.example.data.repositoryImpl.local.ml.DetectionRepositoryImpl
 import com.example.data.tflite.ModelRunner
-import com.example.domain.repository.DetectionRepository
+import com.example.domain.repository.local.ml.DetectionRepository
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn

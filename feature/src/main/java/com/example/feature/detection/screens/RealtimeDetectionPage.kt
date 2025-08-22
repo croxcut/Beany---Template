@@ -42,7 +42,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.example.core.ui.theme.Beige1
-import com.example.domain.model.AABB
+import com.example.domain.model.ml.AABB
 import com.example.domain.model.Route
 import com.example.feature.detection.viewModel.DetectionViewModel
 import java.io.OutputStream
@@ -91,7 +91,6 @@ fun RealtimeDetectionPage(
     var analyzerActive by remember { mutableStateOf(true) }
     var imageCaptureRef by remember { mutableStateOf<ImageCapture?>(null) } // high-res capture
 
-    // List to store captured URIs
     var capturedUris by remember { mutableStateOf(listOf<Uri>()) }
 
     DisposableEffect(Unit) {
@@ -144,7 +143,6 @@ fun RealtimeDetectionPage(
                             analyzerActive = false
                             cameraExecutor.shutdownNow()
 
-                            // Pop back instantly
                             navController.popBackStack()
                         },
                         modifier = Modifier

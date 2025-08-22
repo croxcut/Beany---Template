@@ -1,6 +1,6 @@
 package com.example.feature.profile.updateProfile
 
-import com.example.domain.model.Profile
+import com.example.domain.model.supabase.Profile
 
 data class ProfileUiState(
     val profile: Profile = Profile(),

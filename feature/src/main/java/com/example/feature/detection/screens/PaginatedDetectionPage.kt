@@ -53,8 +53,8 @@ import com.example.core.ui.theme.White
 import com.example.core.utils.rspDp
 import com.example.core.utils.rspSp
 import com.example.data.model.Diagnosis
-import com.example.domain.model.AABB
-import com.example.domain.model.Note
+import com.example.domain.model.ml.AABB
+import com.example.domain.model.db.Note
 import com.example.feature.detection.misc.TiltedImage
 import com.example.feature.detection.misc.saveBitmapAndGetPath
 import com.example.feature.detection.misc.saveBitmapWithBoxes

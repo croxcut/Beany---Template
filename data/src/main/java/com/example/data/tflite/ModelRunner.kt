@@ -3,7 +3,7 @@ package com.example.data.tflite
 import android.content.Context
 import android.graphics.Bitmap
 import android.os.SystemClock
-import com.example.domain.model.AABB
+import com.example.domain.model.ml.AABB
 import org.tensorflow.lite.DataType
 import org.tensorflow.lite.Interpreter
 import org.tensorflow.lite.support.common.FileUtil

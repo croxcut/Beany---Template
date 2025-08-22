@@ -1,6 +1,6 @@
 package com.example.domain.usecase
 
-import com.example.domain.repository.SessionRepository
+import com.example.domain.repository.remote.supabase.SessionRepository
 import io.github.jan.supabase.auth.user.UserSession
 import javax.inject.Inject
 

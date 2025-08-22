@@ -1,7 +1,7 @@
 package com.example.domain.usecase
 
-import com.example.domain.model.SignUpCredential
-import com.example.domain.repository.SignUpRepository
+import com.example.domain.model.supabase.SignUpCredential
+import com.example.domain.repository.remote.supabase.SignUpRepository
 import javax.inject.Inject
 
 class SignUpUseCase @Inject constructor(

@@ -35,8 +35,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.example.domain.model.DailyForecast
-import com.example.domain.model.WeatherForecast
+import com.example.domain.model.weather.DailyForecast
+import com.example.domain.model.weather.WeatherForecast
 import com.example.feature.home.WeatherViewModel
 import java.util.Calendar
 

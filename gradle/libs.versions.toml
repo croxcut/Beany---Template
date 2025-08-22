@@ -42,6 +42,9 @@ glide = "4.16.0"
 glide-ksp = "4.16.0"
 kspPlugin = "2.2.20-Beta1-2.0.2"
 
+# Loc
+loc = "21.3.0"
+
 # TfLite
 tflite = "2.17.0"
 tflite-support = "0.5.0"
@@ -169,6 +172,9 @@ ktor-client-cio = { group = "io.ktor", name = "ktor-client-cio", version.ref = "
 ktor-client-auth = { group = "io.ktor", name = "ktor-client-auth", version.ref = "ktor" }
 ktor-client-content-negotiation = { group = "io.ktor", name = "ktor-client-content-negotiation", version.ref = "ktor" }
 ktor-serialization-kotlinx-json = { group = "io.ktor", name = "ktor-serialization-kotlinx-json", version.ref = "ktor" }
+
+# Google Location Services
+google-loc = { module = "com.google.android.gms:play-services-location", version.ref = "loc"}
 
 # Hilt
 hilt = { module = "com.google.dagger:hilt-android", version.ref = "hilt" }

@@ -4,8 +4,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.*
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.domain.model.UserSessionModel
-import com.example.domain.repository.ResetPasswordRepository
+import com.example.domain.repository.remote.supabase.ResetPasswordRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.github.jan.supabase.auth.user.UserSession
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -44,7 +43,7 @@ class PassWordResetViewModel @Inject constructor(
     }
 
     @OptIn(ExperimentalTime::class)
-    fun importFromDeepLink(model: UserSessionModel, onError: (Throwable) -> Unit) {
+    fun importFromDeepLink(model: UserSession, onError: (Throwable) -> Unit) {
         viewModelScope.launch {
             try {
                 val session = UserSession(

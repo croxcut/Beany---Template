@@ -1,8 +1,8 @@
 package com.example.data.di
 
 import android.content.Context
-import com.example.data.repositoryImpl.OnboardingRepositoryImpl
-import com.example.domain.repository.OnboardingRepository
+import com.example.data.repositoryImpl.local.onboarding.OnboardingRepositoryImpl
+import com.example.domain.repository.local.datastore.OnboardingRepository
 import com.example.domain.usecase.IsOnboardedUseCase
 import com.example.domain.usecase.SetOnboardingUseCase
 import dagger.Module

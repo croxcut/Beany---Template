@@ -69,6 +69,8 @@ dependencies {
     implementation(libs.supabase.auth)
     implementation(libs.supabase.storage)
 
+    implementation(libs.google.loc)
+
     // Google Auth
     implementation(libs.google.auth)
     implementation(libs.google.services)

@@ -23,9 +23,11 @@ import com.example.core.composables.InputField
 import com.example.core.ui.theme.*
 import com.example.core.utils.rspDp
 import com.example.core.utils.rspSp
-import com.example.domain.model.UserSessionModel
 import com.example.domain.model.Route
+import io.github.jan.supabase.auth.user.UserSession
+import kotlin.time.ExperimentalTime
 
+@OptIn(ExperimentalTime::class)
 @Composable
 fun ResetPasswordPage(
     navController: NavController,
@@ -52,7 +54,7 @@ fun ResetPasswordPage(
 
     LaunchedEffect(accessToken, type) {
         if (!accessToken.isNullOrEmpty() && type == "recovery") {
-            val model = UserSessionModel(
+            val model = UserSession(
                 accessToken = accessToken,
                 tokenType = params["token_type"] ?: "bearer",
                 refreshToken = params["refresh_token"] ?: "",

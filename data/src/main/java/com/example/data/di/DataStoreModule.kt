@@ -1,12 +1,8 @@
 package com.example.data.di
 
 import android.content.Context
-import androidx.datastore.core.DataStore
-import androidx.datastore.dataStoreFile
-import androidx.datastore.preferences.core.PreferenceDataStoreFactory
-import androidx.datastore.preferences.core.Preferences
-import com.example.data.repositoryImpl.AuthRepositoryImpl
-import com.example.domain.repository.AuthRepository
+import com.example.data.repositoryImpl.local.db.AuthRepositoryImpl
+import com.example.domain.repository.local.datastore.AuthRepository
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn

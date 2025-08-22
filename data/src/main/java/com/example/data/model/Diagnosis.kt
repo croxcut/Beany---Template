@@ -4,8 +4,8 @@ import androidx.room.Entity
 import androidx.room.PrimaryKey
 import androidx.room.TypeConverters
 import com.example.data.local.misc.Converters
-import com.example.domain.model.AABB
-import com.example.domain.model.Note
+import com.example.domain.model.ml.AABB
+import com.example.domain.model.db.Note
 import java.util.Date
 
 @Entity

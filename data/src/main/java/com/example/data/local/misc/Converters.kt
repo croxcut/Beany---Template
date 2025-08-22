@@ -1,8 +1,8 @@
 package com.example.data.local.misc
 
 import androidx.room.TypeConverter
-import com.example.domain.model.AABB
-import com.example.domain.model.Note
+import com.example.domain.model.ml.AABB
+import com.example.domain.model.db.Note
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import java.util.Date

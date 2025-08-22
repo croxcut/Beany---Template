@@ -1,8 +1,8 @@
 package com.example.data.di
 
 import android.content.Context
-import com.example.data.repositoryImpl.TermsRepositoryImpl
-import com.example.domain.repository.TermsRepository
+import com.example.data.repositoryImpl.local.TermsRepositoryImpl
+import com.example.domain.repository.local.TermsRepository
 import com.example.domain.usecase.GetTermsUseCase
 import dagger.Module
 import dagger.Provides

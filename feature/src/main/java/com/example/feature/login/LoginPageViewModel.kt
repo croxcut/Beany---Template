@@ -5,12 +5,8 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.navigation.NavController
-import com.example.domain.model.LoginCredential
-import com.example.domain.model.Route
-import com.example.domain.repository.AuthRepository
-import com.example.domain.repository.GoogleAuthRepository
-import com.example.domain.repository.SessionRepository
+import com.example.domain.model.supabase.LoginCredential
+import com.example.domain.repository.local.datastore.AuthRepository
 import com.example.domain.usecase.LoginUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow

@@ -2,9 +2,9 @@ package com.example.feature.home
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.domain.model.City
-import com.example.domain.model.WeatherForecast
-import com.example.domain.repository.WeatherRepository
+import com.example.domain.model.weather.City
+import com.example.domain.model.weather.WeatherForecast
+import com.example.domain.repository.remote.openMeteo.WeatherRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow

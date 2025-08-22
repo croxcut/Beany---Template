@@ -37,9 +37,9 @@ import com.example.core.ui.theme.GlacialIndifference
 import com.example.core.ui.theme.White
 import com.example.core.utils.rspDp
 import com.example.core.utils.rspSp
-import com.example.domain.model.Post
-import com.example.domain.model.Profile
-import com.example.domain.model.Reply
+import com.example.domain.model.supabase.Post
+import com.example.domain.model.supabase.Profile
+import com.example.domain.model.supabase.Reply
 import com.example.feature.community.viewModels.PostDetailViewModel
 import com.example.feature.R
 import com.example.feature.community.misc.ParentReplyInThread

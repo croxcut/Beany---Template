@@ -6,10 +6,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.domain.model.City
-import com.example.domain.model.SignUpCredential
+import com.example.domain.model.weather.City
+import com.example.domain.model.supabase.SignUpCredential
 import com.example.domain.model.Terms
-import com.example.domain.repository.WeatherRepository
+import com.example.domain.repository.remote.openMeteo.WeatherRepository
 import com.example.domain.usecase.GetTermsUseCase
 import com.example.domain.usecase.SignUpUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel

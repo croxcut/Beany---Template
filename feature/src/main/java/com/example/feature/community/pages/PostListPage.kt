@@ -2,7 +2,6 @@ package com.example.feature.community.pages
 
 import android.net.Uri
 import android.util.Log
-import android.view.Menu
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
@@ -18,7 +17,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -42,8 +40,8 @@ import com.example.core.ui.theme.Kare
 import com.example.core.ui.theme.White
 import com.example.core.utils.rspDp
 import com.example.core.utils.rspSp
-import com.example.domain.model.Post
-import com.example.domain.model.Profile
+import com.example.domain.model.supabase.Post
+import com.example.domain.model.supabase.Profile
 import com.example.feature.community.viewModels.PostsViewModel
 import com.example.feature.R
 import androidx.compose.material.icons.filled.Favorite
@@ -55,9 +53,8 @@ import androidx.paging.LoadState
 import androidx.paging.compose.collectAsLazyPagingItems
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
-import com.canhub.cropper.CropImageContract
 import com.example.core.composables.InputField
-import com.example.domain.model.Reply
+import com.example.domain.model.supabase.Reply
 import com.example.feature.community.misc.ZoomableImageDialog
 import kotlinx.coroutines.delay
 import com.example.feature.community.misc.ZoomableImageState

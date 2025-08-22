@@ -23,8 +23,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.core.utils.rspDp
-import com.example.domain.model.Profile
-import com.example.domain.model.Reply
+import com.example.domain.model.supabase.Profile
+import com.example.domain.model.supabase.Reply
 
 @Composable
 fun ParentReplyPreview(

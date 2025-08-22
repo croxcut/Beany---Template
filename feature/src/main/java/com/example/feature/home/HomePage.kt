@@ -30,10 +30,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Divider
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
@@ -43,7 +40,6 @@ import androidx.compose.material3.MenuDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -52,7 +48,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
@@ -63,7 +58,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
 import com.example.core.composables.Footer
 import com.example.core.ui.theme.Beige1
 import com.example.core.ui.theme.Brown1
@@ -75,13 +69,12 @@ import com.example.core.ui.theme.White
 import com.example.core.utils.rspDp
 import com.example.core.utils.rspSp
 import com.example.data.model.ActivityEntity
-import com.example.domain.model.City
-import com.example.domain.model.DailyForecast
-import com.example.domain.model.Profile
+import com.example.domain.model.weather.City
+import com.example.domain.model.weather.DailyForecast
+import com.example.domain.model.supabase.Profile
 import com.example.domain.model.Route
-import com.example.domain.model.WeatherForecast
+import com.example.domain.model.weather.WeatherForecast
 import com.example.feature.R
-import io.github.jan.supabase.realtime.Column
 import kotlinx.coroutines.coroutineScope
 import java.text.SimpleDateFormat
 import java.util.Calendar

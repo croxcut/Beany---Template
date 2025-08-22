@@ -16,7 +16,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.graphicsLayer
-import com.example.domain.model.AABB
+import com.example.domain.model.ml.AABB
 import kotlin.random.Random
 
 @Composable

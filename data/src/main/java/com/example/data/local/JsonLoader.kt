@@ -1,7 +1,7 @@
 package com.example.data.local
 
 import android.content.Context
-import com.example.domain.model.City
+import com.example.domain.model.weather.City
 import com.example.domain.model.Terms
 import com.google.gson.Gson
 import kotlinx.serialization.json.*

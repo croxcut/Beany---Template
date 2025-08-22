@@ -8,10 +8,10 @@ import androidx.lifecycle.viewModelScope
 import androidx.compose.runtime.State
 import com.example.data.local.repository.DiagnosisRepository
 import com.example.data.model.Diagnosis
-import com.example.data.repositoryImpl.local.ActivityRepository
-import com.example.domain.model.AABB
-import com.example.domain.model.Note
-import com.example.domain.repository.DetectionRepository
+import com.example.data.repositoryImpl.local.db.ActivityRepository
+import com.example.domain.model.ml.AABB
+import com.example.domain.model.db.Note
+import com.example.domain.repository.local.ml.DetectionRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow

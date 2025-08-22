@@ -12,7 +12,7 @@ import android.widget.Toast
 import androidx.camera.core.ImageCapture
 import androidx.camera.core.ImageCaptureException
 import androidx.core.content.ContextCompat
-import com.example.domain.model.AABB
+import com.example.domain.model.ml.AABB
 import java.io.OutputStream
 import kotlin.collections.forEach
 import androidx.core.graphics.scale

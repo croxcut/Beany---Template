@@ -1,6 +1,6 @@
 package com.example.domain.usecase
 
-import com.example.domain.repository.OnboardingRepository
+import com.example.domain.repository.local.datastore.OnboardingRepository
 import kotlinx.coroutines.flow.Flow
 
 class SetOnboardingUseCase(

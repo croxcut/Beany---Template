@@ -26,7 +26,7 @@ import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.example.core.ui.theme.Beige1
 import com.example.core.ui.theme.Brown1
-import com.example.domain.model.Profile
+import com.example.domain.model.supabase.Profile
 import com.example.feature.R
 
 @Composable

@@ -1,6 +1,6 @@
 package com.example.feature.community.misc
 
-import com.example.domain.model.Profile
+import com.example.domain.model.supabase.Profile
 
 fun formatUserRole(profile: Profile?): String {
     return when {
