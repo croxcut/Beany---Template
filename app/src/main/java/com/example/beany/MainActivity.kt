@@ -176,7 +176,7 @@ class MainActivity : ComponentActivity() {
         Manifest.permission.CAMERA,
         Manifest.permission.POST_NOTIFICATIONS,
         Manifest.permission.WRITE_EXTERNAL_STORAGE,
-        Manifest.permission.ACCESS_FINE_LOCATION, // ✅ Location permission
+        Manifest.permission.ACCESS_FINE_LOCATION,
         Manifest.permission.ACCESS_COARSE_LOCATION
     )
 
@@ -219,27 +219,27 @@ class MainActivity : ComponentActivity() {
             BeanyTheme {
                 navController = rememberNavController()
 
-                // ✅ Example UI to test location
-                var locationText by remember { mutableStateOf("Press button to get location") }
-
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(16.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center
-                ) {
-                    Text(locationText)
-                    Spacer(modifier = Modifier.height(16.dp))
-                    Button(onClick = { getCurrentLocation { lat, lon ->
-                        locationText = "Lat: $lat, Lon: $lon"
-                    } }) {
-                        Text("Get Location")
-                    }
-                }
+//                // ✅ Example UI to test location
+//                var locationText by remember { mutableStateOf("Press button to get location") }
 //
-//                // Your app navigation
-//                NavGraph(navController = navController, activity = this)
+//                Column(
+//                    modifier = Modifier
+//                        .fillMaxSize()
+//                        .padding(16.dp),
+//                    horizontalAlignment = Alignment.CenterHorizontally,
+//                    verticalArrangement = Arrangement.Center
+//                ) {
+//                    Text(locationText)
+//                    Spacer(modifier = Modifier.height(16.dp))
+//                    Button(onClick = { getCurrentLocation { lat, lon ->
+//                        locationText = "Lat: $lat, Lon: $lon"
+//                    } }) {
+//                        Text("Get Location")
+//                    }
+//                }
+
+                // Your app navigation
+                NavGraph(navController = navController, activity = this)
             }
         }
 

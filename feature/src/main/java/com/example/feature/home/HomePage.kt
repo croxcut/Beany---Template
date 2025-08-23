@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
@@ -81,7 +82,6 @@ import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomePage(
     navController: NavController,
@@ -97,18 +97,8 @@ fun HomePage(
 
     LaunchedEffect(Unit) {
         viewModel.checkConnectivity()
-        if (viewModel.isOnline.value) {
-            viewModel.initializeData()
-        }
-    }
-
-    LaunchedEffect(activityList) {
-        Log.d("ActivityBox", "Current activities: $activityList")
-    }
-
-    LaunchedEffect(Unit) {
-        viewModel.checkConnectivity()
         if (isOnline) {
+            viewModel.initializeData()
             coroutineScope {
                 viewModel.dummyActivity()
                 viewModel.refreshSession()
@@ -117,59 +107,52 @@ fun HomePage(
     }
 
     when {
-        !isLoggedIn -> {
-            HomeContent(
-                navController = navController,
-                profile = null,
-                activityList = emptyList(),
-                state = state,
-                selectedCity = null,
-                isOnline = isOnline,
-                isLoggedIn = false,
-                context = context,
-                viewModel = viewModel
-            )
-        }
+        !isLoggedIn -> HomeContent(
+            navController = navController,
+            profile = null,
+            activityList = emptyList(),
+            state = state,
+            selectedCity = null,
+            isOnline = isOnline,
+            isLoggedIn = false,
+            viewModel = viewModel
+        )
 
-        isLoggedIn && !isOnline -> {
-            HomeContent(
-                navController = navController,
-                profile = profile,
-                activityList = activityList,
-                state = state.copy(error = "No internet connection"),
-                selectedCity = selectedCity,
-                isOnline = false,
-                isLoggedIn = true,
-                context = context,
-                viewModel = viewModel
-            )
-        }
+        isLoggedIn && !isOnline -> HomeContent(
+            navController = navController,
+            profile = profile,
+            activityList = activityList,
+            state = state.copy(error = "No internet connection"),
+            selectedCity = selectedCity,
+            isOnline = false,
+            isLoggedIn = true,
+            viewModel = viewModel
+        )
 
-        // User logged in, online but data loading
-        isLoggedIn && isOnline && profile == null -> {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(color = Brown1),
-                contentAlignment = Alignment.Center
-            ) {
-                CircularProgressIndicator(color = White)
-            }
-        }
+        isLoggedIn && isOnline && profile == null -> LoadingScreen()
 
-        isLoggedIn && isOnline && profile != null -> {
-            HomeContent(
-                navController = navController,
-                profile = profile,
-                activityList = activityList,
-                state = state,
-                selectedCity = selectedCity,
-                isOnline = true,
-                isLoggedIn = true,
-                context = context,
-                viewModel = viewModel
-            )
-        }
+        isLoggedIn && isOnline && profile != null -> HomeContent(
+            navController = navController,
+            profile = profile,
+            activityList = activityList,
+            state = state,
+            selectedCity = selectedCity,
+            isOnline = true,
+            isLoggedIn = true,
+            viewModel = viewModel
+        )
+    }
+}
+
+@Composable
+private fun LoadingScreen() {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(color = Brown1),
+        contentAlignment = Alignment.Center
+    ) {
+        CircularProgressIndicator(color = White)
     }
 }
 
@@ -183,528 +166,567 @@ private fun HomeContent(
     selectedCity: City?,
     isOnline: Boolean,
     isLoggedIn: Boolean,
-    context: Context,
     viewModel: HomePageViewModel
 ) {
+    val context = LocalContext.current
+
     Column(
         modifier = Modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
             .background(color = Brown1),
     ) {
-        // Header
-        Column(
-            modifier = Modifier
-                .statusBarsPadding()
-                .height(rspDp(120.dp))
-                .padding(horizontal = rspDp(20.dp))
-                .fillMaxHeight(0.15f),
-            verticalArrangement = Arrangement.Center
-        ) {
-            Text(
-                text = "Beany",
-                style = TextStyle(
-                    fontFamily = Kare,
-                    color = White,
-                    fontSize = rspSp(50.sp)
-                )
-            )
-        }
+        HeaderSection()
 
-        Column(
-            modifier = Modifier
-                .height(rspDp(400.dp))
-                .fillMaxWidth()
-                .background(
-                    color = White,
-                    shape = RoundedCornerShape(
-                        topStart = rspDp(40.dp),
-                        topEnd = rspDp(40.dp)
-                    )
-                )
-        ) {
-            Spacer(modifier = Modifier.height(rspDp(20.dp)))
-
-            Column(
-                modifier = Modifier.padding(horizontal = rspDp(30.dp))
-            ) {
-                Text(
-                    text = "Rise and shine, ${profile?.fullName ?: "Guest"}",
-                    style = TextStyle(
-                        fontFamily = Etna,
-                        color = Brown1,
-                        fontSize = rspSp(25.sp)
-                    )
-                )
-                Text(
-                    text = "what would you like to do today?",
-                    style = TextStyle(
-                        fontFamily = GlacialIndifference,
-                        fontSize = rspSp(15.sp)
-                    )
-                )
-            }
-
-            Column(
-                modifier = Modifier
-                    .padding(horizontal = rspDp(20.dp), vertical = rspDp(10.dp))
-                    .fillMaxWidth()
-                    .height(rspDp(150.dp))
-                    .background(
-                        brush = Brush.verticalGradient(
-                            colors = listOf(Color(0xFF3F51B5), Color(0xFF2196F3))
-                        ),
-                        shape = RoundedCornerShape(rspDp(20.dp))
-                    )
-            ) {
-
-                Row(modifier = Modifier.fillMaxSize()) {
-                    Column(
-                        modifier = Modifier.fillMaxWidth(.5f),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        var expanded by remember { mutableStateOf(false) }
-                        Box(modifier = Modifier.fillMaxWidth()) {
-                            ExposedDropdownMenuBox(
-                                expanded = expanded,
-                                onExpandedChange = { expanded = !expanded }
-                            ) {
-                                TextField(
-                                    modifier = Modifier.menuAnchor(),
-                                    readOnly = true,
-                                    value = selectedCity?.name ?: "",
-                                    onValueChange = {},
-                                    colors = ExposedDropdownMenuDefaults.textFieldColors(
-                                        focusedContainerColor = Color.Transparent,
-                                        unfocusedContainerColor = Color.Transparent,
-                                        cursorColor = MaterialTheme.colorScheme.primary,
-                                        focusedIndicatorColor = Color.Transparent,
-                                        unfocusedIndicatorColor = Color.Transparent,
-                                        disabledIndicatorColor = Color.Transparent
-                                    ),
-                                    textStyle = TextStyle(
-                                        fontFamily = GlacialIndifferenceBold,
-                                        color = Brown1,
-                                        fontSize = rspSp(16.sp)
-                                    )
-                                )
-
-                                ExposedDropdownMenu(
-                                    expanded = expanded,
-                                    onDismissRequest = { expanded = false },
-                                    containerColor = Brown1,
-                                    border = BorderStroke(
-                                        width = rspDp(2.dp),
-                                        color = Beige1
-                                    ),
-                                    shape = RoundedCornerShape(rspDp(10.dp))
-                                ) {
-                                    state.cities.forEach { city ->
-                                        DropdownMenuItem(
-                                            text = { Text(
-                                                text = city.name,
-                                                style = TextStyle(
-                                                    fontSize = rspSp(12.sp),
-                                                    fontFamily = Etna,
-                                                    color = White
-                                                )
-                                            ) },
-                                            onClick = {
-                                                if (isOnline) {
-                                                    viewModel.selectCity(city)
-                                                }
-                                                expanded = false
-                                            },
-                                            colors = MenuDefaults.itemColors(
-                                                trailingIconColor = Color.Transparent
-                                            )
-                                        )
-                                    }
-                                }
-                            }
-                        }
-
-                        Column(modifier = Modifier.padding(horizontal = rspDp(15.dp))) {
-                            Text(
-                                text = SimpleDateFormat("dd MMMM yyyy", Locale.getDefault())
-                                    .format(Date()),
-                                style = TextStyle(
-                                    fontFamily = GlacialIndifferenceBold,
-                                    color = Brown1,
-                                    fontSize = rspSp(15.sp)),
-                                modifier = Modifier.offset(y = rspDp(-10.dp))
-                            )
-
-                            val todayMaxTemp = state.forecast?.dailyForecasts
-                                ?.find { it.date == SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
-                                    .format(Date()) }
-                                ?.maxTemperature
-
-                            Text(
-                                text = todayMaxTemp?.let { "${it}°C" } ?: "--°C",
-                                style = TextStyle(
-                                    fontFamily = GlacialIndifferenceBold,
-                                    color = Brown1,
-                                    fontSize = rspSp(40.sp))
-                            )
-                        }
-                    }
-
-                    Column(
-                        modifier = Modifier.fillMaxSize(),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center
-                    ){
-                        val weatherCode = state.forecast?.dailyForecasts
-                            ?.find { it.date == SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
-                                .format(Date()) }
-                            ?.weatherCode
-
-                        val weatherIcon = when(weatherCode) {
-                            0 -> "☀️"
-                            in 1..3 -> "☁️"
-                            in 45..48 -> "🌫️"
-                            in 51..67 -> "🌧️"
-                            in 71..77 -> "❄️"
-                            in 80..82 -> "🌦️"
-                            in 95..99 -> "⛈️"
-                            else -> "🌤️"
-                        }
-
-                        Text(
-                            text = weatherIcon,
-                            style = TextStyle(fontSize = rspSp(80.sp)),
-                            modifier = Modifier.padding(end = 8.dp)
-                        )
-                    }
-                }
-            }
-
-            Text(
-                text = "Forecast this week",
-                style = TextStyle(
-                    color = Brown1,
-                    fontFamily = GlacialIndifferenceBold,
-                    fontSize = rspSp(20.sp)),
-                modifier = Modifier.padding(horizontal = rspDp(20.dp))
-            )
-
-            state.forecast?.let { forecast ->
-                WeatherForecastList(forecast)
-            } ?: run {
-                Text(
-                    text = if (isOnline) "Loading forecast..." else "No forecast data available",
-                    style = TextStyle(
-                        fontFamily = GlacialIndifference,
-                        fontSize = rspSp(15.sp),
-                        color = Brown1),
-                    modifier = Modifier.padding(rspDp(20.dp))
-                )
-            }
-        }
-
-        Text(
-            text = "Get Started with Beany",
-            style = TextStyle(
-                fontFamily = GlacialIndifferenceBold,
-                color = White,
-                fontSize = rspSp(18.sp)),
-            modifier = Modifier.padding(all = rspDp(10.dp))
+        WeatherSection(
+            state = state,
+            selectedCity = selectedCity,
+            isOnline = isOnline,
+            profile = profile,
+            viewModel = viewModel
         )
 
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(bottom = rspDp(10.dp)),
-            verticalArrangement = Arrangement.spacedBy(rspDp(10.dp))
-        ) {
-            // First row of buttons
-            Row(modifier = Modifier.fillMaxWidth()) {
-                // Realtime Detection
-                Box(
-                    modifier = Modifier
-                        .weight(1f)
-                        .optionsContainerConfig()
-                        .clickable { navController.navigate(Route.SingleImageDetectionPage.route) }
-                ) {
-                    Image(
-                        painter = painterResource(R.drawable.camera),
-                        contentDescription = "Realtime Detection",
-                        modifier = Modifier
-                            .size(rspDp(80.dp))
-                            .offset(x = rspDp(80.dp), y = rspDp(18.dp))
-                    )
+        OptionsSection(
+            navController = navController,
+            isLoggedIn = isLoggedIn,
+            context = context
+        )
 
-                    Column(modifier = Modifier.padding(all = rspDp(10.dp))) {
-                        Text(
-                            text = "Camera",
-                            style = TextStyle(
-                                fontFamily = Etna,
-                                color = Brown1,
-                                fontSize = rspSp(20.sp))
-                        )
-                        Text(
-                            text = "Single Image Capture",
-                            style = TextStyle(
-                                fontFamily = GlacialIndifference,
-                                color = Brown1),
-                            modifier = Modifier.fillMaxWidth(0.5f)
-                        )
-                    }
-                }
+        ActivityStatusSection(
+            activityList = activityList,
+            viewModel = viewModel,
+            navController = navController
+        )
 
-                val context = LocalContext.current
+    }
+}
 
-                val launcher = rememberLauncherForActivityResult(
-                    contract = ActivityResultContracts.GetMultipleContents(),
-                    onResult = { uris ->
-                        if (uris.isNotEmpty()) {
-                            navController.currentBackStackEntry?.savedStateHandle?.set("images", uris)
-                            navController.navigate(Route.PaginatedDetectionPage.route)
-                        } else {
-                            Toast.makeText(context, "No images selected", Toast.LENGTH_SHORT).show()
-                        }
-                    }
+@Composable
+private fun HeaderSection() {
+    Column(
+        modifier = Modifier
+            .statusBarsPadding()
+            .height(rspDp(120.dp))
+            .padding(horizontal = rspDp(20.dp))
+            .fillMaxHeight(0.15f),
+        verticalArrangement = Arrangement.Center
+    ) {
+        Text(
+            text = "Beany",
+            style = TextStyle(
+                fontFamily = Kare,
+                color = White,
+                fontSize = rspSp(50.sp)
+            )
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun WeatherSection(
+    state: WeatherState,
+    selectedCity: City?,
+    isOnline: Boolean,
+    profile: Profile?,
+    viewModel: HomePageViewModel
+) {
+    Column(
+        modifier = Modifier
+            .height(rspDp(400.dp))
+            .fillMaxWidth()
+            .background(
+                color = White,
+                shape = RoundedCornerShape(
+                    topStart = rspDp(40.dp),
+                    topEnd = rspDp(40.dp)
                 )
+            )
+    ) {
+        Spacer(modifier = Modifier.height(rspDp(20.dp)))
 
-                // Upload Image
-                Box(
-                    modifier = Modifier
-                        .weight(1f)
-                        .optionsContainerConfig()
-                        .clickable {
-                            launcher.launch("image/*")
-                        }
-                ) {
-                    Image(
-                        painter = painterResource(R.drawable.upload),
-                        contentDescription = "Upload Image",
-                        modifier = Modifier
-                            .size(rspDp(80.dp))
-                            .offset(x = rspDp(80.dp), y = rspDp(18.dp))
-                    )
+        Column(modifier = Modifier.padding(horizontal = rspDp(30.dp))) {
+            Text(
+                text = "Rise and shine, ${profile?.fullName ?: "Guest"}",
+                style = TextStyle(
+                    fontFamily = Etna,
+                    color = Brown1,
+                    fontSize = rspSp(25.sp)
+                )
+            )
+            Text(
+                text = "what would you like to do today?",
+                style = TextStyle(
+                    fontFamily = GlacialIndifference,
+                    fontSize = rspSp(15.sp)
+                )
+            )
+        }
 
-                    Column(modifier = Modifier.padding(all = rspDp(10.dp))) {
-                        Text(
-                            text = "Upload",
-                            style = TextStyle(
-                                fontFamily = Etna,
-                                color = Brown1,
-                                fontSize = rspSp(20.sp)
+        WeatherCard(
+            state = state,
+            selectedCity = selectedCity,
+            isOnline = isOnline,
+            viewModel = viewModel
+        )
+
+        ForecastSection(state = state)
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun WeatherCard(
+    state: WeatherState,
+    selectedCity: City?,
+    isOnline: Boolean,
+    viewModel: HomePageViewModel
+) {
+    Column(
+        modifier = Modifier
+            .padding(horizontal = rspDp(20.dp), vertical = rspDp(10.dp))
+            .fillMaxWidth()
+            .height(rspDp(150.dp))
+            .background(
+                brush = Brush.verticalGradient(
+                    colors = listOf(Color(0xFF3F51B5), Color(0xFF2196F3))
+                ),
+                shape = RoundedCornerShape(rspDp(20.dp))
+            )
+    ) {
+        Row(modifier = Modifier.fillMaxSize()) {
+            CityAndDateSection(
+                state = state,
+                selectedCity = selectedCity,
+                isOnline = isOnline,
+                viewModel = viewModel
+            )
+
+            WeatherIconSection(state = state)
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun CityAndDateSection(
+    state: WeatherState,
+    selectedCity: City?,
+    isOnline: Boolean,
+    viewModel: HomePageViewModel
+) {
+    Column(
+        modifier = Modifier.fillMaxWidth(.5f),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        var expanded by remember { mutableStateOf(false) }
+
+        ExposedDropdownMenuBox(
+            expanded = expanded,
+            onExpandedChange = { expanded = !expanded }
+        ) {
+            TextField(
+                modifier = Modifier.menuAnchor(),
+                readOnly = true,
+                value = selectedCity?.name ?: "",
+                onValueChange = {},
+                colors = ExposedDropdownMenuDefaults.textFieldColors(
+                    focusedContainerColor = Color.Transparent,
+                    unfocusedContainerColor = Color.Transparent,
+                    cursorColor = MaterialTheme.colorScheme.primary,
+                    focusedIndicatorColor = Color.Transparent,
+                    unfocusedIndicatorColor = Color.Transparent,
+                    disabledIndicatorColor = Color.Transparent
+                ),
+                textStyle = TextStyle(
+                    fontFamily = GlacialIndifferenceBold,
+                    color = Brown1,
+                    fontSize = rspSp(16.sp)
+                )
+            )
+
+            ExposedDropdownMenu(
+                expanded = expanded,
+                onDismissRequest = { expanded = false },
+                containerColor = Brown1,
+                border = BorderStroke(
+                    width = rspDp(2.dp),
+                    color = Beige1
+                ),
+                shape = RoundedCornerShape(rspDp(10.dp))
+            ) {
+                state.cities.forEach { city ->
+                    DropdownMenuItem(
+                        text = {
+                            Text(
+                                text = city.name,
+                                style = TextStyle(
+                                    fontSize = rspSp(12.sp),
+                                    fontFamily = Etna,
+                                    color = White
+                                )
                             )
-                        )
-                        Text(
-                            text = "Upload Image for diagnosis",
-                            style = TextStyle(
-                                fontFamily = GlacialIndifference,
-                                color = Brown1
-                            ),
-                            modifier = Modifier.fillMaxWidth(0.5f)
-                        )
-                    }
-                }
-            }
-
-            // Second row of buttons
-            Row(modifier = Modifier.fillMaxWidth()) {
-                // Camera
-                Box(
-                    modifier = Modifier
-                        .weight(1f)
-                        .optionsContainerConfig()
-                        .clickable { navController.navigate(Route.DiagnosisListPage.route) }
-                ) {
-                    Image(
-                        painter = painterResource(R.drawable.diagnosis),
-                        contentDescription = "Diagnosis",
-                        modifier = Modifier
-                            .size(rspDp(80.dp))
-                            .offset(x = rspDp(80.dp), y = rspDp(18.dp))
-                    )
-
-                    Column(modifier = Modifier.padding(all = rspDp(10.dp))) {
-                        Text(
-                            text = "Diagnosis",
-                            style = TextStyle(
-                                fontFamily = Etna,
-                                color = Brown1,
-                                fontSize = rspSp(20.sp))
-                        )
-                        Text(
-                            text = "See your latest Diagnosis!",
-                            style = TextStyle(
-                                fontFamily = GlacialIndifference,
-                                color = Brown1),
-                            modifier = Modifier.fillMaxWidth(0.5f)
-                        )
-                    }
-                }
-
-                // Community Chat
-                Box(
-                    modifier = Modifier
-                        .weight(1f)
-                        .clickable {
-                            if (isLoggedIn) {
-                                navController.navigate(Route.PostsListPage.route)
-                            } else {
-                                Toast.makeText(context,
-                                    "Please sign up to access Community",
-                                    Toast.LENGTH_SHORT).show()
+                        },
+                        onClick = {
+                            if (isOnline) {
+                                viewModel.selectCity(city)
                             }
-                        }
-                        .optionsContainerConfig()
-                ) {
-                    Image(
-                        painter = painterResource(R.drawable.chat),
-                        contentDescription = "Community Chat",
-                        modifier = Modifier
-                            .size(rspDp(80.dp))
-                            .offset(x = rspDp(80.dp), y = rspDp(22.dp))
+                            expanded = false
+                        },
+                        colors = MenuDefaults.itemColors(
+                            trailingIconColor = Color.Transparent
+                        )
                     )
-
-                    Column(modifier = Modifier.padding(all = rspDp(10.dp))) {
-                        Text(
-                            text = "Community",
-                            style = TextStyle(
-                                fontFamily = Etna,
-                                color = Brown1,
-                                fontSize = rspSp(20.sp))
-                        )
-                        Text(
-                            text = "Talk with Experts",
-                            style = TextStyle(
-                                fontFamily = GlacialIndifference,
-                                color = Brown1),
-                            modifier = Modifier.fillMaxWidth(0.5f)
-                        )
-                    }
                 }
             }
         }
 
-        Spacer(modifier = Modifier.height(rspDp(10.dp)))
-
-        // Activity Status
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(color = White),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(all = rspDp(10.dp))
-            ) {
-                Text(
-                    text = "Activity Status",
-                    style = TextStyle(
-                        fontFamily = Etna,
-                        color = Brown1,
-                        fontSize = rspSp(20.sp))
-                )
-
-                Spacer(modifier = Modifier.weight(1f))
-
-                Text(
-                    text = "Clear Activity",
-                    style = TextStyle(
-                        fontFamily = GlacialIndifference,
-                        color = Brown1,
-                        fontSize = rspSp(15.sp)),
-                    modifier = Modifier
-                        .clickable{
-                            viewModel.clearAll()
-                        }
-                )
-            }
-
-            val formatter = SimpleDateFormat("MM-dd-yyyy", Locale.getDefault())
-            val activityList by viewModel.activities.collectAsState()
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(rspDp(200.dp))
-                    .padding(horizontal = rspDp(10.dp))
-                    .border(
-                        width = rspDp(2.dp),
-                        color = Brown1,
-                        shape = RoundedCornerShape(rspDp(10.dp))
-                    )
-                    .padding(rspDp(10.dp))
-            ) {
-                LazyColumn(modifier = Modifier.fillMaxSize()) {
-                    items(activityList) { activity ->
-                        Column{
-                            Row {
-                                Text(
-                                    text = "Activity:",
-                                    style = TextStyle(
-                                        fontSize = rspSp(15.sp),
-                                        color = Brown1,
-                                        fontFamily = GlacialIndifferenceBold
-                                    )
-                                )
-
-                                Spacer(modifier = Modifier.weight(1f))
-
-                                Text(
-                                    text = "Date",
-                                    style = TextStyle(
-                                        fontSize = rspSp(15.sp),
-                                        color = Brown1,
-                                        fontFamily = GlacialIndifferenceBold
-                                    )
-                                )
-                            }
-
-                            Row {
-                                Text(
-                                    text = activity.activity,
-                                    style = TextStyle(
-                                        fontSize = rspSp(15.sp),
-                                        color = Brown1,
-                                        fontFamily = GlacialIndifferenceBold
-                                    )
-                                )
-
-                                Spacer(modifier = Modifier.weight(1f))
-
-                                Text(
-                                    text = formatter.format(activity.date),
-                                    style = TextStyle(
-                                        fontSize = rspSp(15.sp),
-                                        color = Brown1,
-                                        fontFamily = GlacialIndifferenceBold
-                                    )
-                                )
-                            }
-                        }
-                    }
-                }
-            }
-
-            Spacer(modifier = Modifier.height(rspDp(50.dp)))
-
-            // Footer
+        Column(modifier = Modifier.padding(horizontal = rspDp(15.dp))) {
             Text(
-                text = "Beany",
+                text = SimpleDateFormat("dd MMMM yyyy", Locale.getDefault())
+                    .format(Date()),
                 style = TextStyle(
-                    fontFamily = Kare,
-                    fontSize = rspSp(20.sp),
-                    color = Brown1)
+                    fontFamily = GlacialIndifferenceBold,
+                    color = Brown1,
+                    fontSize = rspSp(15.sp)
+                ),
+                modifier = Modifier.offset(y = rspDp(-10.dp))
             )
 
-            Footer(
-                modifier = Modifier
-                    .navigationBarsPadding()
-                    .padding(bottom = rspDp(100.dp)),
-                onClick = { navController.navigate(Route.AboutUsPage.route) }
+            val todayMaxTemp = state.forecast?.dailyForecasts
+                ?.find { it.date == SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+                    .format(Date()) }
+                ?.maxTemperature
+
+            Text(
+                text = todayMaxTemp?.let { "${it}°C" } ?: "--°C",
+                style = TextStyle(
+                    fontFamily = GlacialIndifferenceBold,
+                    color = Brown1,
+                    fontSize = rspSp(40.sp)
+                )
             )
         }
     }
 }
+
+@Composable
+private fun WeatherIconSection(state: WeatherState) {
+    Column(
+        modifier = Modifier.fillMaxSize(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        val weatherCode = state.forecast?.dailyForecasts
+            ?.find { it.date == SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+                .format(Date()) }
+            ?.weatherCode
+
+        val weatherIcon = when(weatherCode) {
+            0 -> "☀️"
+            in 1..3 -> "☁️"
+            in 45..48 -> "🌫️"
+            in 51..67 -> "🌧️"
+            in 71..77 -> "❄️"
+            in 80..82 -> "🌦️"
+            in 95..99 -> "⛈️"
+            else -> "🌤️"
+        }
+
+        Text(
+            text = weatherIcon,
+            style = TextStyle(fontSize = rspSp(80.sp)),
+            modifier = Modifier.padding(end = 8.dp)
+        )
+    }
+}
+
+@Composable
+private fun ForecastSection(state: WeatherState) {
+    Text(
+        text = "Forecast this week",
+        style = TextStyle(
+            color = Brown1,
+            fontFamily = GlacialIndifferenceBold,
+            fontSize = rspSp(20.sp)
+        ),
+        modifier = Modifier.padding(horizontal = rspDp(20.dp))
+    )
+
+    state.forecast?.let { forecast ->
+        WeatherForecastList(forecast)
+    } ?: run {
+        Text(
+            text = "Loading forecast...",
+            style = TextStyle(
+                fontFamily = GlacialIndifference,
+                fontSize = rspSp(15.sp),
+                color = Brown1
+            ),
+            modifier = Modifier.padding(rspDp(20.dp))
+        )
+    }
+}
+
+@Composable
+private fun OptionsSection(
+    navController: NavController,
+    isLoggedIn: Boolean,
+    context: Context
+) {
+    Text(
+        text = "Get Started with Beany",
+        style = TextStyle(
+            fontFamily = GlacialIndifferenceBold,
+            color = White,
+            fontSize = rspSp(18.sp)
+        ),
+        modifier = Modifier.padding(all = rspDp(10.dp))
+    )
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(bottom = rspDp(10.dp)),
+        verticalArrangement = Arrangement.spacedBy(rspDp(10.dp))
+    ) {
+        // First row of buttons
+        Row(modifier = Modifier.fillMaxWidth()) {
+            OptionBox(
+                onClick = { navController.navigate(Route.SingleImageDetectionPage.route) },
+                iconRes = R.drawable.camera,
+                title = "Camera",
+                description = "Single Image Capture"
+            )
+
+            val uploadLauncher = rememberLauncherForActivityResult(
+                contract = ActivityResultContracts.GetMultipleContents(),
+                onResult = { uris ->
+                    if (uris.isNotEmpty()) {
+                        navController.currentBackStackEntry?.savedStateHandle?.set("images", uris)
+                        navController.navigate(Route.PaginatedDetectionPage.route)
+                    } else {
+                        Toast.makeText(context, "No images selected", Toast.LENGTH_SHORT).show()
+                    }
+                }
+            )
+
+            OptionBox(
+                onClick = { uploadLauncher.launch("image/*") },
+                iconRes = R.drawable.upload,
+                title = "Upload",
+                description = "Upload Image for diagnosis"
+            )
+        }
+
+        // Second row of buttons
+        Row(modifier = Modifier.fillMaxWidth()) {
+            OptionBox(
+                onClick = { navController.navigate(Route.DiagnosisListPage.route) },
+                iconRes = R.drawable.diagnosis,
+                title = "Diagnosis",
+                description = "See your latest Diagnosis!"
+            )
+
+            OptionBox(
+                onClick = {
+                    if (isLoggedIn) {
+                        navController.navigate(Route.PostsListPage.route)
+                    } else {
+                        Toast.makeText(context,
+                            "Please sign up to access Community",
+                            Toast.LENGTH_SHORT).show()
+                    }
+                },
+                iconRes = R.drawable.chat,
+                title = "Community",
+                description = "Talk with Experts"
+            )
+        }
+    }
+}
+
+@Composable
+private fun RowScope.OptionBox(
+    onClick: () -> Unit,
+    iconRes: Int,
+    title: String,
+    description: String
+) {
+    Box(
+        modifier = Modifier
+            .weight(1f)
+            .optionsContainerConfig()
+            .clickable(onClick = onClick)
+    ) {
+        Image(
+            painter = painterResource(iconRes),
+            contentDescription = title,
+            modifier = Modifier
+                .size(rspDp(80.dp))
+                .offset(x = rspDp(80.dp), y = rspDp(18.dp))
+        )
+
+        Column(modifier = Modifier.padding(all = rspDp(10.dp))) {
+            Text(
+                text = title,
+                style = TextStyle(
+                    fontFamily = Etna,
+                    color = Brown1,
+                    fontSize = rspSp(20.sp)
+                )
+            )
+            Text(
+                text = description,
+                style = TextStyle(
+                    fontFamily = GlacialIndifference,
+                    color = Brown1
+                ),
+                modifier = Modifier.fillMaxWidth(0.5f)
+            )
+        }
+    }
+}
+
+@Composable
+private fun ActivityStatusSection(
+    activityList: List<ActivityEntity>,
+    viewModel: HomePageViewModel,
+    navController: NavController
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(color = White),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        ActivityHeader(viewModel = viewModel)
+        ActivityList(activityList = activityList)
+
+        Spacer(modifier = Modifier.height(rspDp(50.dp)))
+
+        Text(
+            text = "Beany",
+            style = TextStyle(
+                fontFamily = Kare,
+                fontSize = rspSp(20.sp),
+                color = Brown1
+            )
+        )
+
+        Footer(
+            modifier = Modifier
+                .navigationBarsPadding()
+                .padding(bottom = rspDp(100.dp)),
+            onClick = { navController.navigate(Route.AboutUsPage.route) }
+        )
+    }
+}
+
+@Composable
+private fun ActivityHeader(viewModel: HomePageViewModel) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(all = rspDp(10.dp))
+    ) {
+        Text(
+            text = "Activity Status",
+            style = TextStyle(
+                fontFamily = Etna,
+                color = Brown1,
+                fontSize = rspSp(20.sp)
+            )
+        )
+
+        Spacer(modifier = Modifier.weight(1f))
+
+        Text(
+            text = "Clear Activity",
+            style = TextStyle(
+                fontFamily = GlacialIndifference,
+                color = Brown1,
+                fontSize = rspSp(15.sp)
+            ),
+            modifier = Modifier
+                .clickable { viewModel.clearAll() }
+        )
+    }
+}
+
+@Composable
+private fun ActivityList(activityList: List<ActivityEntity>) {
+    val formatter = SimpleDateFormat("MM-dd-yyyy", Locale.getDefault())
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(rspDp(200.dp))
+            .padding(horizontal = rspDp(10.dp))
+            .border(
+                width = rspDp(2.dp),
+                color = Brown1,
+                shape = RoundedCornerShape(rspDp(10.dp))
+            )
+            .padding(rspDp(10.dp))
+    ) {
+        LazyColumn(modifier = Modifier.fillMaxSize()) {
+            items(activityList) { activity ->
+                ActivityItem(activity = activity, formatter = formatter)
+            }
+        }
+    }
+}
+
+@Composable
+private fun ActivityItem(activity: ActivityEntity, formatter: SimpleDateFormat) {
+    Column {
+        Row {
+            Text(
+                text = "Activity:",
+                style = TextStyle(
+                    fontSize = rspSp(15.sp),
+                    color = Brown1,
+                    fontFamily = GlacialIndifferenceBold
+                )
+            )
+
+            Spacer(modifier = Modifier.weight(1f))
+
+            Text(
+                text = "Date",
+                style = TextStyle(
+                    fontSize = rspSp(15.sp),
+                    color = Brown1,
+                    fontFamily = GlacialIndifferenceBold
+                )
+            )
+        }
+
+        Row {
+            Text(
+                text = activity.activity,
+                style = TextStyle(
+                    fontSize = rspSp(15.sp),
+                    color = Brown1,
+                    fontFamily = GlacialIndifferenceBold
+                )
+            )
+
+            Spacer(modifier = Modifier.weight(1f))
+
+            Text(
+                text = formatter.format(activity.date),
+                style = TextStyle(
+                    fontSize = rspSp(15.sp),
+                    color = Brown1,
+                    fontFamily = GlacialIndifferenceBold
+                )
+            )
+        }
+    }
+}
+
 
 @Composable
 fun WeatherForecastList(forecast: WeatherForecast) {
@@ -743,13 +765,10 @@ fun DailyForecastItem(daily: DailyForecast) {
                 color = Beige1,
                 shape = RoundedCornerShape(rspDp(20.dp))
             )
-            .padding(
-                rspDp(2.dp)
-            ),
+            .padding(rspDp(2.dp)),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-
         val weatherIcon = when(daily.weatherCode) {
             0 -> "☀️"
             in 1..3 -> "⛅"
@@ -763,9 +782,7 @@ fun DailyForecastItem(daily: DailyForecast) {
 
         Text(
             text = weatherIcon,
-            style = TextStyle(
-                fontSize = rspSp(50.sp)
-            ),
+            style = TextStyle(fontSize = rspSp(50.sp)),
             modifier = Modifier.padding(end = 8.dp)
         )
 
@@ -800,5 +817,4 @@ fun DailyForecastItem(daily: DailyForecast) {
     }
 
     Spacer(modifier = Modifier.width(10.dp))
-
 }

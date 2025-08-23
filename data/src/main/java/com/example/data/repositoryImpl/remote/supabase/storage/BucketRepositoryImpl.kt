@@ -4,7 +4,12 @@ import android.util.Log
 import com.example.domain.repository.remote.supabase.BucketRepository
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.storage.storage
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import java.io.IOException
+import java.net.URL
 import javax.inject.Inject
+import kotlin.time.Duration.Companion.minutes
 
 class BucketRepositoryImpl @Inject constructor(
     private val supabaseClient: SupabaseClient
@@ -27,7 +32,20 @@ class BucketRepositoryImpl @Inject constructor(
     }
 
     override suspend fun getImage(remotePath: String): ByteArray {
-        val bucket = supabaseClient.storage.from("profilepictures")
-        return bucket.downloadAuthenticated(remotePath)
+        return try {
+            val bucket = supabaseClient.storage.from("profilepictures")
+            val imageUrl = bucket.createSignedUrl(
+                path = remotePath,
+                expiresIn = 3.minutes
+            )
+
+            withContext(Dispatchers.IO) {
+                URL(imageUrl).openStream().use { inputStream ->
+                    inputStream.readBytes()
+                }
+            }
+        } catch (e: Exception) {
+            throw IOException("Failed to load image from path: $remotePath", e)
+        }
     }
 }
