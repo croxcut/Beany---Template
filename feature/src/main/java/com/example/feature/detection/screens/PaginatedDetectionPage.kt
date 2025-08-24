@@ -1,13 +1,26 @@
+// ===============================================================================
+//
+// Copyright (C) 2025-2026 by John Paul Valenzuela
+//
+// This source is available for distribution and/or modification
+// only under the terms of the Beany Source Code License as
+// published by Beany. All rights reserved.
+//
+// The source is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// FITNESS FOR A PARTICULAR PURPOSE. See the Beany Source Code License
+// for more details.
+//
+// ===============================================================================
+
 package com.example.feature.detection.screens
 
 import android.graphics.Bitmap
 import android.net.Uri
 import android.provider.MediaStore
 import android.widget.Toast
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.rememberScrollState
@@ -15,10 +28,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
-import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Done
 import androidx.compose.material.icons.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.material3.AlertDialog
@@ -32,15 +42,10 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.feature.detection.misc.DetectionOverlay
 import com.example.feature.detection.viewModel.DetectionViewModel
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.core.composables.InputField
@@ -53,16 +58,12 @@ import com.example.core.ui.theme.White
 import com.example.core.utils.rspDp
 import com.example.core.utils.rspSp
 import com.example.data.model.Diagnosis
-import com.example.domain.model.ml.AABB
 import com.example.domain.model.db.Note
 import com.example.feature.detection.misc.TiltedImage
 import com.example.feature.detection.misc.saveBitmapAndGetPath
-import com.example.feature.detection.misc.saveBitmapWithBoxes
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import kotlin.random.Random
 
 @Composable
 fun PaginatedDetectionPage(
@@ -99,7 +100,7 @@ fun PaginatedDetectionPage(
     var noteText by remember { mutableStateOf("") }
     val currentDiagnosis by remember(currentIndex, overlayBoxes) {
         derivedStateOf {
-            overlayBoxes.maxByOrNull { it.cnf }?.clsName ?: "No diagnosis"
+            overlayBoxes.maxByOrNull { it.confidence_score }?.class_name ?: "No diagnosis"
         }
     }
 

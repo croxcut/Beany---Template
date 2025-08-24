@@ -1,3 +1,18 @@
+// ===============================================================================
+//
+// Copyright (C) 2025-2026 by John Paul Valenzuela
+//
+// This source is available for distribution and/or modification
+// only under the terms of the Beany Source Code License as
+// published by Beany. All rights reserved.
+//
+// The source is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// FITNESS FOR A PARTICULAR PURPOSE. See the Beany Source Code License
+// for more details.
+//
+// ===============================================================================
+
 package com.example.feature.detection.misc
 
 import android.content.Context
@@ -13,9 +28,7 @@ import androidx.camera.core.ImageCapture
 import androidx.camera.core.ImageCaptureException
 import androidx.core.content.ContextCompat
 import com.example.domain.model.ml.AABB
-import java.io.OutputStream
 import kotlin.collections.forEach
-import androidx.core.graphics.scale
 
 //fun saveBitmapWithBoxes(context: Context, bitmap: Bitmap, boxes: List<AABB>) {
 //    val mutableBitmap = bitmap.copy(Bitmap.Config.ARGB_8888, true)
@@ -89,18 +102,18 @@ fun saveBitmapWithBoxes(context: Context, bitmap: Bitmap, boxes: List<AABB>) {
     }
 
     boxes.forEach { box ->
-        val centerX = (box.x1 + box.x2) / 2f
-        val width = (box.x2 - box.x1) * 1.5f
+        val centerX = (box.xpos_1 + box.xpos_2) / 2f
+        val width = (box.xpos_2 - box.xpos_1) * 1.5f
         val left = (centerX - width / 2f) * bitmap.width
         val right = (centerX + width / 2f) * bitmap.width
-        val top = box.y1 * bitmap.height
-        val bottom = box.y2 * bitmap.height
+        val top = box.ypos_1 * bitmap.height
+        val bottom = box.ypos_2 * bitmap.height
 
         canvas.drawRect(left, top, right, bottom, boxPaint)
-        canvas.drawText(box.clsName, left, top - 10f, textPaint)
+        canvas.drawText(box.class_name, left, top - 10f, textPaint)
     }
 
-    val className = if (boxes.isNotEmpty()) sanitizeFileName(boxes.first().clsName) else "unknown"
+    val className = if (boxes.isNotEmpty()) sanitizeFileName(boxes.first().class_name) else "unknown"
     val filename = "${className}_${System.currentTimeMillis()}.jpg"
 
     val outputStream = context.contentResolver.insert(
@@ -166,15 +179,15 @@ fun takeHighResSnapshot(
                     }
 
                     boxes.forEach { box ->
-                        val centerX = (box.x1 + box.x2) / 2f
-                        val width = (box.x2 - box.x1) * 1.5f
+                        val centerX = (box.xpos_1 + box.xpos_2) / 2f
+                        val width = (box.xpos_2 - box.xpos_1) * 1.5f
                         val left = (centerX - width / 2f) * bitmap.width
                         val right = (centerX + width / 2f) * bitmap.width
-                        val top = box.y1 * bitmap.height
-                        val bottom = box.y2 * bitmap.height
+                        val top = box.ypos_1 * bitmap.height
+                        val bottom = box.ypos_2 * bitmap.height
 
                         canvas.drawRect(left, top, right, bottom, boxPaint)
-                        canvas.drawText(box.clsName, left, top - 10f, textPaint)
+                        canvas.drawText(box.class_name, left, top - 10f, textPaint)
                     }
 
                     context.contentResolver.openOutputStream(savedUri)?.use {

@@ -1,3 +1,18 @@
+// ===============================================================================
+//
+// Copyright (C) 2025-2026 by John Paul Valenzuela
+//
+// This source is available for distribution and/or modification
+// only under the terms of the Beany Source Code License as
+// published by Beany. All rights reserved.
+//
+// The source is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// FITNESS FOR A PARTICULAR PURPOSE. See the Beany Source Code License
+// for more details.
+//
+// ===============================================================================
+
 package com.example.beany
 
 import android.app.Application
@@ -26,68 +41,3 @@ import dagger.hilt.android.HiltAndroidApp
 @HiltAndroidApp
 class BeanyApp : Application()
 
-//@Composable
-//fun PostCard(
-//    postWithReplies: PostWithReplies,
-//    isSelected: Boolean,
-//    onSelect: () -> Unit
-//) {
-//    Card(
-//        modifier = Modifier
-//            .fillMaxWidth()
-//            .padding(vertical = 4.dp)
-//            .clickable { onSelect() },
-//        colors = CardDefaults.cardColors(containerColor = Color.White)
-//    ) {
-//        Column(modifier = Modifier.padding(12.dp)) {
-//            // Sender name
-//            Text(postWithReplies.post.sender, fontWeight = FontWeight.Bold)
-//            Spacer(Modifier.height(4.dp))
-//
-//            // Post body
-//            Text(postWithReplies.post.post_body ?: "")
-//            Spacer(Modifier.height(8.dp))
-//
-//            // Replies list as bubbles
-//            if (postWithReplies.replies.isNotEmpty()) {
-//                Column(
-//                    modifier = Modifier.fillMaxWidth(),
-//                    verticalArrangement = Arrangement.spacedBy(6.dp)
-//                ) {
-//                    postWithReplies.replies.forEach { reply ->
-//                        val isMine = reply.sender == "me@example.com"
-//                        Box(
-//                            modifier = Modifier
-//                                .fillMaxWidth(),
-//                            contentAlignment = if (isMine) Alignment.CenterEnd else Alignment.CenterStart
-//                        ) {
-//                            Box(
-//                                modifier = Modifier
-//                                    .background(
-//                                        color = if (isMine) Color(0xFFDCF8C6) else Color(0xFFE5E5EA),
-//                                        shape = RoundedCornerShape(16.dp)
-//                                    )
-//                                    .padding(horizontal = 12.dp, vertical = 8.dp)
-//                            ) {
-//                                Text(
-//                                    text = reply.reply_body,
-//                                    color = Color.Black
-//                                )
-//                            }
-//                        }
-//                    }
-//                }
-//                Spacer(Modifier.height(8.dp))
-//            }
-//
-//            if (isSelected) {
-//                Text(
-//                    "Replying...",
-//                    color = Color(0xFF0B93F6),
-//                    fontSize = 12.sp,
-//                    modifier = Modifier.align(Alignment.End)
-//                )
-//            }
-//        }
-//    }
-//}

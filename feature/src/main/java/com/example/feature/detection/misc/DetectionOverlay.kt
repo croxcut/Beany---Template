@@ -1,14 +1,25 @@
+// ===============================================================================
+//
+// Copyright (C) 2025-2026 by John Paul Valenzuela
+//
+// This source is available for distribution and/or modification
+// only under the terms of the Beany Source Code License as
+// published by Beany. All rights reserved.
+//
+// The source is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// FITNESS FOR A PARTICULAR PURPOSE. See the Beany Source Code License
+// for more details.
+//
+// ===============================================================================
+
 package com.example.feature.detection.misc
 
 import android.graphics.Paint
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.border
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.nativeCanvas
-import androidx.compose.ui.unit.dp
-import com.example.core.ui.theme.Brown1
-import com.example.core.utils.rspDp
 import com.example.domain.model.ml.AABB
 import kotlin.collections.forEach
 
@@ -36,14 +47,14 @@ fun DetectionOverlay(
         val widthScaleFactor = 1.5f
 
         boxes.forEach { box ->
-            val centerX = (box.x1 + box.x2) / 2f
-            val width = (box.x2 - box.x1) * widthScaleFactor
+            val centerX = (box.xpos_1 + box.xpos_2) / 2f
+            val width = (box.xpos_2 - box.xpos_1) * widthScaleFactor
 
             // Original coordinates scaled to canvas size
             var left = (centerX - width / 2f) * size.width
             var right = (centerX + width / 2f) * size.width
-            var top = box.y1 * size.height
-            var bottom = box.y2 * size.height
+            var top = box.ypos_1 * size.height
+            var bottom = box.ypos_2 * size.height
 
             // Clamp coordinates to canvas bounds
             left = left.coerceIn(0f, size.width)
@@ -55,7 +66,7 @@ fun DetectionOverlay(
 
             // Draw text, ensuring it’s not above the canvas
             val textY = (top - 8f).coerceAtLeast(0f)
-            drawContext.canvas.nativeCanvas.drawText(box.clsName, left, textY, textPaint)
+            drawContext.canvas.nativeCanvas.drawText(box.class_name, left, textY, textPaint)
         }
     }
 }

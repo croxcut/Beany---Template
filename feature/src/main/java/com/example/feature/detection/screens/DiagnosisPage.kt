@@ -1,3 +1,18 @@
+// ===============================================================================
+//
+// Copyright (C) 2025-2026 by John Paul Valenzuela
+//
+// This source is available for distribution and/or modification
+// only under the terms of the Beany Source Code License as
+// published by Beany. All rights reserved.
+//
+// The source is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// FITNESS FOR A PARTICULAR PURPOSE. See the Beany Source Code License
+// for more details.
+//
+// ===============================================================================
+
 package com.example.feature.detection.screens
 
 
@@ -19,7 +34,6 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.graphics.Color
 import com.example.feature.detection.misc.DetectionOverlay
-import java.util.Date
 import java.text.SimpleDateFormat
 import java.util.Locale
 
@@ -72,7 +86,7 @@ fun DiagnosisPage(
 
                 Text("Boxes:")
                 diagnosis.boxes.forEachIndexed { index, box ->
-                    Text("  Box ${index + 1}: ${box.clsName}")
+                    Text("  Box ${index + 1}: ${box.class_name}")
                 }
 
                 val formattedDate = diagnosis.diagnosedAt?.let { date ->

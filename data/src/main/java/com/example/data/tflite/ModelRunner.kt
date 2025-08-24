@@ -1,3 +1,18 @@
+// ===============================================================================
+//
+// Copyright (C) 2025-2026 by John Paul Valenzuela
+//
+// This source is available for distribution and/or modification
+// only under the terms of the Beany Source Code License as
+// published by Beany. All rights reserved.
+//
+// The source is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// FITNESS FOR A PARTICULAR PURPOSE. See the Beany Source Code License
+// for more details.
+//
+// ===============================================================================
+
 package com.example.data.tflite
 
 import android.content.Context
@@ -16,7 +31,6 @@ import java.io.BufferedReader
 import java.io.InputStreamReader
 import javax.inject.Inject
 import javax.inject.Singleton
-import kotlin.times
 
 @Singleton
 class ModelRunner @Inject constructor(
@@ -115,9 +129,9 @@ class ModelRunner @Inject constructor(
 
                 boundingBoxes.add(
                     AABB(
-                        x1 = x1, y1 = y1, x2 = x2, y2 = y2,
-                        cx = cx, cy = cy, w = w, h = h,
-                        cnf = maxConf, cls = maxIdx, clsName = clsName
+                        xpos_1 = x1, ypos_1 = y1, xpos_2 = x2, ypos_2 = y2,
+                        center_x = cx, center_y = cy, width = w, height = h,
+                        confidence_score = maxConf, class_index = maxIdx, class_name = clsName
                     )
                 )
             }
@@ -129,7 +143,7 @@ class ModelRunner @Inject constructor(
     }
 
     private fun applyNMS(boxes: List<AABB>) : MutableList<AABB> {
-        val sortedBoxes = boxes.sortedByDescending { it.cnf }.toMutableList()
+        val sortedBoxes = boxes.sortedByDescending { it.confidence_score }.toMutableList()
         val selectedBoxes = mutableListOf<AABB>()
 
         while(sortedBoxes.isNotEmpty()) {
@@ -151,13 +165,13 @@ class ModelRunner @Inject constructor(
     }
 
     private fun calculateIoU(box1: AABB, box2: AABB): Float {
-        val x1 = maxOf(box1.x1, box2.x1)
-        val y1 = maxOf(box1.y1, box2.y1)
-        val x2 = minOf(box1.x2, box2.x2)
-        val y2 = minOf(box1.y2, box2.y2)
+        val x1 = maxOf(box1.xpos_1, box2.xpos_1)
+        val y1 = maxOf(box1.ypos_1, box2.ypos_1)
+        val x2 = minOf(box1.xpos_2, box2.xpos_2)
+        val y2 = minOf(box1.ypos_2, box2.ypos_2)
         val intersectionArea = maxOf(0F, x2 - x1) * maxOf(0F, y2 - y1)
-        val box1Area = box1.w * box1.h
-        val box2Area = box2.w * box2.h
+        val box1Area = box1.width * box1.height
+        val box2Area = box2.width * box2.height
         return intersectionArea / (box1Area + box2Area - intersectionArea)
     }
 

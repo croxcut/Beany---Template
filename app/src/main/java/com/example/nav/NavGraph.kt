@@ -1,3 +1,18 @@
+// ===============================================================================
+//
+// Copyright (C) 2025-2026 by John Paul Valenzuela
+//
+// This source is available for distribution and/or modification
+// only under the terms of the Beany Source Code License as
+// published by Beany. All rights reserved.
+//
+// The source is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// FITNESS FOR A PARTICULAR PURPOSE. See the Beany Source Code License
+// for more details.
+//
+// ===============================================================================
+
 package com.example.nav
 
 import android.app.Activity
@@ -56,7 +71,6 @@ import com.example.feature.profile.UserProfilePage
 import com.example.feature.profile.updateProfile.UpdateProfilePage
 import com.example.feature.signup.SignUpPage
 import com.example.feature.signup.SignUpViewModel
-import com.example.feature.test.UploadPage
 
 @Composable
 fun NavGraph(
@@ -110,7 +124,6 @@ fun NavGraph(
             }
             composable(Route.SingleImageDetectionPage.route) {
                 //SingleImageDetectionPage()
-                UploadPage()
             }
             composable(Route.UserProfilePage.route) {
                 UserProfilePage(navController = navController)
