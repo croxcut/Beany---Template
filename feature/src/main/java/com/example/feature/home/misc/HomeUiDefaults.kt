@@ -1,4 +1,4 @@
-package com.example.feature.home
+package com.example.feature.home.misc
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.height

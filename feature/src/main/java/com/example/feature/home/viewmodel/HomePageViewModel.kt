@@ -1,4 +1,4 @@
-package com.example.feature.home
+package com.example.feature.home.viewmodel
 
 import android.content.Context
 import android.util.Log

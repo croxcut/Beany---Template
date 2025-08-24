@@ -56,6 +56,16 @@
       "number": 11,
       "title": "Contact Us",
       "content": "If you have any questions about these Terms and Conditions, please contact us at beanyteam1@gmail.com."
+    },
+    {
+      "number": 12,
+      "title": "Data Protection",
+      "content": "Any data you provide, including personal information and photos, will never be sold, shared with third parties for marketing purposes, or used to send spam emails or ads. Your data is only used to operate and improve the Beany app and its features."
+    },
+    {
+      "number": 13,
+      "title": "Community Guidelines",
+      "content": "If you use Beany's community features, you agree not to post or engage in the following: (a) Nudity, sexually explicit content, or sexual conversations; (b) Hate speech, harassment, or abusive behavior; (c) Spam, scams, or promotion of unrelated products and services; (d) Illegal, harmful, or inappropriate material. Violation of these rules may result in suspension or termination of your account."
     }
   ]
 }

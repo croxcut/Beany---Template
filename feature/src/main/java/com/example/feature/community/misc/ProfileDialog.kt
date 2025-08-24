@@ -26,6 +26,9 @@ import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.example.core.ui.theme.Beige1
 import com.example.core.ui.theme.Brown1
+import com.example.core.ui.theme.Etna
+import com.example.core.ui.theme.GlacialIndifferenceBold
+import com.example.core.utils.rspSp
 import com.example.domain.model.supabase.Profile
 import com.example.feature.R
 
@@ -41,7 +44,8 @@ fun ProfileDialog(
             Text(
                 text = "Profile Info",
                 style = TextStyle(
-                    fontSize = 20.sp,
+                    fontFamily = Etna,
+                    fontSize = rspSp(20.sp),
                     color = Brown1
                 )
             )
@@ -66,19 +70,58 @@ fun ProfileDialog(
                 Spacer(modifier = Modifier.height(8.dp))
 
                 Row {
-                    Text("Username: ", fontWeight = FontWeight.Bold)
+                    Text(
+                        text = "Username: ",
+                        style = TextStyle(
+                            fontFamily = GlacialIndifferenceBold,
+                            fontSize = rspSp(18.sp),
+                            color = Brown1
+                        )
+                    )
                     Spacer(modifier = Modifier.weight(1f))
-                    Text(profile.username ?: "Unknown", fontWeight = FontWeight.Bold)
+                    profile.username?.let {
+                        Text(
+                            text = it,
+                            style = TextStyle(
+                                fontFamily = GlacialIndifferenceBold,
+                                fontSize = rspSp(18.sp),
+                                color = Brown1
+                            )
+                        )
+                    }
                 }
 
                 Row {
-                    Text("Name: ", fontWeight = FontWeight.Bold)
+                    Text(
+                        text = "Name: ",
+                        style = TextStyle(
+                            fontFamily = GlacialIndifferenceBold,
+                            fontSize = rspSp(18.sp),
+                            color = Brown1
+                        )
+                    )
                     Spacer(modifier = Modifier.weight(1f))
-                    Text(profile.fullName ?: "Unknown", fontWeight = FontWeight.Bold)
+                    profile.fullName?.let {
+                        Text(
+                            text = it,
+                            style = TextStyle(
+                                fontFamily = GlacialIndifferenceBold,
+                                fontSize = rspSp(18.sp),
+                                color = Brown1
+                            )
+                        )
+                    }
                 }
 
                 Row {
-                    Text("Registered: ", fontWeight = FontWeight.Bold)
+                    Text(
+                        text = "Registered: ",
+                        style = TextStyle(
+                            fontFamily = GlacialIndifferenceBold,
+                            fontSize = rspSp(18.sp),
+                            color = Brown1
+                        )
+                    )
                     Spacer(modifier = Modifier.weight(1f))
                     profile.registeredAs?.let { registeredAs ->
                         val status = if (registeredAs == "Administrator") {
@@ -88,28 +131,54 @@ fun ProfileDialog(
                         }
                         Text(
                             text = "$registeredAs$status",
-                            color = when {
-                                profile.verified != true -> Color.Gray
-                                registeredAs == "Administrator" -> Color.Red
-                                registeredAs == "Expert" -> Color.Blue
-                                else -> Color.Gray
-                            }
+                            style = TextStyle(
+                                fontSize = rspSp(18.sp),
+                                color = when {
+                                    profile.verified != true -> Color.Gray
+                                    registeredAs == "Administrator" -> Color.Red
+                                    registeredAs == "Expert" -> Color.Blue
+                                    else -> Color.Gray
+                                },
+                                fontFamily = GlacialIndifferenceBold
+                            )
                         )
                     }
                 }
 
+
                 profile.province?.takeIf { profile.registeredAs != "Administrator" }?.let { province ->
                     Row {
-                        Text("Province: ", fontWeight = FontWeight.Bold)
+                        Text(
+                            text = "Province: ",
+                            style = TextStyle(
+                                fontFamily = GlacialIndifferenceBold,
+                                fontSize = rspSp(18.sp),
+                                color = Brown1
+                            )
+                        )
                         Spacer(modifier = Modifier.weight(1f))
-                        Text(province)
+                        Text(
+                            text = province,
+                            style = TextStyle(
+                                fontFamily = GlacialIndifferenceBold,
+                                fontSize = rspSp(18.sp),
+                                color = Brown1
+                            )
+                        )
                     }
                 }
             }
         },
         confirmButton = {
             TextButton(onClick = onDismiss) {
-                Text("Close")
+                Text(
+                    text = "Close",
+                    style = TextStyle(
+                        fontFamily = Etna,
+                        fontSize = rspSp(18.sp),
+                        color = Brown1
+                    )
+                )
             }
         },
         containerColor = Beige1
