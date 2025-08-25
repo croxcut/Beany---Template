@@ -80,7 +80,6 @@ class UserProfileViewModel @Inject constructor(
         }
     }
 
-    // Make this public
     fun initializeData() {
         _isLoading.value = true
         viewModelScope.launch {

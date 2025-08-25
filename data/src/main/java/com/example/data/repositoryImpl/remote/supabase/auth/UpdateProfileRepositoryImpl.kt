@@ -68,14 +68,12 @@ class UpdateProfileRepositoryImpl @Inject constructor(
                 return Result.failure(IllegalArgumentException("Profile ID is required"))
             }
 
-            // Update the 'verified' field
             supabase.from("profiles").update(
                 mapOf("verified" to verified)
             ) {
                 filter { eq("id", profileId) }
             }
 
-            // Fetch the updated profile
             val updatedProfile = supabase.from("profiles").select {
                 filter { eq("id", profileId) }
             }.decodeSingle<Profile>()

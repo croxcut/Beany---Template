@@ -50,13 +50,11 @@ fun DetectionOverlay(
             val centerX = (box.xpos_1 + box.xpos_2) / 2f
             val width = (box.xpos_2 - box.xpos_1) * widthScaleFactor
 
-            // Original coordinates scaled to canvas size
             var left = (centerX - width / 2f) * size.width
             var right = (centerX + width / 2f) * size.width
             var top = box.ypos_1 * size.height
             var bottom = box.ypos_2 * size.height
 
-            // Clamp coordinates to canvas bounds
             left = left.coerceIn(0f, size.width)
             right = right.coerceIn(0f, size.width)
             top = top.coerceIn(0f, size.height)
@@ -64,7 +62,6 @@ fun DetectionOverlay(
 
             drawContext.canvas.nativeCanvas.drawRect(left, top, right, bottom, boxPaint)
 
-            // Draw text, ensuring it’s not above the canvas
             val textY = (top - 8f).coerceAtLeast(0f)
             drawContext.canvas.nativeCanvas.drawText(box.class_name, left, textY, textPaint)
         }

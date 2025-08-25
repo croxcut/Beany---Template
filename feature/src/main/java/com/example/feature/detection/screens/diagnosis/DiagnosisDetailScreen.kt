@@ -329,7 +329,6 @@ fun DiagnosisDetailScreen(
                 }
             }
 
-            // Diagnosis information card
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -359,7 +358,6 @@ fun DiagnosisDetailScreen(
 
                     Spacer(modifier = Modifier.padding(vertical = rspDp(20.dp)))
 
-                    // Diagnosis row
                     Row(
                         modifier = Modifier.fillMaxWidth()
                     ) {
@@ -392,7 +390,6 @@ fun DiagnosisDetailScreen(
                             .padding(horizontal = rspDp(40.dp), vertical = rspDp(10.dp))
                     )
 
-                    // Risk Level
                     Column(
                         modifier = Modifier.fillMaxWidth()
                     ) {
@@ -432,7 +429,6 @@ fun DiagnosisDetailScreen(
                             .padding(horizontal = rspDp(40.dp), vertical = rspDp(10.dp))
                     )
 
-                    // Signs and Symptoms
                     Column(
                         modifier = Modifier.fillMaxWidth()
                     ) {
@@ -472,7 +468,6 @@ fun DiagnosisDetailScreen(
                             .padding(horizontal = rspDp(40.dp), vertical = rspDp(10.dp))
                     )
 
-                    // Daily Care Guide
                     Column(
                         modifier = Modifier.fillMaxWidth()
                     ) {
@@ -512,7 +507,6 @@ fun DiagnosisDetailScreen(
                             .padding(horizontal = rspDp(40.dp), vertical = rspDp(10.dp))
                     )
 
-                    // Date information
                     Column(
                         modifier = Modifier.fillMaxWidth()
                     ) {
@@ -554,7 +548,6 @@ fun DiagnosisDetailScreen(
                             .padding(horizontal = rspDp(40.dp), vertical = rspDp(10.dp))
                     )
 
-                    // Location information
                     Column(
                         modifier = Modifier.fillMaxWidth()
                     ) {
@@ -605,7 +598,6 @@ fun DiagnosisDetailScreen(
                             .padding(horizontal = rspDp(40.dp), vertical = rspDp(10.dp))
                     )
 
-                    // Notes section
                     Column(
                         modifier = Modifier.fillMaxWidth()
                     ) {
@@ -695,7 +687,7 @@ fun DiagnosisDetailScreen(
                                 )
                                 .size(rspDp(40.dp))
                                 .clickable {
-                                    showDeleteConfirmDialog = true // Show confirmation dialog
+                                    showDeleteConfirmDialog = true
                                 },
                             contentAlignment = Alignment.Center
                         ) {

@@ -57,7 +57,6 @@ fun DiagnosisPage(
                     .background(Color.White)
                     .padding(8.dp)
             ) {
-                // Load bitmap from URI
                 val bitmap = BitmapFactory.decodeFile(diagnosis.imageUri)
                 bitmap?.let {
                     Box(
@@ -76,7 +75,6 @@ fun DiagnosisPage(
 
                 Spacer(modifier = Modifier.height(8.dp))
 
-                // Display all properties
                 Text("ID: ${diagnosis.id}")
                 Text("Image URI: ${diagnosis.imageUri}")
                 Text("Latitude: ${diagnosis.lat ?: "N/A"}")
@@ -91,12 +89,11 @@ fun DiagnosisPage(
 
                 val formattedDate = diagnosis.diagnosedAt?.let { date ->
                     val sdf = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
-                    sdf.format(date) // directly pass Date
+                    sdf.format(date)
                 } ?: "N/A"
 
                 Text("Date: $formattedDate")
 
-                // Display notes section
                 Spacer(modifier = Modifier.height(8.dp))
                 Text("Notes:", style = MaterialTheme.typography.titleSmall)
                 if (diagnosis.notes.isEmpty()) {

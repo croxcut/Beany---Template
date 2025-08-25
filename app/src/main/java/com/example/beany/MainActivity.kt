@@ -148,7 +148,6 @@ class MainActivity : ComponentActivity() {
             BeanyTheme {
                 navController = rememberNavController()
 
-//                // ✅ Example UI to test location
 //                var locationText by remember { mutableStateOf("Press button to get location") }
 //
 //                Column(
@@ -167,7 +166,6 @@ class MainActivity : ComponentActivity() {
 //                    }
 //                }
 
-                // Your app navigation
                 NavGraph(navController = navController, activity = this)
             }
         }

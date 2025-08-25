@@ -38,7 +38,6 @@ class NotificationViewModel @Inject constructor(
     private val cancelNotificationUseCase: CancelNotificationUseCase
 ) : ViewModel() {
 
-    // The repository already returns Flow<List<ScheduledNotification>>
     val notifications: StateFlow<List<ScheduledNotification>> =
         repository.getAllNotifications()
             .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
@@ -51,10 +50,8 @@ class NotificationViewModel @Inject constructor(
 
     fun removeNotification(id: Int, notificationId: Int? = null) {
         viewModelScope.launch {
-            // Delete from DB
             repository.delete(id)
 
-            // Cancel actual notification if notificationId is provided
             notificationId?.let {
                 cancelNotificationUseCase(it)
             }
@@ -68,10 +65,8 @@ class NotificationViewModel @Inject constructor(
         repeatDaily: Boolean
     ) {
         viewModelScope.launch {
-            // Schedule the system notification and get its ID
             val systemNotificationId = scheduleNotificationUseCase(calendar, title, message, repeatDaily)
 
-            // Save in DB as ScheduledNotification, not NotificationEntity directly
             val notification = ScheduledNotification(
                 title = title,
                 message = message,

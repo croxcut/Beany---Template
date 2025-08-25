@@ -184,7 +184,6 @@ fun NavGraph(
             composable(Route.UploadDetectionPage.route) {
                 UploadDetectionPage(
                     onImagesPicked = { uris ->
-                        // Save the URIs to the back stack to pass to next screen
                         navController.currentBackStackEntry?.savedStateHandle?.set("images", uris)
                         navController.navigate(Route.PaginatedDetectionPage.route)
                     }
@@ -243,7 +242,6 @@ fun NavGraph(
                 arguments = listOf(navArgument("message") { type = NavType.StringType }),
             ) { backStackEntry ->
                 val diagnosisId = backStackEntry.arguments?.getString("message") ?: "No message"
-//                NotificationScreen(message)
                 DiagnosisDetailScreen(
                     diagnosisId = diagnosisId.toLong(),
                     onBackClick = { navController.popBackStack() }
@@ -268,7 +266,7 @@ fun NavGraph(
                     onTabSelected = { route ->
                         if (route != currentRoute) {
                             navController.navigate(route) {
-                                popUpTo(Route.HomePage.route) // { inclusive = true }
+                                popUpTo(Route.HomePage.route)
                                 launchSingleTop = true
                                 restoreState = true
                             }

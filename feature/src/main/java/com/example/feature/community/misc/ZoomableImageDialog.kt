@@ -89,7 +89,6 @@ fun ZoomableImageDialog(
                         .pointerInput(Unit) {
                             detectTapGestures(
                                 onDoubleTap = {
-                                    // Reset on double tap
                                     scale = 1f
                                     offset = Offset.Zero
                                     rotation = 0f
@@ -99,7 +98,6 @@ fun ZoomableImageDialog(
                     contentScale = ContentScale.Fit
                 )
 
-                // Close button
                 IconButton(
                     onClick = onDismiss,
                     modifier = Modifier
@@ -115,7 +113,6 @@ fun ZoomableImageDialog(
                     )
                 }
 
-                // Reset button
                 IconButton(
                     onClick = {
                         scale = 1f
@@ -129,7 +126,7 @@ fun ZoomableImageDialog(
                         .background(Color.Black.copy(alpha = 0.6f), CircleShape)
                 ) {
                     Icon(
-                        imageVector = Icons.Default.Refresh, // Add a reset icon
+                        imageVector = Icons.Default.Refresh,
                         contentDescription = "Reset zoom",
                         tint = Color.White
                     )

@@ -79,15 +79,12 @@ fun PostDetailPage(
     val profiles by viewModel.profiles.collectAsState()
     val session by viewModel.profile.collectAsState()
 
-    // Profile dialog state
     var showProfileDialog by remember { mutableStateOf(false) }
     var selectedProfile by remember { mutableStateOf<Profile?>(null) }
     var selectedProfileImageUri by remember { mutableStateOf<Uri?>(null) }
 
-    // Zoomable image state
     var zoomState by remember { mutableStateOf(ZoomableImageState()) }
 
-    // Load profile image when profile is selected
     LaunchedEffect(selectedProfile) {
         selectedProfile?.id?.let { profileId ->
             viewModel.getProfileImageUri(profileId).collect { uri ->
@@ -110,7 +107,6 @@ fun PostDetailPage(
             .statusBarsPadding()
             .navigationBarsPadding()
     ) {
-        // Zoomable image dialog
         ZoomableImageDialog(
             imageUri = zoomState.imageUri,
             onDismiss = { zoomState = ZoomableImageState() }
@@ -119,7 +115,6 @@ fun PostDetailPage(
         Column(
             modifier = Modifier.fillMaxSize()
         ) {
-            // Header with back button
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
@@ -188,7 +183,6 @@ fun PostDetailPage(
                 onClearParent = { viewModel.clearParentReply() }
             )
 
-            // Profile Dialog
             if (showProfileDialog && selectedProfile != null) {
                 ProfileDialog(
                     profile = selectedProfile!!,

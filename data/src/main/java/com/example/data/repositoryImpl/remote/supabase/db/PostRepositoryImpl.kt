@@ -106,7 +106,6 @@ class PostRepositoryImpl @Inject constructor(
 //            )
 //            .first()
 //            .let { posts ->
-//                // Manually apply pagination and sorting since we can't do it in the query
 //                posts.sortedByDescending { it.created_at }
 //                    .drop(start)
 //                    .take(pageSize)

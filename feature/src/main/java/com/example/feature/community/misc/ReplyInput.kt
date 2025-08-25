@@ -59,7 +59,7 @@ fun ReplyInput(
     newReply: String,
     onNewReplyChange: (String) -> Unit,
     onSendReply: () -> Unit,
-    onClearParent: () -> Unit // Add this parameter
+    onClearParent: () -> Unit
 ) {
     Column {
         parentReplyId?.let { parentId ->
@@ -68,7 +68,7 @@ fun ReplyInput(
                 ParentReplyPreview(
                     parent = parent,
                     profile = parentProfile,
-                    onClose = onClearParent // Pass the close handler
+                    onClose = onClearParent
                 )
             }
         }

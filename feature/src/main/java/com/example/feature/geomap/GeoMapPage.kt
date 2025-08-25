@@ -63,14 +63,12 @@ fun GeoMapPage(
         AndroidView(
             factory = { ctx ->
                 MapView(ctx).apply {
-                    // Set this before setting tile source
                     Configuration.getInstance().load(ctx, PreferenceManager.getDefaultSharedPreferences(ctx))
 
                     setMultiTouchControls(true)
                     controller.setZoom(6.0)
                     controller.setCenter(GeoPoint(12.8797, 121.7740))
 
-                    // Set the initial tile source
                     setTileSource(TileSourceFactory.MAPNIK)
 
                     val philippinesBounds = BoundingBox(

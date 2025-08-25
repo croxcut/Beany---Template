@@ -50,12 +50,11 @@ class NotificationWorker(
         Log.d(TAG, "Title: $title, Message: $message, NotificationId: $notificationId")
 
         return try {
-            // Show the notification using EasyNotification
             EasyNotification.show(
                 context = applicationContext,
                 title = title,
                 message = message,
-                channelId = "beany_channel", // must match the channel used elsewhere
+                channelId = "beany_channel",
                 channelName = "Beany Notifications",
                 notificationId = notificationId
             )

@@ -387,7 +387,6 @@ fun UpdateProfilePage(
                 )
             }
 
-            // Loading Overlay
             if (uiState.isLoading) {
                 Box(
                     modifier = Modifier
@@ -399,7 +398,6 @@ fun UpdateProfilePage(
                 }
             }
 
-            // Success Dialog
             if (showSuccessDialog) {
                 AlertDialog(
                     onDismissRequest = { showSuccessDialog = false },
@@ -557,7 +555,6 @@ fun CredentialSection(
                         contentScale = ContentScale.Fit
                     )
 
-                    // Show edit button only if not verified
                     if (profile.verified != true) {
                         Box(
                             modifier = Modifier

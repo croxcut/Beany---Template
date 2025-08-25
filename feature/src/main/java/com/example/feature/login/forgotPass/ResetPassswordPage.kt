@@ -53,7 +53,6 @@ fun ResetPasswordPage(
     var confirmPassword by remember { mutableStateOf("") }
     val state by viewModel.state.collectAsState()
 
-    // Parse deep link params
     val params = remember(deepLinkUri) {
         val raw = deepLinkUri?.toString().orEmpty()
         raw.substringAfter("#", "")
@@ -76,7 +75,7 @@ fun ResetPasswordPage(
                 expiresIn = params["expires_in"]?.toLongOrNull() ?: 3600L
             )
             viewModel.importFromDeepLink(model) { err ->
-                println("❌ Failed to import session: ${err.message}")
+                println("Failed to import session: ${err.message}")
             }
         }
     }
@@ -84,7 +83,7 @@ fun ResetPasswordPage(
     LaunchedEffect(state) {
         if (state is PasswordResetState.Success) {
             navController.navigate(Route.LoginPage.route) {
-                popUpTo(0)  // Pop everything from the back stack
+                popUpTo(0)
                 launchSingleTop = true
             }
         }

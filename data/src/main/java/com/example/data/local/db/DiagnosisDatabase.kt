@@ -28,7 +28,7 @@ import com.example.data.model.Diagnosis
     version = 1,
     exportSchema = false
 )
-@TypeConverters(Converters::class) // For storing lists like AABB
+@TypeConverters(Converters::class)
 abstract class DiagnosisDatabase : RoomDatabase() {
 
     abstract fun diagnosisDao(): DiagnosisDao

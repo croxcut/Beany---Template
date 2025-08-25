@@ -91,7 +91,7 @@ fun InputField(
                         )
                     }
                 }
-            } else null, // Pass null instead of an empty lambda
+            } else null,
             colors = TextFieldDefaults.colors(
                 focusedContainerColor = Color.Transparent,
                 unfocusedContainerColor = Color.Transparent,

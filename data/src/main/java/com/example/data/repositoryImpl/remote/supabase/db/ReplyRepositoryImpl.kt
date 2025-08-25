@@ -58,7 +58,6 @@ class ReplyRepositoryImpl @Inject constructor(
     @OptIn(SupabaseExperimental::class)
     override suspend fun toggleReplyLike(replyId: Long, userId: String) {
         try {
-            // 1. Get current likes in one query
             val currentReply = supabaseClient.from("replies")
                 .selectAsFlow(
                     Reply::id,
@@ -68,7 +67,6 @@ class ReplyRepositoryImpl @Inject constructor(
                 .firstOrNull()
                 ?: throw Exception("Reply not found")
 
-            // 2. Toggle like status
             val currentLikes = currentReply.likes?.toMutableList() ?: mutableListOf()
             val updatedLikes = if (currentLikes.contains(userId)) {
                 currentLikes.apply { remove(userId) }
@@ -76,12 +74,11 @@ class ReplyRepositoryImpl @Inject constructor(
                 currentLikes.apply { add(userId) }
             }
 
-            // 3. Update with filter operation syntax (matches your updatePostLikes)
             supabaseClient.from("replies")
                 .update({
                     set("likes", updatedLikes)
                 }) {
-                    filter { eq("id", replyId) } // This matches your style
+                    filter { eq("id", replyId) }
                 }
         } catch (e: Exception) {
             println("Error toggling reply like: ${e.message}")

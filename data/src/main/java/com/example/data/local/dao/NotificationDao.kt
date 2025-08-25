@@ -30,7 +30,7 @@ interface NotificationDao {
     suspend fun insert(entity: NotificationEntity)
 
     @Query("DELETE FROM notifications WHERE id = :id")
-    suspend fun deleteById(id: Int)   // Now exists
+    suspend fun deleteById(id: Int)
 
     @Query("SELECT * FROM notifications")
     fun getAll(): Flow<List<NotificationEntity>>

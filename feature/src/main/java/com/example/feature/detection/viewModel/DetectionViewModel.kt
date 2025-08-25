@@ -69,16 +69,13 @@ class DetectionViewModel @Inject constructor(
             }
             val updatedDiagnosis = current.copy(notes = updatedNotes)
             _currentDiagnosis.value = updatedDiagnosis
-            // Save the updated diagnosis immediately
             saveDiagnosis(updatedDiagnosis)
         }
     }
 
     fun saveDiagnosis(diagnosis: Diagnosis) {
         viewModelScope.launch {
-            // Set the current diagnosis first
             _currentDiagnosis.value = diagnosis
-            // Then save to repository
             diagnosisRepository.saveDiagnosis(diagnosis)
         }
     }

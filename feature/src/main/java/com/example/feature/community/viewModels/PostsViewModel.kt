@@ -279,7 +279,7 @@ class PostsViewModel @Inject constructor(
             try {
                 val replies = replyRepository.getRepliesForPost(postId)
                 val randomReply = if (replies.isNotEmpty()) replies.random() else null
-                _topReplies[postId] = randomReply // We can still use this map for caching
+                _topReplies[postId] = randomReply
                 emit(randomReply)
             } catch (e: Exception) {
                 println("Error getting random reply: ${e.message}")

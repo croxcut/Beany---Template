@@ -90,7 +90,7 @@ fun ProfileListItem(
     descFontSize: TextUnit,
     titleColor: Color,
     descColor: Color,
-    onClick: (() -> Unit)? = null  // Optional click callback
+    onClick: (() -> Unit)? = null
 ) {
     Row(
         modifier = Modifier
@@ -138,7 +138,7 @@ fun SectionCard(
     rowPadding: Dp,
     descFontSize: TextUnit,
     containerPadding: Dp,
-    onItemClick: (ProfileItem) -> Unit = {}  // Handle item clicks
+    onItemClick: (ProfileItem) -> Unit = {}
 ) {
     Column(
         modifier = Modifier
@@ -162,7 +162,7 @@ fun SectionCard(
                 descFontSize = descFontSize,
                 titleColor = titleColor,
                 descColor = titleColor,
-                onClick = { onItemClick(item) }  // Pass the click event
+                onClick = { onItemClick(item) }
             )
             if (index != items.lastIndex) {
                 HorizontalDivider(
@@ -205,7 +205,6 @@ fun ProfilePicture(
         Box(
             contentAlignment = Alignment.BottomEnd
         ) {
-            // Show loading indicator during upload/download
             if (uploadState is UploadState.Loading) {
                 Box(
                     modifier = Modifier
@@ -217,12 +216,11 @@ fun ProfilePicture(
                     CircularProgressIndicator(color = White)
                 }
             } else {
-                // Common image modifier with both borders
                 val imageModifier = Modifier
                     .padding(all = 4.dp)
-                    .border(width = 4.dp, color = White, shape = CircleShape) // Outer white border
-                    .padding(4.dp) // Space between borders
-                    .border(width = 4.dp, color = Brown1, shape = CircleShape) // Inner brown border
+                    .border(width = 4.dp, color = White, shape = CircleShape)
+                    .padding(4.dp)
+                    .border(width = 4.dp, color = Brown1, shape = CircleShape)
                     .size(size = 110.dp)
                     .clip(CircleShape)
 
@@ -274,7 +272,6 @@ fun UserProfilePage(
 
     val termsState by termsViewModel.uiState.collectAsState()
 
-    // Terms Dialog
     if (termsState.showDialog) {
         Dialog(
             onDismissRequest = {
@@ -321,7 +318,6 @@ fun UserProfilePage(
         }
     }
 
-    // Add navigation awareness
     val currentBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = currentBackStackEntry?.destination
 
@@ -910,7 +906,6 @@ fun UserProfilePage(
                 )
             }
 
-            // Profile Picture ? if no auth user use default
             ProfilePicture(
                 viewModel = viewModel,
                 onEditClick = { imagePickerLauncher.launch("image/*") },

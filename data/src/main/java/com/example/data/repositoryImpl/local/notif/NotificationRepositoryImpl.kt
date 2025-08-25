@@ -34,8 +34,6 @@ class NotificationRepositoryImpl @Inject constructor(
     }
 
     override suspend fun delete(id: Int) {
-        // You don’t need to build a full entity with dummy values.
-        // Just let your DAO delete by ID.
         dao.deleteById(id)
     }
 

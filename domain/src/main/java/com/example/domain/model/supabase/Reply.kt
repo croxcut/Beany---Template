@@ -26,5 +26,5 @@ data class Reply(
     val image_url: String? = null,
     val created_at: String,
     val parent_reply_id: Long? = null,
-    val likes: List<String>? = emptyList() // Add this line
+    val likes: List<String>? = emptyList()
 )

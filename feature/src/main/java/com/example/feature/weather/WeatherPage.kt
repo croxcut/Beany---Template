@@ -172,7 +172,6 @@ fun WeatherPage(
 //                fontWeight = FontWeight.Bold
 //            )
 //
-//            // ... rest of the code remains the same ...
 //            Spacer(modifier = Modifier.height(8.dp))
 //
 //            Row(

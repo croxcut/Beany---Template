@@ -62,7 +62,6 @@ fun OptionsSection(
             .padding(bottom = rspDp(10.dp)),
         verticalArrangement = Arrangement.spacedBy(rspDp(10.dp))
     ) {
-        // First row of buttons
         Row(modifier = Modifier.fillMaxWidth()) {
             OptionBox(
                 onClick = { navController.navigate(Route.SingleImageDetectionPage.route) },
@@ -91,7 +90,6 @@ fun OptionsSection(
             )
         }
 
-        // Second row of buttons
         Row(modifier = Modifier.fillMaxWidth()) {
             OptionBox(
                 onClick = { navController.navigate(Route.DiagnosisListPage.route) },

@@ -626,7 +626,6 @@ fun PaginatedDetectionPage(
                                 .padding(horizontal = rspDp(40.dp), vertical = rspDp(10.dp))
                         )
 
-                        // Add new note section
                         Column(
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
@@ -722,7 +721,7 @@ fun PaginatedDetectionPage(
                             text = "Confirm",
                             style = TextStyle(
                                 color = Brown1,
-                                fontFamily = Etna, // ✅ use Etna font
+                                fontFamily = Etna,
                                 fontSize = rspSp(16.sp)
                             )
                         )

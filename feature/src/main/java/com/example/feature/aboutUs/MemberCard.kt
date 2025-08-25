@@ -95,7 +95,7 @@ fun MemberCard(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(80.dp) // adjust height for bio
+                    .height(80.dp)
                     .padding(horizontal = 16.dp)
                     .verticalScroll(rememberScrollState())
             ) {

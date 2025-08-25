@@ -95,7 +95,6 @@ fun DiagnosisListItem(
             verticalAlignment = Alignment.CenterVertically
         ) {
 
-            // Diagnosis information in the middle
             Column(
                 modifier = Modifier.weight(1f)
             ) {
@@ -173,7 +172,6 @@ fun DiagnosisListItem(
             },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    // Date Picker
                     Button(
                         onClick = {
                             val datePicker = DatePickerDialog(
@@ -204,7 +202,6 @@ fun DiagnosisListItem(
                         )
                     }
 
-                    // Time Picker
                     Button(
                         onClick = {
                             val timePicker = TimePickerDialog(
@@ -237,7 +234,6 @@ fun DiagnosisListItem(
                         )
                     }
 
-                    // Repeat Daily Checkbox
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Checkbox(
                             checked = repeatDaily,
@@ -273,7 +269,6 @@ fun DiagnosisListItem(
                             repeatDaily
                         )
                         showDialog = false
-                        // Reset selections
                         selectedDate = ""
                         selectedTime = ""
                         repeatDaily = false
@@ -299,7 +294,6 @@ fun DiagnosisListItem(
                 OutlinedButton(
                     onClick = {
                         showDialog = false
-                        // Reset selections
                         selectedDate = ""
                         selectedTime = ""
                         repeatDaily = false

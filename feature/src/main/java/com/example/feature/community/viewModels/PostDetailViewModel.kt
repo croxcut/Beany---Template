@@ -92,7 +92,6 @@ class PostDetailViewModel @Inject constructor(
     }
 
     fun loadReplies(postId: Long) {
-        // Cancel any existing job
         repliesJob?.cancel()
 
         repliesJob = viewModelScope.launch {
@@ -112,7 +111,6 @@ class PostDetailViewModel @Inject constructor(
             try {
                 profile.value?.id?.let { userId ->
                     replyRepository.toggleReplyLike(replyId, userId)
-                    // This will automatically refresh the replies through the flow
                 }
             } catch (e: Exception) {
                 println("Error toggling reply like: ${e.message}")
@@ -212,7 +210,6 @@ class PostDetailViewModel @Inject constructor(
         return flow.asStateFlow()
     }
 
-    // Clear cached images if needed
     fun clearPostImageCache() {
         _postImageUris.clear()
     }

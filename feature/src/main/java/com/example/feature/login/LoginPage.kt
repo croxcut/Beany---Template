@@ -421,8 +421,5 @@ fun LoginPage(
     }
 }
 
-// Keytool command to get SHA-1 fingerprint for Google Sign-In:
 // keytool -list -v -keystore ~/.android/debug.keystore -alias androiddebugkey -storepass android -keypass android
 
-
-//  keytool -list -v -keystore ~/.android/debug.keystore -alias androiddebugkey -storepass android -keypass android

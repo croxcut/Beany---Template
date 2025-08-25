@@ -28,7 +28,6 @@ fun ScheduledNotification.toEntity(): NotificationEntity {
     )
 }
 
-// Entity -> Domain
 fun NotificationEntity.toDomain(): ScheduledNotification {
     return ScheduledNotification(
         id = this.id,

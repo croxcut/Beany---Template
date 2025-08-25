@@ -47,7 +47,6 @@ object EasyNotification {
         Log.d(TAG, "Generated notification id: $notificationId")
         createNotificationChannel(context, channelId, channelName)
 
-        // Create a deep link intent to your NavGraph
         val intent = Intent(Intent.ACTION_VIEW).apply {
             data = Uri.parse("beanyapp://notification_screen/${Uri.encode(message)}")
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP

@@ -28,7 +28,7 @@ sealed class Route(
 
     object NotificationPage: Route(route = "Notification")
 
-    // AI Feature
+    // ML Features :)
     object RealtimeDetectionPage: Route(route = "Realtime")
     object SingleImageDetectionPage: Route(route = "SingleImage")
     object UploadDetectionPage: Route(route = "UploadImage")

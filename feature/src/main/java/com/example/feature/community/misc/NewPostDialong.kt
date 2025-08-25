@@ -77,7 +77,6 @@ fun NewPostDialog(
         onImageSelected(uri)
     }
 
-    // Full screen dialog
     Dialog(onDismissRequest = onDismiss) {
         Surface(
             shape = RoundedCornerShape(16.dp),
@@ -93,7 +92,6 @@ fun NewPostDialog(
                 verticalArrangement = Arrangement.Top
             ) {
 
-                // Title field
                 InputField(
                     value = title,
                     onValueChange = onTitleChanged,
@@ -112,7 +110,6 @@ fun NewPostDialog(
                 )
                 Spacer(modifier = Modifier.height(8.dp))
 
-                // Tags
                 Text("Tags:", modifier = Modifier.padding(bottom = 2.dp))
                 FlowRow(horizontalArrangement = Arrangement.spacedBy(2.dp)) {
                     availableTags.forEach { tag ->
@@ -130,7 +127,6 @@ fun NewPostDialog(
 
                 Spacer(modifier = Modifier.height(8.dp))
 
-                // Body field
                 InputField(
                     value = body,
                     onValueChange = onBodyChanged,
@@ -150,7 +146,6 @@ fun NewPostDialog(
                 )
 
                 Spacer(modifier = Modifier.height(16.dp))
-                // Image picker row
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.padding(bottom = 8.dp)
@@ -183,7 +178,6 @@ fun NewPostDialog(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Buttons
                 Row(
                     horizontalArrangement = Arrangement.End,
                     modifier = Modifier.fillMaxWidth()

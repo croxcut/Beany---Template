@@ -233,7 +233,6 @@ fun NotificationCard(
                 )
             }
 
-            // 3-dot vertical icon for dropdown menu
             Box {
                 IconButton(
                     onClick = { showDropdown = true }
@@ -246,7 +245,6 @@ fun NotificationCard(
                     )
                 }
 
-                // Dropdown menu
                 DropdownMenu(
                     expanded = showDropdown,
                     onDismissRequest = { showDropdown = false },
@@ -257,7 +255,6 @@ fun NotificationCard(
                     ),
                     shape = RoundedCornerShape(rspDp(10.dp))
                 ) {
-                    // View Details option
                     DropdownMenuItem(
                         text = {
                             Row(
@@ -287,7 +284,6 @@ fun NotificationCard(
                         }
                     )
 
-                    // Cancel Notification option
                     DropdownMenuItem(
                         text = {
                             Row(
@@ -319,7 +315,6 @@ fun NotificationCard(
         }
     }
 
-    // Confirmation Dialog
     if (showConfirmDialog) {
         AlertDialog(
             onDismissRequest = { showConfirmDialog = false },

@@ -79,7 +79,6 @@ fun ReplyThread(
 ) {
     val maxVisualIndent = 3 // Hard cap for visual indentation
     var showNestedReplies by remember { mutableStateOf(false) }
-    // Only indent up to maxVisualIndent levels
     val actualIndent = if (indent > 0 && indent <= maxVisualIndent) 16.dp else 0.dp
     var showDialog by remember { mutableStateOf(false) }
     val canUnsend = reply.reply_body != "Unsent a message" && reply.sender == currentUserId
@@ -89,7 +88,6 @@ fun ReplyThread(
     val context = LocalContext.current
     val nestedReplies = replies.filter { it.parent_reply_id == reply.id }
 
-    // Get the parent reply being referenced if this is a reply to another reply
     val parentReply = reply.parent_reply_id?.let { parentId ->
         replies.find { it.id == parentId }
     }
@@ -102,7 +100,6 @@ fun ReplyThread(
             .fillMaxWidth()
             .padding(start = actualIndent)
     ) {
-        // Show parent reply preview if this is a reply to another reply
         parentReply?.let { parent ->
             ParentReplyInThread(
                 parent = parent,
@@ -111,7 +108,6 @@ fun ReplyThread(
             )
         }
 
-        // Main reply content
         Box(
             modifier = Modifier
                 .background(
@@ -121,7 +117,6 @@ fun ReplyThread(
                 .padding(horizontal = 8.dp, vertical = 8.dp)
         ) {
             Column {
-                // Profile row
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier
@@ -130,7 +125,6 @@ fun ReplyThread(
                             replyProfile?.let { onProfileClick(it) }
                         }
                 ) {
-                    // Profile image
                     val profileImageUri by viewModel.getProfileImageUri(replyProfile?.id).collectAsState()
 
                     AsyncImage(
@@ -180,17 +174,14 @@ fun ReplyThread(
                     }
                 }
 
-                // Reply content
                 Text(reply.reply_body ?: "", fontSize = 14.sp)
 
-                // Like and reply actions
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(top = 4.dp),
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    // Like button
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier
@@ -211,7 +202,6 @@ fun ReplyThread(
                         )
                     }
 
-                    // ALWAYS show reply button - no limit on reply depth
                     Text(
                         text = "Reply",
                         color = Color(0xFF6200EE),
@@ -230,7 +220,6 @@ fun ReplyThread(
             modifier = Modifier.padding(vertical = 8.dp)
         )
 
-        // Show "View replies" button if there are nested replies
         if (nestedReplies.isNotEmpty() && !showNestedReplies) {
             Text(
                 text = "View ${nestedReplies.size} replies",
@@ -241,7 +230,6 @@ fun ReplyThread(
             )
         }
 
-        // Show nested replies when expanded
         if (showNestedReplies) {
             nestedReplies.forEach { childReply ->
                 ReplyThread(
@@ -250,7 +238,7 @@ fun ReplyThread(
                     onReplyClick = onReplyClick,
                     onUnsendReply = onUnsendReply,
                     onToggleLike = onToggleLike,
-                    indent = indent + 1, // Keep incrementing indent but we'll cap the visual effect
+                    indent = indent + 1,
                     profiles = profiles,
                     currentUserId = currentUserId,
                     viewModel = viewModel,

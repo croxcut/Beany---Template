@@ -93,7 +93,6 @@ fun DiagnosisListScreen(
             tint = Beige1
         )
 
-        // Title + Dropdown Row
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -111,7 +110,6 @@ fun DiagnosisListScreen(
                 )
             )
 
-            // Dropdown Menu for Sorting
             var expanded by remember { mutableStateOf(false) }
             Box {
                 Text(
@@ -158,7 +156,6 @@ fun DiagnosisListScreen(
             }
         }
 
-        // Sort diagnoses
         val sortedDiagnoses = when (sortOption) {
             "Boxes" -> diagnoses.sortedByDescending { it.boxes.size }
             else -> diagnoses.sortedByDescending { it.diagnosedAt }

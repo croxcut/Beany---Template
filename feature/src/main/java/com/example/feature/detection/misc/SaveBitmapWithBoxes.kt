@@ -84,7 +84,6 @@ fun sanitizeFileName(name: String): String {
 }
 
 fun saveBitmapWithBoxes(context: Context, bitmap: Bitmap, boxes: List<AABB>) {
-    // Keep original size
     val scaledBitmap = bitmap.copy(Bitmap.Config.ARGB_8888, true)
     val canvas = Canvas(scaledBitmap)
 
@@ -96,7 +95,7 @@ fun saveBitmapWithBoxes(context: Context, bitmap: Bitmap, boxes: List<AABB>) {
 
     val textPaint = Paint().apply {
         color = android.graphics.Color.WHITE
-        textSize = (bitmap.width * 0.03f) // scale text relative to width
+        textSize = (bitmap.width * 0.03f)
         style = Paint.Style.FILL
         isAntiAlias = true
     }
@@ -126,7 +125,6 @@ fun saveBitmapWithBoxes(context: Context, bitmap: Bitmap, boxes: List<AABB>) {
     )?.let { uri -> context.contentResolver.openOutputStream(uri) }
 
     outputStream?.use {
-        // Compress as JPEG with 80% quality to reduce file size
         scaledBitmap.compress(Bitmap.CompressFormat.JPEG, 80, it)
         Handler(Looper.getMainLooper()).post {
             Toast.makeText(context, "Saved to gallery", Toast.LENGTH_SHORT).show()
@@ -194,7 +192,7 @@ fun takeHighResSnapshot(
                         mutableBitmap.compress(Bitmap.CompressFormat.PNG, 100, it)
                     }
 
-                    android.os.Handler(context.mainLooper).post {
+                    Handler(context.mainLooper).post {
                         Toast.makeText(context, "Saved to gallery", Toast.LENGTH_SHORT).show()
                     }
                 }.start()

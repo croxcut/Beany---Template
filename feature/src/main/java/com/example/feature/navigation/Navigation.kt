@@ -55,7 +55,7 @@ import com.example.feature.R
 fun NavigationBar(
     currentRoute: String?,
     onTabSelected: (String) -> Unit,
-    isLoading: Boolean = false // Add this flag
+    isLoading: Boolean = false
 ) {
     val items = listOf(
         NavBarItem(Route.HomePage.route, "Home", R.drawable.home_icon),
@@ -71,7 +71,6 @@ fun NavigationBar(
             .height(rspDp(80.dp))
             .windowInsetsPadding(WindowInsets.navigationBars)
     ) {
-        // Bottom bar background
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -81,7 +80,6 @@ fun NavigationBar(
                 .pointerInput(Unit) {}
         )
 
-        // Navigation items
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -126,12 +124,11 @@ fun NavigationBar(
             }
         }
 
-        // Full-screen loading indicator
         if (isLoading) {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(Color(0x88000000)) // semi-transparent overlay
+                    .background(Color(0x88000000))
                     .align(Alignment.Center)
             ) {
                 androidx.compose.material3.CircularProgressIndicator(

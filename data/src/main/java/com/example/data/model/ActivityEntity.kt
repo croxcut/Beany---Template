@@ -24,5 +24,5 @@ import java.util.Date
 data class ActivityEntity(
     @PrimaryKey(autoGenerate = true) val id: Int = 0,
     @ColumnInfo(name = "activity") val activity: String,
-    @ColumnInfo(name = "date") val date: Date = Date() // auto insert current date
+    @ColumnInfo(name = "date") val date: Date = Date()
 )

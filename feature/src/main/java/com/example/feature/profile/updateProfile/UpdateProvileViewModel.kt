@@ -110,7 +110,6 @@ class UpdateProfileViewModel @Inject constructor(
         }
     }
 
-    // Keep your existing functions
     fun onProfileChange(updated: Profile) {
         _uiState.value = _uiState.value.copy(profile = updated)
     }

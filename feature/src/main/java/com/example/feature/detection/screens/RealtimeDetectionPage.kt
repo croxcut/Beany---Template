@@ -104,7 +104,7 @@ fun RealtimeDetectionPage(
     val lifecycleOwner = LocalLifecycleOwner.current
     val cameraExecutor = remember { Executors.newSingleThreadExecutor() }
     var analyzerActive by remember { mutableStateOf(true) }
-    var imageCaptureRef by remember { mutableStateOf<ImageCapture?>(null) } // high-res capture
+    var imageCaptureRef by remember { mutableStateOf<ImageCapture?>(null) }
 
     var capturedUris by remember { mutableStateOf(listOf<Uri>()) }
 
@@ -185,12 +185,9 @@ fun RealtimeDetectionPage(
                         }
                     }
 
-                    // Capture button
                     Button(
                         onClick = {
-                            // Use the latest bitmap from overlay/preview
                             viewModel.latestBitmap?.let { bitmap ->
-                                // Save bitmap to file
                                 val filePath = saveBitmapAndGetPath(context, bitmap)
                                 val uri = Uri.fromFile(File(filePath))
                                 capturedUris = capturedUris + uri // Add to list
@@ -224,7 +221,6 @@ fun RealtimeDetectionPage(
                         }
                     }
 
-                    // Navigate button
                     Button(
                         onClick = {
                             if (capturedUris.isNotEmpty()) {

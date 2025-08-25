@@ -95,14 +95,12 @@ class GeoMapViewModel @Inject constructor(
                 MapType.TRAVEL -> mapView.setTileSource(TileSourceFactory.HIKEBIKEMAP)
             }
 
-            // Force a redraw
             mapView.invalidate()
 
-            // Optional: Clear tile cache if you're having caching issues
-            // mapView.tileProvider.clearTileCache()
+
         } catch (e: Exception) {
             Log.e("GeoMap", "Error setting map type", e)
-            // Fallback to default if there's an error
+
             mapView.setTileSource(TileSourceFactory.MAPNIK)
         }
     }

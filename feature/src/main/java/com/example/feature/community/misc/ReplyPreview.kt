@@ -45,7 +45,7 @@ import com.example.domain.model.supabase.Reply
 fun ParentReplyPreview(
     parent: Reply,
     profile: Profile?,
-    onClose: () -> Unit // Add close handler
+    onClose: () -> Unit
 ) {
     Card(
         modifier = Modifier

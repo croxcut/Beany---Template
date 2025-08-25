@@ -94,17 +94,14 @@ class HomePageViewModel @Inject constructor(
         checkConnectivity()
         initializeData()
 
-        // Set up reactive city matching
         setupCityMatching()
     }
 
     private fun setupCityMatching() {
         viewModelScope.launch {
-            // Combine both profile and cities state
             combine(_profile, _state) { profile, state ->
                 profile to state.cities
             }.collect { (profile, cities) ->
-                // Only match when both profile and cities are available
                 if (profile != null && cities.isNotEmpty() && _selectedCity.value == null) {
                     val matchedCity = cities.find {
                         it.name.equals(profile.province, ignoreCase = true)
@@ -124,7 +121,7 @@ class HomePageViewModel @Inject constructor(
                 try {
                     _session.value = sessionRepository.getCurrentSession()
                     _profile.value = sessionRepository.getUserProfile()
-                    loadCities() // Load cities after profile
+                    loadCities()
                 } catch (e: Exception) {
                     _state.value = _state.value.copy(
                         error = "Initialization failed: ${e.message}"
@@ -145,7 +142,6 @@ class HomePageViewModel @Inject constructor(
     }
 
     fun dummyActivity() {
-        // Your activity code
     }
 
     fun selectCity(city: City) {
@@ -163,7 +159,6 @@ class HomePageViewModel @Inject constructor(
 
         _state.value = _state.value.copy(cities = cities)
 
-        // Only set default city if no selection exists AND no profile match will happen
         if (cities.isNotEmpty() && _selectedCity.value == null && _profile.value == null) {
             val cityToSelect = cities.first()
             _selectedCity.value = cityToSelect

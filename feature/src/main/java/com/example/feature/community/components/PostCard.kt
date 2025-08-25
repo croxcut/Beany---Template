@@ -70,12 +70,11 @@ fun PostCard(
     sessionId: String,
     viewModel: PostDetailViewModel,
     onProfileClick: (Profile) -> Unit,
-    onImageZoom: (Uri?) -> Unit // Add this parameter
+    onImageZoom: (Uri?) -> Unit
 ) {
     val postProfile = profiles.find { it.id == post.sender }
     val context = LocalContext.current
 
-    // Get post image URI
     val postImageUri by viewModel.getPostImageUri(post.image_url).collectAsState(initial = null)
 
     Card(
@@ -92,7 +91,7 @@ fun PostCard(
                 )
                 .padding(rspDp(15.dp))
         ) {
-            // Profile Header
+
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
@@ -101,7 +100,6 @@ fun PostCard(
                         postProfile?.let { onProfileClick(it) }
                     }
             ) {
-                // Profile Image
                 val profileImageUri by viewModel.getProfileImageUri(postProfile?.id).collectAsState()
 
                 AsyncImage(
@@ -145,7 +143,6 @@ fun PostCard(
             Text(post.post_body ?: "")
             Spacer(Modifier.height(8.dp))
 
-            // Display post image if available
             postImageUri?.let { uri ->
                 Spacer(modifier = Modifier.height(8.dp))
                 AsyncImage(
@@ -183,7 +180,6 @@ fun PostCard(
                 )
             }
 
-            // Direct replies to post (no indentation)
             replies.filter { it.parent_reply_id == null }.forEach { reply ->
                 ReplyThread(
                     reply = reply,
@@ -191,7 +187,7 @@ fun PostCard(
                     onReplyClick = onReplyClick,
                     onUnsendReply = onUnsendReply,
                     onToggleLike = onToggleLike,
-                    indent = 0, // Start with 0 indentation for direct replies
+                    indent = 0,
                     profiles = profiles,
                     currentUserId = sessionId,
                     viewModel = viewModel,

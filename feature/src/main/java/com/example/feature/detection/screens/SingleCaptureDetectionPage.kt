@@ -148,9 +148,8 @@ fun SingleCaptureDetectionPage(
                         onClick = {
                             val capture = imageCaptureRef
                             if (capture != null) {
-                                isLoading = true // show loading
+                                isLoading = true
 
-                                // Fast capture directly to file
                                 val photoFile = File(context.filesDir, "diagnosis_${System.currentTimeMillis()}.jpg")
                                 val outputOptions = ImageCapture.OutputFileOptions.Builder(photoFile).build()
 
@@ -161,16 +160,15 @@ fun SingleCaptureDetectionPage(
                                         override fun onImageSaved(output: ImageCapture.OutputFileResults) {
                                             val uri = Uri.fromFile(photoFile)
 
-                                            // Pass captured image URI to next page
                                             navController.currentBackStackEntry?.savedStateHandle?.set("images", listOf(uri))
                                             navController.navigate(Route.PaginatedDetectionPage.route)
 
-                                            isLoading = false // hide loading
+                                            isLoading = false
                                         }
 
                                         override fun onError(exception: ImageCaptureException) {
                                             Toast.makeText(context, "Capture failed", Toast.LENGTH_SHORT).show()
-                                            isLoading = false // hide loading
+                                            isLoading = false
                                         }
                                     }
                                 )
@@ -193,7 +191,6 @@ fun SingleCaptureDetectionPage(
             }
         }
 
-        // Loading overlay
         if (isLoading) {
             Box(
                 modifier = Modifier

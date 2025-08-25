@@ -29,7 +29,7 @@ class SignUpRepositoryImpl @Inject constructor(
 ) : SignUpRepository {
     override suspend fun signUp(signUpCredential: SignUpCredential): Result<String> {
         return try {
-            // First, sign up the user
+
             supabaseClient.auth.signUpWith(Email) {
                 email = signUpCredential.email
                 password = signUpCredential.password
