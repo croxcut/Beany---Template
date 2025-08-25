@@ -59,6 +59,10 @@ dependencies {
     // Gson
     implementation(libs.gson)
 
+    // Moshi
+    implementation(libs.moshi)
+    implementation(libs.moshi.converter)
+
     // Room
     implementation(libs.room.runtime)
     implementation(libs.room.ktx)

@@ -51,8 +51,6 @@ dependencies {
 
     implementation(libs.osm.android)
 
-    implementation(libs.ai.mlc)
-
     // Credential
     implementation(libs.androidx.credential)
 
@@ -63,6 +61,10 @@ dependencies {
     implementation(libs.hilt)
     implementation(libs.hilt.navigation.compose)
     kapt(libs.hilt.compiler)
+
+    // TensorFlow
+    implementation(libs.tensorflow)
+    implementation(libs.tensorflow.support)
 
     // Supabase
     implementation(platform(libs.supabase.bom))

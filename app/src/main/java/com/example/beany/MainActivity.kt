@@ -81,6 +81,7 @@ import io.github.jan.supabase.auth.user.UserSession
 import io.github.jan.supabase.createSupabaseClient
 import io.github.jan.supabase.postgrest.Postgrest
 import io.github.jan.supabase.realtime.Realtime
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import org.osmdroid.config.Configuration
@@ -167,6 +168,7 @@ class MainActivity : ComponentActivity() {
 //                }
 
                 NavGraph(navController = navController, activity = this)
+
             }
         }
 
@@ -220,3 +222,4 @@ class MainActivity : ComponentActivity() {
         }
     }
 }
+

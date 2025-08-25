@@ -123,6 +123,10 @@ dependencies {
     implementation(libs.converter.gson)
     implementation(libs.logging.interceptor)
 
+    // Moshi
+    implementation(libs.moshi)
+    implementation(libs.moshi.converter)
+    
     // Testing
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
