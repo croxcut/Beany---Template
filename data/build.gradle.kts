@@ -71,8 +71,8 @@ dependencies {
     implementation(libs.hilt.navigation.compose)
     kapt(libs.hilt.compiler)
 
-    // Img Cropper
-    implementation(libs.img.android)
+//    // Img Cropper
+//    implementation(libs.img.android)
 
     // Supabase
     implementation(platform(libs.supabase.bom))
@@ -93,30 +93,30 @@ dependencies {
     implementation(libs.tensorflow.support)
 
     // AndroidX + Compose
-    implementation(libs.androidx.core.ktx)
-    implementation(libs.androidx.lifecycle.runtime.ktx)
-    implementation(libs.androidx.activity.compose)
-    implementation(platform(libs.androidx.compose.bom))
-    implementation(libs.androidx.ui)
-    implementation(libs.androidx.ui.graphics)
-    implementation(libs.androidx.ui.tooling.preview)
-    implementation(libs.androidx.material3)
+//    implementation(libs.androidx.core.ktx)
+//    implementation(libs.androidx.lifecycle.runtime.ktx)
+//    implementation(libs.androidx.activity.compose)
+//    implementation(platform(libs.androidx.compose.bom))
+//    implementation(libs.androidx.ui)
+//    implementation(libs.androidx.ui.graphics)
+//    implementation(libs.androidx.ui.tooling.preview)
+//    implementation(libs.androidx.material3)
     implementation(libs.androidx.security)
     implementation(libs.androidx.worker)
-
-    // CameraX
-    implementation(libs.camera.core)
-    implementation(libs.camera.camera2)
-    implementation(libs.camera.lifecycle)
-    implementation(libs.camera.view)
-    implementation(libs.camera.video)
-
-    // Coil + Glide
-    implementation(libs.coil.compose)
-    implementation(libs.coil.core)
-    implementation(libs.coil.gif)
-    implementation(libs.glide)
-    ksp(libs.ksp)
+//
+//    // CameraX
+//    implementation(libs.camera.core)
+//    implementation(libs.camera.camera2)
+//    implementation(libs.camera.lifecycle)
+//    implementation(libs.camera.view)
+//    implementation(libs.camera.video)
+//
+//    // Coil + Glide
+//    implementation(libs.coil.compose)
+//    implementation(libs.coil.core)
+//    implementation(libs.coil.gif)
+//    implementation(libs.glide)
+//    ksp(libs.ksp)
 
     // Network
     implementation(libs.retrofit)
@@ -127,8 +127,4 @@ dependencies {
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
-    androidTestImplementation(platform(libs.androidx.compose.bom))
-    androidTestImplementation(libs.androidx.ui.test.junit4)
-    debugImplementation(libs.androidx.ui.tooling)
-    debugImplementation(libs.androidx.ui.test.manifest)
 }

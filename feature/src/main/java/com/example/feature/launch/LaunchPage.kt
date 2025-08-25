@@ -38,8 +38,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import com.example.core.composables.GifLoader
-import com.example.core.composables.SvgImage
 import com.example.core.ui.theme.BeanyTheme
 import com.example.core.ui.theme.Beige1
 import com.example.core.ui.theme.Brown1
@@ -48,6 +46,7 @@ import com.example.core.utils.rspDp
 import com.example.core.utils.rspSp
 import com.example.domain.model.Route
 import com.example.feature.R
+import com.example.feature.misc.loader.GifLoader
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext

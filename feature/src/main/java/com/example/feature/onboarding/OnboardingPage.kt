@@ -96,6 +96,8 @@ fun OnboardingPage(
                     contentScale = ContentScale.Crop
                 )
 
+                Spacer(modifier = Modifier.height(rspDp(10.dp)))
+
                 Text(
                     text = "Beany",
                     style = TextStyle(

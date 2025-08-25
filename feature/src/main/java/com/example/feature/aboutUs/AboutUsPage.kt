@@ -123,7 +123,7 @@ fun AboutUsPage(
                                 "farmers with early diagnosis, we aim to support healthier crops and more sustainable farming.",
                         color = Color.White,
                         fontFamily = GlacialIndifference,
-                        fontSize = rspSp(14.sp),
+                        fontSize = rspSp(12.sp),
                         lineHeight = rspSp(14.sp) * 1.3f,
                         fontWeight = FontWeight.Bold
                     )
