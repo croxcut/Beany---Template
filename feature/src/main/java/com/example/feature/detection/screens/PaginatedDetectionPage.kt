@@ -711,6 +711,7 @@ fun PaginatedDetectionPage(
                                     viewModel.addActivity("Diagnosis Saved ${overlayBoxes.size}")
                                     viewModel.saveDiagnosis(diagnosis)
                                     noteText = ""
+                                    //viewmodel.addToScanHistory()
                                 }
                                 isLoading = false
                             }

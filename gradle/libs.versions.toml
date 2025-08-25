@@ -58,6 +58,9 @@ room = "2.7.2"
 # Datastore
 datastore = "1.1.7"
 
+# LLM
+ml-chat = "0.1.0"
+
 # Gson
 gson = "2.13.1"
 
@@ -136,6 +139,9 @@ paging-compose = { module = "androidx.paging:paging-compose", version.ref = "pag
 
 # Guava
 guava = { module = "com.google.guava:guava", version.ref = "guava"}
+
+# LLM
+ai-mlc = { module = "ai.mlc:mlc-llm", version.ref = "ml-chat"}
 
 # Network
 converter-gson = { module = "com.squareup.retrofit2:converter-gson", version.ref = "retrofit" }

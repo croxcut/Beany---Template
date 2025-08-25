@@ -145,7 +145,7 @@ fun SectionCard(
             .padding(horizontal = containerPadding)
             .fillMaxWidth()
             .background(color = backgroundColor, shape = RoundedCornerShape(size = rspDp(20.dp)))
-            .padding(all = rspDp(15.dp))
+            .padding(horizontal = rspDp(40.dp), vertical = rspDp(15.dp))
     ) {
         Text(
             text = title,
@@ -309,7 +309,7 @@ fun UserProfilePage(
     val TOP_SIZE_CLIP: Dp = rspDp(120.dp)
     val DESC_FONT_SIZE: TextUnit = rspSp(12.sp)
     val ROW_PADDING: Dp = rspDp(10.dp)
-    val CONTAINER_PADDING: Dp = rspDp(30.dp)
+    val CONTAINER_PADDING: Dp = rspDp(15.dp)
 
     LaunchedEffect(Unit) {
         viewModel.checkConnectivity()
@@ -892,11 +892,12 @@ fun UserProfilePage(
                     style = TextStyle(
                         fontFamily = Kare,
                         fontSize = rspSp(20.sp),
-                        color = Brown1
+                        color = Beige1
                     )
                 )
 
                 Footer(
+                    color = Beige1,
                     modifier = Modifier
                         .navigationBarsPadding()
                         .padding(bottom = rspDp(100.dp)),

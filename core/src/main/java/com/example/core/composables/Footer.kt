@@ -25,11 +25,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.sp
+import com.example.core.ui.theme.Brown1
 import com.example.core.utils.rspSp
 
 @Composable
 fun Footer(
     modifier: Modifier = Modifier,
+    color: Color? = Brown1,
     onClick: () -> Unit
 ) {
     Column(
@@ -44,28 +46,30 @@ fun Footer(
                     .clickable{
                         onClick()
                     },
-                style = footerGetTextStyle()
+                style = footerGetTextStyle(color)
             )
             Text(
                 text = " | ",
-                style = footerGetTextStyle()
+                style = footerGetTextStyle(color)
             )
             Text(
                 text = "Beany ",
-                style = footerGetTextStyle()
+                style = footerGetTextStyle(color)
             )
             Text(
                 text = "© 2025 All Rights Reserved",
-                style = footerGetTextStyle()
+                style = footerGetTextStyle(color)
             )
         }
     }
 }
 
 @Composable
-fun footerGetTextStyle(): TextStyle {
+fun footerGetTextStyle(
+    color: Color?
+): TextStyle {
     return TextStyle(
         fontSize = rspSp(12.sp),
-        color = Color.Black
+        color = color!!
     )
 }

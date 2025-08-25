@@ -25,7 +25,7 @@ import androidx.compose.ui.Modifier
 import com.example.core.ui.theme.Brown1
 
 @Composable
-fun DetectionHistoryPage(
+fun ScanHistoryPage(
 
 ) {
 

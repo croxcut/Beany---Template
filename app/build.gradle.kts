@@ -51,6 +51,8 @@ dependencies {
 
     implementation(libs.osm.android)
 
+    implementation(libs.ai.mlc)
+
     // Credential
     implementation(libs.androidx.credential)
 

@@ -43,7 +43,7 @@ import com.example.feature.aboutUs.AboutUsPage
 import com.example.feature.community.pages.PostDetailPage
 import com.example.feature.community.pages.PostsListPage
 import com.example.feature.detection.FeatureSelectionPage
-import com.example.feature.detection.DetectionHistoryPage
+import com.example.feature.detection.ScanHistoryPage
 import com.example.feature.detection.screens.DiagnosisPage
 import com.example.feature.detection.screens.PaginatedDetectionPage
 import com.example.feature.detection.screens.RealtimeDetectionPage
@@ -88,6 +88,9 @@ fun NavGraph(
         Route.UserProfilePage.route
     )
 
+    // START DESTINATION!
+    val start: String = Route.UserProfilePage.route
+
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -96,7 +99,7 @@ fun NavGraph(
     ) {
         NavHost(
             navController = navController,
-            startDestination = Route.AboutUsPage.route,
+            startDestination = start,
             modifier = Modifier
                 .matchParentSize()
                 .windowInsetsPadding(WindowInsets.navigationBars)
@@ -208,6 +211,12 @@ fun NavGraph(
                 route = Route.DiagnosisPage.route
             ) {
                 DiagnosisPage()
+            }
+
+            composable(
+                route = Route.ScanHistoryPage.route
+            ) {
+                ScanHistoryPage()
             }
 
             composable(Route.DiagnosisListPage.route) {
