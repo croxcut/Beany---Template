@@ -17,7 +17,7 @@ package com.example.data.repositoryImpl.remote.openMeteo
 
 import android.content.Context
 import com.example.data.local.loadCity
-import com.example.data.remote.WeatherApiService
+import com.example.data.remote.services.WeatherApiService
 import com.example.data.remote.model.WeatherApiResponse
 import com.example.domain.model.weather.City
 import com.example.domain.model.weather.DailyForecast

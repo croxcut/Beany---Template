@@ -16,7 +16,7 @@
 package com.example.data.di
 
 import android.content.Context
-import com.example.data.remote.WeatherApiService
+import com.example.data.remote.services.WeatherApiService
 import com.example.data.repositoryImpl.remote.openMeteo.WeatherRepositoryImpl
 import com.example.domain.repository.remote.openMeteo.WeatherRepository
 import dagger.Module

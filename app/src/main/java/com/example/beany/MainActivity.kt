@@ -69,6 +69,7 @@ import androidx.work.workDataOf
 import com.example.core.local.EasyNotification
 import com.example.core.local.createNotificationChannel
 import com.example.core.ui.theme.BeanyTheme
+import com.example.feature.test.ChatScreen
 import com.example.nav.NavGraph
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
@@ -167,8 +168,8 @@ class MainActivity : ComponentActivity() {
 //                    }
 //                }
 
-                NavGraph(navController = navController, activity = this)
-
+//                NavGraph(navController = navController, activity = this)
+                ChatScreen()
             }
         }
 
