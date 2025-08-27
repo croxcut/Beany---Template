@@ -49,26 +49,6 @@ dependencies {
     implementation(libs.hilt.navigation.compose)
     kapt(libs.hilt.compiler)
 
-    // Supabase
-    implementation(platform(libs.supabase.bom))
-    implementation(libs.supabase.postgrest)
-    implementation(libs.supabase.realtime)
-    implementation(libs.supabase.auth)
-    implementation(libs.supabase.storage)
-
-    // Gson
-    implementation(libs.gson)
-
-    // Moshi
-    implementation(libs.moshi)
-    implementation(libs.moshi.converter)
-
-    // Room
-    implementation(libs.room.runtime)
-    implementation(libs.room.ktx)
-    kapt(libs.room.compiler)
-    implementation(libs.room.paging)
-
     // Testing
     testImplementation(libs.junit)
 }

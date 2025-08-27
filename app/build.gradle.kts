@@ -51,41 +51,10 @@ dependencies {
 
     implementation(libs.osm.android)
 
-    // Credential
-    implementation(libs.androidx.credential)
-
-    // Img Cropper
-    implementation(libs.img.android)
-
     // Hilt
     implementation(libs.hilt)
     implementation(libs.hilt.navigation.compose)
     kapt(libs.hilt.compiler)
-
-    // TensorFlow
-    implementation(libs.tensorflow)
-    implementation(libs.tensorflow.support)
-
-    // Supabase
-    implementation(platform(libs.supabase.bom))
-    implementation(libs.supabase.postgrest)
-    implementation(libs.supabase.realtime)
-    implementation(libs.supabase.auth)
-    implementation(libs.supabase.storage)
-
-    implementation(libs.google.loc)
-
-    // Google Auth
-    implementation(libs.google.auth)
-    implementation(libs.google.services)
-    implementation(libs.google.googleid)
-
-    // Ktor (required by Supabase)
-    implementation(libs.ktor.client.core)
-    implementation(libs.ktor.client.cio)
-    implementation(libs.ktor.client.auth)
-    implementation(libs.ktor.client.content.negotiation)
-    implementation(libs.ktor.serialization.kotlinx.json)
 
     // AndroidX + Compose
     implementation(libs.androidx.core.ktx)
@@ -105,18 +74,6 @@ dependencies {
     implementation(libs.camera.lifecycle)
     implementation(libs.camera.view)
     implementation(libs.camera.video)
-
-    // Coil + Glide
-    implementation(libs.coil.compose)
-    implementation(libs.coil.core)
-    implementation(libs.coil.gif)
-    implementation(libs.glide)
-    ksp(libs.ksp)
-
-    // Network
-    implementation(libs.retrofit)
-    implementation(libs.converter.gson)
-    implementation(libs.logging.interceptor)
 
     // Testing
     testImplementation(libs.junit)

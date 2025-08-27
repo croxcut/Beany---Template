@@ -53,14 +53,6 @@ dependencies {
     // OSM
     implementation(libs.osm.android)
 
-    // Img Cropper
-    implementation(libs.img.android)
-
-    // Google Auth
-    implementation(libs.google.auth)
-    implementation(libs.google.services)
-    implementation(libs.google.googleid)
-
     // DataStore
     implementation(libs.datastore)
 
@@ -69,35 +61,11 @@ dependencies {
     implementation(libs.hilt.navigation.compose)
     kapt(libs.hilt.compiler)
 
-    implementation(libs.paging.runtime)
-    implementation(libs.paging.compose)
-
-    // Gson
-    implementation(libs.gson)
-
     // Room
     implementation(libs.room.runtime)
     implementation(libs.room.ktx)
     kapt(libs.room.compiler)
     implementation(libs.room.paging)
-
-    // Supabase
-    implementation(platform(libs.supabase.bom))
-    implementation(libs.supabase.postgrest)
-    implementation(libs.supabase.realtime)
-    implementation(libs.supabase.auth)
-    implementation(libs.supabase.storage)
-
-    // TensorFlow
-    implementation(libs.tensorflow)
-    implementation(libs.tensorflow.support)
-
-    // Ktor (required by Supabase)
-    implementation(libs.ktor.client.core)
-    implementation(libs.ktor.client.cio)
-    implementation(libs.ktor.client.auth)
-    implementation(libs.ktor.client.content.negotiation)
-    implementation(libs.ktor.serialization.kotlinx.json)
 
     // AndroidX + Compose
     implementation(libs.androidx.core.ktx)
@@ -111,28 +79,6 @@ dependencies {
     implementation(libs.androidx.security)
     implementation(libs.androidx.concurrent.futures)
     implementation(libs.androidx.worker)
-
-    // Guava
-    implementation(libs.guava)
-
-    // CameraX
-    implementation(libs.camera.core)
-    implementation(libs.camera.camera2)
-    implementation(libs.camera.lifecycle)
-    implementation(libs.camera.view)
-    implementation(libs.camera.video)
-
-    // Coil + Glide
-    implementation(libs.coil.compose)
-    implementation(libs.coil.core)
-    implementation(libs.coil.gif)
-    implementation(libs.glide)
-    ksp(libs.ksp)
-
-    // Network
-    implementation(libs.retrofit)
-    implementation(libs.converter.gson)
-    implementation(libs.logging.interceptor)
 
     // Testing
     testImplementation(libs.junit)

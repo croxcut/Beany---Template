@@ -26,11 +26,6 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Beany">
 
-        <!-- Google Sign-In Metadata -->
-        <meta-data
-            android:name="com.google.android.gms.version"
-            android:value="@integer/google_play_services_version" />
-
         <activity
             android:name=".MainActivity"
             android:exported="true"
@@ -52,10 +47,6 @@
                 <data android:scheme="beanyapp" android:host="notification_screen" />
             </intent-filter>
         </activity>
-        <!-- Add this for CanHub Cropper -->
-        <activity
-            android:name="com.canhub.cropper.CropImageActivity"
-            android:theme="@style/Theme.MaterialComponents.DayNight.DarkActionBar" />
 
     </application>
 </manifest>

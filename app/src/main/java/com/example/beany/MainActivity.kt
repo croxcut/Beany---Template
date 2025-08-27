@@ -66,22 +66,8 @@ import androidx.work.WorkManager
 import androidx.work.Worker
 import androidx.work.WorkerParameters
 import androidx.work.workDataOf
-import com.example.core.local.EasyNotification
-import com.example.core.local.createNotificationChannel
 import com.example.core.ui.theme.BeanyTheme
-import com.example.feature.test.ChatScreen
-import com.example.nav.NavGraph
-import com.google.android.gms.location.FusedLocationProviderClient
-import com.google.android.gms.location.LocationServices
 import dagger.hilt.android.AndroidEntryPoint
-import io.github.jan.supabase.SupabaseClient
-import io.github.jan.supabase.annotations.SupabaseExperimental
-import io.github.jan.supabase.auth.Auth
-import io.github.jan.supabase.auth.auth
-import io.github.jan.supabase.auth.user.UserSession
-import io.github.jan.supabase.createSupabaseClient
-import io.github.jan.supabase.postgrest.Postgrest
-import io.github.jan.supabase.realtime.Realtime
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
@@ -100,127 +86,20 @@ import kotlin.time.ExperimentalTime
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
-    private lateinit var navController: NavHostController
-    private lateinit var fusedLocationClient: FusedLocationProviderClient
-
-    private val requiredPermissions = arrayOf(
-        Manifest.permission.CAMERA,
-        Manifest.permission.POST_NOTIFICATIONS,
-        Manifest.permission.WRITE_EXTERNAL_STORAGE,
-        Manifest.permission.ACCESS_FINE_LOCATION,
-        Manifest.permission.ACCESS_COARSE_LOCATION
-    )
-
-    private val storagePermissions = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-        arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE)
-    } else {
-        arrayOf(
-            Manifest.permission.READ_EXTERNAL_STORAGE,
-            Manifest.permission.WRITE_EXTERNAL_STORAGE
-        )
-    }
-
-    private val requestPermissionsLauncher =
-        registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissions ->
-            permissions.entries.forEach { (permission, isGranted) ->
-                if (isGranted) {
-                    Log.d("Permissions", "$permission granted")
-                } else {
-                    Log.d("Permissions", "$permission denied")
-                }
-            }
-        }
-
-    @RequiresPermission(allOf = [android.Manifest.permission.ACCESS_FINE_LOCATION, android.Manifest.permission.ACCESS_COARSE_LOCATION])
-    @OptIn(SupabaseExperimental::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         installSplashScreen()
         enableEdgeToEdge()
 
-        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
 
-        createNotificationChannel(this)
-        EasyNotification.createNotificationChannel(
-            context = this,
-            channelId = "beany_channel",
-            channelName = "Beany Notifications"
-        )
         setContent {
             BeanyTheme {
-                navController = rememberNavController()
 
-//                var locationText by remember { mutableStateOf("Press button to get location") }
-//
-//                Column(
-//                    modifier = Modifier
-//                        .fillMaxSize()
-//                        .padding(16.dp),
-//                    horizontalAlignment = Alignment.CenterHorizontally,
-//                    verticalArrangement = Arrangement.Center
-//                ) {
-//                    Text(locationText)
-//                    Spacer(modifier = Modifier.height(16.dp))
-//                    Button(onClick = { getCurrentLocation { lat, lon ->
-//                        locationText = "Lat: $lat, Lon: $lon"
-//                    } }) {
-//                        Text("Get Location")
-//                    }
-//                }
+                Text("Test")
 
-//                NavGraph(navController = navController, activity = this)
-                ChatScreen()
             }
         }
 
-        requestNecessaryPermissions()
-        handleIntent(intent)
-    }
-
-    @RequiresPermission(anyOf = [Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION])
-    private fun getCurrentLocation(onLocationResult: (Double, Double) -> Unit) {
-        if (ActivityCompat.checkSelfPermission(
-                this,
-                Manifest.permission.ACCESS_FINE_LOCATION
-            ) != PackageManager.PERMISSION_GRANTED &&
-            ActivityCompat.checkSelfPermission(
-                this,
-                Manifest.permission.ACCESS_COARSE_LOCATION
-            ) != PackageManager.PERMISSION_GRANTED
-        ) {
-            Log.d("Location", "Permission not granted")
-            return
-        }
-
-        fusedLocationClient.lastLocation.addOnSuccessListener { location: Location? ->
-            location?.let {
-                onLocationResult(it.latitude, it.longitude)
-            } ?: run {
-                Log.d("Location", "Location is null")
-            }
-        }
-    }
-
-    private fun requestNecessaryPermissions() {
-        val allPermissions = requiredPermissions + storagePermissions
-
-        val permissionsToRequest = allPermissions.filter { permission ->
-            ContextCompat.checkSelfPermission(this, permission) != PackageManager.PERMISSION_GRANTED
-        }
-
-        if (permissionsToRequest.isNotEmpty()) {
-            requestPermissionsLauncher.launch(permissionsToRequest.toTypedArray())
-        }
-    }
-
-    private fun handleIntent(intent: Intent?) {
-        intent?.data?.let { uri ->
-            Log.d("EasyNotification", "Notification tapped! URI = $uri")
-            val message = uri.lastPathSegment?.let { Uri.decode(it) } ?: return
-            navController.navigate("notification_screen/$message") {
-                launchSingleTop = true
-            }
-        }
     }
 }
 

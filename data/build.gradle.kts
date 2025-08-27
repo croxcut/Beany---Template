@@ -49,20 +49,6 @@ dependencies {
     implementation(project(":domain"))
     implementation(project(":core"))
 
-    // Gson
-    implementation(libs.gson)
-
-    // Google Auth
-    implementation(libs.google.auth)
-    implementation(libs.google.services)
-    implementation(libs.google.googleid)
-
-    // Room
-    implementation(libs.room.runtime)
-    implementation(libs.room.ktx)
-    kapt(libs.room.compiler)
-    implementation(libs.room.paging)
-
     // DataStore
     implementation(libs.datastore)
 
@@ -70,63 +56,7 @@ dependencies {
     implementation(libs.hilt)
     implementation(libs.hilt.navigation.compose)
     kapt(libs.hilt.compiler)
-
-//    // Img Cropper
-//    implementation(libs.img.android)
-
-    // Supabase
-    implementation(platform(libs.supabase.bom))
-    implementation(libs.supabase.postgrest)
-    implementation(libs.supabase.realtime)
-    implementation(libs.supabase.auth)
-    implementation(libs.supabase.storage)
-
-    // Ktor (required by Supabase)
-    implementation(libs.ktor.client.core)
-    implementation(libs.ktor.client.cio)
-    implementation(libs.ktor.client.auth)
-    implementation(libs.ktor.client.content.negotiation)
-    implementation(libs.ktor.serialization.kotlinx.json)
-
-    // Tensorflow
-    implementation(libs.tensorflow)
-    implementation(libs.tensorflow.support)
-
-    // AndroidX + Compose
-//    implementation(libs.androidx.core.ktx)
-//    implementation(libs.androidx.lifecycle.runtime.ktx)
-//    implementation(libs.androidx.activity.compose)
-//    implementation(platform(libs.androidx.compose.bom))
-//    implementation(libs.androidx.ui)
-//    implementation(libs.androidx.ui.graphics)
-//    implementation(libs.androidx.ui.tooling.preview)
-//    implementation(libs.androidx.material3)
-    implementation(libs.androidx.security)
-    implementation(libs.androidx.worker)
-//
-//    // CameraX
-//    implementation(libs.camera.core)
-//    implementation(libs.camera.camera2)
-//    implementation(libs.camera.lifecycle)
-//    implementation(libs.camera.view)
-//    implementation(libs.camera.video)
-//
-//    // Coil + Glide
-//    implementation(libs.coil.compose)
-//    implementation(libs.coil.core)
-//    implementation(libs.coil.gif)
-//    implementation(libs.glide)
-//    ksp(libs.ksp)
-
-    // Network
-    implementation(libs.retrofit)
-    implementation(libs.converter.gson)
-    implementation(libs.logging.interceptor)
-
-    // Moshi
-    implementation(libs.moshi)
-    implementation(libs.moshi.converter)
-    
+   
     // Testing
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
